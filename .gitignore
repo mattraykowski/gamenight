@@ -36,3 +36,7 @@ npm-debug.log
 /priv/plts/
 *.plt
 *.plt.hash
+
+# Playwright test artifacts (screenshots, traces, last-run metadata).
+/assets/test-results/
+/assets/playwright-report/
