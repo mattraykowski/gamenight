@@ -25,10 +25,8 @@ config :game_night, GameNightWeb.Endpoint,
   code_reloader: true,
   debug_errors: true,
   secret_key_base: "zzFKVMvgflmnxliBVrhxt/AkFCwdMVYRmXlhSNGi76GvR/IjWh0odbL3v03ADQLi",
-  watchers: [
-    esbuild: {Esbuild, :install_and_run, [:game_night, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:game_night, ~w(--watch)]}
-  ]
+  watchers: [vite: {Bun, :install_and_run, [:vite, ~w(dev)]}],
+  static_url: [host: "localhost", port: 5173]
 
 # ## SSL Support
 #

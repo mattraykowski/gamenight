@@ -43,6 +43,71 @@ custom classes must fully style the input
 - Ensure **clean typography, spacing, and layout balance** for a refined, premium look
 - Focus on **delightful details** like hover effects, loading states, and smooth page transitions
 
+## Constitution
+
+The project constitution at `.specify/memory/constitution.md` governs development standards (TDD, Ash policies, JSON:API, WCAG 2.2 AA, performance, security gates). These runtime guidelines implement it; when the two disagree, the constitution wins.
+
+## Ash runtime guidelines
+
+- **Call code interfaces on the domain, never the data layer directly.** `MyApp.Games.register_player!/1` is correct; `Repo.insert(%Player{...})` bypasses policies, validations, changes, and notifications and is forbidden per the constitution (Principle II) outside data migrations and named reporting modules.
+- **Use `Ash.Query.load/2` to prevent N+1.** This is the Ash analog of `Ecto.preload`. Nested loads (`load: [games: [:players, :gm]]`) flatten into efficient queries.
+- **Prefer aggregates over calculations** for count/sum/exists over a relationship — aggregates push to SQL and are filterable/sortable. Calculations written with `expr(...)` also push to SQL; Elixir-function calculations run per-record, so know which you wrote.
+- **Pagination: keyset over offset.** Declare read actions with `paginate?: true, keyset?: true`. Offset pagination is unstable under concurrent writes.
+- **Bulk operations use `Ash.bulk_create/2`, `Ash.bulk_update/2`, `Ash.bulk_destroy/2`** — looping `Ash.create/2` in a `for` is an N-times performance bug.
+- **Drop to raw Ecto only for reports, analytics, and bulk reads that don't fit Ash.** Put them in a clearly named read-only module (e.g., `MyApp.Reports.*`); they are exempt from the Ash-only rule but MUST NOT be reachable from user-facing write paths.
+- **Policies**: prefer `bypass` blocks over `authorize_if always()` at the top of a policy — `bypass` short-circuits cleanly and is auditable. Prefer `FilterCheck`/`SimpleCheck` modules over inline `expr(...)` once a check is reused.
+- **Let actions authorize**; call `Ash.can?/3` only to drive UI affordances (show/hide buttons), never to gate writes in application code.
+- **Migrations**: run `mix ash.codegen <name>` — do not write migrations by hand except for data migrations. Commit the updated `priv/resource_snapshots/` along with the migration. CI runs `mix ash.codegen --check` to catch drift.
+- **Sobelow false positives** on Ash-generated code are expected. Maintain `.sobelow-conf` allowlists with comments explaining each exemption.
+
+## TanStack Query runtime guidelines
+
+- **Override the default `staleTime`.** The `QueryClient` default (`staleTime: 0`) causes refetch storms. Set a sensible global default (30s–5min) and override per-query as needed. This is TkDodo's most-repeated warning.
+- **Query keys via hierarchical factories**, per feature. Example: `const gameKeys = { all: ['games'] as const, lists: () => [...gameKeys.all, 'list'] as const, list: (f: Filters) => [...gameKeys.lists(), f] as const, detail: (id: string) => [...gameKeys.all, 'detail', id] as const }`. Invalidate `gameKeys.lists()` to refresh all lists; `gameKeys.detail(id)` to refresh one.
+- **Server state in Query, client state elsewhere.** Do not store server-derived data in Zustand, Jotai, or `useState`. Query is the server-state store.
+- **Invalidate rather than `setQueryData`** unless you have the full, authoritative server shape to write. Invalidation is correct by construction; `setQueryData` risks drift.
+- **`placeholderData: keepPreviousData`** (v5 API) for pagination and filtering to avoid flicker.
+- **Optimistic UI**: for single-screen optimism, read `mutation.variables` in render rather than touching the cache via `onMutate`/rollback. Simpler and drift-proof. Reserve the full `onMutate`/`onError`/`onSettled` dance for multi-screen optimism.
+- **Route loaders own fetching**: `loader: ({ context }) => context.queryClient.ensureQueryData(queryOptions)` then `useSuspenseQuery(queryOptions)` in the component. Do not mix `useQuery` and `useSuspenseQuery` for the same key in the same tree.
+
+## TanStack Router runtime guidelines
+
+- **File-based routes** are the default; `routeTree.gen.ts` is committed.
+- **Typed navigation only**: `<Link to="/games/$gameId" params={{ gameId }}>`. Do not pass hand-rolled route strings; the type system is the whole point.
+- **Search params are state**: declare with `validateSearch: zodSearchValidator(schema)`, read via `useSearch({ from: ... })`. Do not add `nuqs` or similar for router-owned state.
+- **Auth guards in `beforeLoad`**, throwing `redirect({ to: '/login', search: { redirect: location.href } })`. Never gate in component render — it flashes protected content.
+- **Keep `preload: 'intent'` on.** Free perceived-performance win.
+- **Per-route `errorComponent` and `pendingComponent`** for scoped error boundaries and suspense fallbacks. Avoid wrapping the whole app in one global `<ErrorBoundary>`.
+- **Route-change focus & announce**: the app provides a single shared focus-on-navigation helper (per constitution Principle IV). Every new route MUST opt into it — do not reinvent the mechanism per route.
+
+## React runtime guidelines
+
+- **React Compiler is on.** Do not hand-roll `useMemo`/`useCallback`/`React.memo` unless the ESLint plugin (`eslint-plugin-react-compiler`) flags that a given file opts out. Trust the compiler first; measure before memoizing manually.
+- **Colocate state at the lowest common ancestor.** Reach for Zustand only for genuinely cross-cutting client state (theme, command palette, ephemeral UI).
+- **Forms**: React Hook Form + Zod via `@hookform/resolvers/zod`, wrapped in Shadcn's `<Form>` component. Shadcn's `FormField` / `FormMessage` wires `aria-invalid` and `aria-describedby` correctly — do not bypass it.
+- **Validation timing**: `mode: 'onTouched'` (validate `onBlur` first, then `onChange` after first error). `onChange` from empty state punishes mid-typing and is a UX defect per constitution Principle V.
+
+## Shadcn UI runtime guidelines
+
+- **Copy-paste, not npm dependency.** Components live in `assets/js/components/ui/` and you own them. Customize by editing the copied file.
+- **`cn()` utility** (= `clsx` + `tailwind-merge`) for every conditional class name combination.
+- **Theme via CSS custom properties** in `:root` / `.dark` referenced as `hsl(var(--primary))`. Do not fork component files to re-theme.
+- **Radix primitives underneath are accessible by default** (Dialog focus trap, Menu roving tabindex). Do not replace Radix parts casually — you will regress a11y.
+- **Verify icon-button sizes against WCAG 2.5.8** (≥24×24 CSS px). Shadcn's default is borderline.
+
+## API client integration (ash_typescript)
+
+- **Wrap generated functions in feature-level query hooks** — never call the generated client directly from components. Create `useGame(id)` that calls the generated function inside `useQuery`.
+- **Normalize JSON:API envelopes in the `queryFn`** so components see flat objects. Don't leak `data`/`attributes`/`relationships` into the UI.
+- **Map errors to a discriminated union** in the `queryFn` so `error` is narrow in components.
+- **Never hand-edit generated files.** Regenerate via `mix ash_typescript.codegen`; CI fails on drift.
+
+## Authentication runtime guidelines
+
+- **Session/refresh tokens**: httpOnly + Secure + SameSite=Lax cookies (or stricter). Set via `Plug.Conn.put_resp_cookie/4`.
+- **Access tokens**: in memory only (module-level variable in the generated client or an auth context). Never to `localStorage`/`sessionStorage`.
+- **401 interceptor** in the client: attempt one silent refresh; on second 401, clear auth state and `router.navigate({ to: '/login', search: { redirect: currentPath } })`.
+- **CSRF**: Phoenix's `:protect_from_forgery` plug on mutation pipelines; JSON:API mutation requests MUST send the CSRF token header. Do not disable CSRF to "just make it work" during development.
 
 <!-- usage-rules-start -->
 

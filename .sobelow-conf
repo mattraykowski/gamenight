@@ -1,0 +1,15 @@
+[
+  verbose: false,
+  private: false,
+  skip: false,
+  router: "lib/game_night_web/router.ex",
+  exit: "low",
+  format: "txt",
+  out: "",
+  threshold: "low",
+  ignore: [],
+  ignore_files: [
+    "priv/repo/migrations/",
+    "priv/resource_snapshots/"
+  ]
+]

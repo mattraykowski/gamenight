@@ -1,0 +1,7 @@
+node_modules/
+../priv/static/
+js/routeTree.gen.ts
+js/ash_rpc.ts
+js/ash_types.ts
+vendor/
+public/

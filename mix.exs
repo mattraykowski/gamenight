@@ -12,7 +12,14 @@ defmodule GameNight.MixProject do
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
       listeners: [Phoenix.CodeReloader],
-      consolidate_protocols: Mix.env() != :dev
+      consolidate_protocols: Mix.env() != :dev,
+      dialyzer: [
+        plt_core_path: "priv/plts",
+        plt_local_path: "priv/plts/local.plt",
+        plt_add_apps: [:ex_unit, :mix],
+        ignore_warnings: ".dialyzer_ignore.exs",
+        flags: [:error_handling, :unknown, :missing_return, :extra_return]
+      ]
     ]
   end
 
@@ -28,7 +35,14 @@ defmodule GameNight.MixProject do
 
   def cli do
     [
-      preferred_envs: [precommit: :test]
+      preferred_envs: [
+        precommit: :test,
+        ci: :test,
+        credo: :test,
+        dialyzer: :test,
+        sobelow: :test,
+        "deps.audit": :test
+      ]
     ]
   end
 
@@ -41,6 +55,7 @@ defmodule GameNight.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:phoenix_vite, "~> 0.4"},
       {:bcrypt_elixir, "~> 3.0"},
       {:picosat_elixir, "~> 0.2"},
       {:sourceror, "~> 1.8", only: [:dev, :test]},
@@ -67,8 +82,6 @@ defmodule GameNight.MixProject do
       {:phoenix_live_view, "~> 1.1.0"},
       {:lazy_html, ">= 0.1.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.3"},
-      {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.2.0",
@@ -83,7 +96,12 @@ defmodule GameNight.MixProject do
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
+      {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
+      {:bun, "~> 1.5 and >= 1.5.1", runtime: Mix.env() == :dev}
     ]
   end
 
@@ -100,17 +118,32 @@ defmodule GameNight.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ash.setup --quiet", "test"],
       "assets.setup": [
-        "tailwind.install --if-missing",
-        "esbuild.install --if-missing",
-        "ash_typescript.npm_install"
+        "bun.install --if-missing",
+        "bun assets install"
       ],
-      "assets.build": ["compile", "tailwind game_night", "esbuild game_night"],
+      "assets.build": ["bun vite build"],
       "assets.deploy": [
-        "tailwind game_night --minify",
-        "esbuild game_night --minify",
-        "phx.digest"
+        "assets.build"
       ],
-      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
+      precommit: [
+        "compile --warnings-as-errors",
+        "deps.unlock --unused",
+        "format",
+        "credo --strict",
+        "ash.codegen --check",
+        "test"
+      ],
+      ci: [
+        "compile --warnings-as-errors",
+        "deps.unlock --check-unused",
+        "format --check-formatted",
+        "credo --strict",
+        "ash.codegen --check",
+        "sobelow --config --exit Low",
+        "deps.audit",
+        "dialyzer",
+        "test"
+      ]
     ]
   end
 end
