@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
@@ -27,7 +28,11 @@
     "topbar": "^3.0.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.2",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/vite": "^4.1.0",
+    "@tanstack/eslint-plugin-query": "^5.85.0",
+    "@tanstack/eslint-plugin-router": "^1.160.0",
     "@tanstack/react-query-devtools": "^5.85.0",
     "@tanstack/router-plugin": "^1.160.0",
     "@testing-library/jest-dom": "^6.6.0",
@@ -44,8 +49,6 @@
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-compiler": "^19.1.0-rc.2",
     "eslint-plugin-react-hooks": "^5.1.0",
-    "@tanstack/eslint-plugin-query": "^5.85.0",
-    "@tanstack/eslint-plugin-router": "^1.160.0",
     "globals": "^15.14.0",
     "jsdom": "^26.0.0",
     "msw": "^2.7.0",

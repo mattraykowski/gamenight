@@ -24,7 +24,13 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": "/js",
-      "phoenix-colocated": `${process.env.MIX_BUILD_PATH}/phoenix-colocated`,
+      // phoenix-colocated is only resolvable when Phoenix orchestrates Vite
+      // via mix assets.build (which sets MIX_BUILD_PATH). When running the
+      // Vite dev server standalone (e.g. Playwright Phase 2), the alias is
+      // pointed at a harmless placeholder; the SPA entry doesn't import it.
+      "phoenix-colocated": process.env.MIX_BUILD_PATH
+        ? `${process.env.MIX_BUILD_PATH}/phoenix-colocated`
+        : "/tmp/phoenix-colocated-unused",
     },
   },
   plugins: [

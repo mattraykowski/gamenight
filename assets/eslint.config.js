@@ -20,6 +20,7 @@ export default tseslint.config(
       "js/app.js",
       "js/animation.ts",
       "js/index.tsx.legacy",
+      "e2e/**",
       "vendor/**",
       "public/**",
     ],

@@ -24,6 +24,6 @@
       "@/*": ["./js/*"]
     }
   },
-  "include": ["js/**/*", "vite.config.ts", "vitest.config.ts", "eslint.config.js"],
-  "exclude": ["node_modules", "../priv/static"]
+  "include": ["js/**/*", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"],
+  "exclude": ["node_modules", "../priv/static", "e2e"]
 }

@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ComponentType } from "react";
+import { A11yAnnouncer } from "@/lib/a11y/announcer";
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -36,7 +37,11 @@ export function renderRoute(
   });
 
   const rootRoute = createRootRouteWithContext<RouterContext>()({
-    component: () => <Outlet />,
+    component: () => (
+      <A11yAnnouncer>
+        <Outlet />
+      </A11yAnnouncer>
+    ),
   });
 
   const testRoute = createRoute({
