@@ -3,14 +3,54 @@
 
 
 
+export type UUID = string;
+
+// User Schema
+export type UserResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "email";
+  id: UUID;
+  email: string;
+};
 
 
 
+export type UserAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "email";
+  id: UUID;
+  email: string;
+};
+
+
+export type UserFilterInput = {
+  and?: Array<UserFilterInput>;
+  or?: Array<UserFilterInput>;
+  not?: Array<UserFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  email?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
 
 
 
+};
 
 
+export const userFilterFields = ["id", "email"] as const;
+export type UserFilterField = (typeof userFilterFields)[number];
+
+
+export const userSortFields = ["id", "email"] as const;
+export type UserSortField = (typeof userSortFields)[number];
 
 
 // Utility Types

@@ -4,7 +4,11 @@ defmodule GameNight.Accounts.User do
     domain: GameNight.Accounts,
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshAuthentication]
+    extensions: [AshAuthentication, AshTypescript.Resource]
+
+  typescript do
+    type_name "User"
+  end
 
   authentication do
     add_ons do
@@ -63,6 +67,13 @@ defmodule GameNight.Accounts.User do
 
   actions do
     defaults [:read]
+
+    read :read_current_user do
+      description "Read the currently-authenticated user."
+      get? true
+      filter expr(id == ^actor(:id))
+      public? true
+    end
 
     read :get_by_subject do
       description "Get a user by the subject claim in a JWT"
@@ -271,6 +282,10 @@ defmodule GameNight.Accounts.User do
   policies do
     bypass AshAuthentication.Checks.AshAuthenticationInteraction do
       authorize_if always()
+    end
+
+    policy action(:read_current_user) do
+      authorize_if expr(id == ^actor(:id))
     end
   end
 

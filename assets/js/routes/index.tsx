@@ -1,11 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { useOptionalAuth } from "@/lib/auth/auth-context";
 
 export const Route = createFileRoute("/")({
   component: HomeRoute,
 });
 
 function HomeRoute() {
+  const auth = useOptionalAuth();
+  const isAuthenticated = auth?.isAuthenticated ?? false;
+
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
       <h1 data-route-heading tabIndex={-1} className="text-4xl font-bold tracking-tight">
@@ -15,10 +19,15 @@ function HomeRoute() {
         Organize your game groups, schedule sessions, and manage players.
       </p>
       <div className="mt-8 flex gap-4">
-        <Button>Get started</Button>
-        <Button variant="outline" asChild>
-          <Link to="/about">About</Link>
-        </Button>
+        {isAuthenticated ? (
+          <Button asChild>
+            <Link to="/dashboard">Go to dashboard</Link>
+          </Button>
+        ) : (
+          <Button asChild>
+            <a href="/sign-in">Sign in</a>
+          </Button>
+        )}
       </div>
     </main>
   );

@@ -13,12 +13,26 @@ defmodule GameNightWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :load_from_session
+    # Promote `current_user` to `actor` so Ash actions authorize against
+    # the logged-in user. Without this, `/rpc/run` sees no actor and
+    # every policy-checked action fails with "actor is required".
+    plug :set_actor, :user
   end
 
   pipeline :api do
     plug :accepts, ["json"]
     plug :load_from_bearer
     plug :set_actor, :user
+  end
+
+  # Playwright / dev-only: a session-aware JSON pipeline that skips
+  # CSRF protection so seed requests from the test harness don't need
+  # to bootstrap a token first. Never mounted in production (see the
+  # `dev_routes` guard around the test scope).
+  pipeline :test_session_api do
+    plug :accepts, ["json"]
+    plug :fetch_session
+    plug :put_secure_browser_headers
   end
 
   scope "/", GameNightWeb do
@@ -55,7 +69,8 @@ defmodule GameNightWeb.Router do
   scope "/", GameNightWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    get "/", PageController, :spa
+    get "/dashboard", PageController, :spa
     auth_routes AuthController, GameNight.Accounts.User, path: "/auth"
     sign_out_route AuthController
 
@@ -118,5 +133,25 @@ defmodule GameNightWeb.Router do
 
       ash_admin "/"
     end
+  end
+
+  # Playwright / E2E helper — guarded behind :dev_routes so the endpoint
+  # is never mounted in production. The controller upserts a user and
+  # stores them in the Phoenix session.
+  if Application.compile_env(:game_night, :dev_routes) do
+    scope "/test", GameNightWeb do
+      pipe_through :test_session_api
+
+      post "/sign-in-as", TestAuthController, :sign_in_as
+    end
+  end
+
+  # Catch-all for deep-linked SPA routes (e.g. /dashboard on a hard
+  # refresh). Kept at the very end so it does not shadow any explicitly
+  # declared route above (auth, admin, dev).
+  scope "/", GameNightWeb do
+    pipe_through :browser
+
+    get "/*path", PageController, :spa
   end
 end

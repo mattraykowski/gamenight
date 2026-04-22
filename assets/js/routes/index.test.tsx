@@ -12,10 +12,10 @@ describe("/ home route", () => {
     });
   });
 
-  it("renders a primary call-to-action button", async () => {
+  it("renders a Sign in call-to-action for anonymous visitors", async () => {
     renderRoute(Route.options.component!, { path: "/" });
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /get started/i })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: /sign in/i })).toBeInTheDocument();
     });
   });
 

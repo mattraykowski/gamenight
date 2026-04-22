@@ -25,7 +25,9 @@ function RootLayout() {
       <FocusManager />
       <nav>
         <Link to="/">Home</Link>
-        <Link to="/about">About</Link>
+        {/* The test router below registers `/about`; the registered app
+            router doesn't, so we cast to bypass the typed route check. */}
+        <Link to={"/about" as "/"}>About</Link>
       </nav>
       <Outlet />
     </A11yAnnouncer>
