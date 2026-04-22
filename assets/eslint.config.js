@@ -23,6 +23,9 @@ export default tseslint.config(
       "e2e/**",
       "vendor/**",
       "public/**",
+      // size-limit requires its config in CommonJS; ESLint's default
+      // flat config treats all .cjs/.js as ES modules.
+      ".size-limit.cjs",
     ],
   },
   js.configs.recommended,

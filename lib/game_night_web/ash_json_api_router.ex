@@ -1,5 +1,5 @@
 defmodule GameNightWeb.AshJsonApiRouter do
   use AshJsonApi.Router,
-    domains: [],
+    domains: [GameNight.Telemetry],
     open_api: "/open_api"
 end

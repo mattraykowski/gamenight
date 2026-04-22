@@ -7,6 +7,7 @@ import { routeTree } from "./routeTree.gen";
 import { AuthProvider, useAuth } from "@/lib/auth/auth-context";
 import { createAuthedFetch } from "@/lib/auth/authed-fetch";
 import { configureApiClient } from "@/lib/api/client";
+import { installReporter } from "@/features/vitals/reporter";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -82,4 +83,23 @@ if (rootEl && !rootEl.innerHTML) {
       </QueryClientProvider>
     </StrictMode>,
   );
+
+  // Web-vitals reporter. `import.meta.env.VITE_VITALS_SAMPLE_RATE`
+  // overrides per-environment; defaults favour full visibility in dev
+  // and a 10% sample in production to keep ingestion cost bounded.
+  // Failures are swallowed by the reporter itself (`onError`) so a
+  // broken endpoint never crashes the app.
+  const sampleRate = resolveSampleRate();
+  if (sampleRate > 0) {
+    void installReporter({ sampleRate });
+  }
+}
+
+function resolveSampleRate(): number {
+  const override = import.meta.env.VITE_VITALS_SAMPLE_RATE;
+  if (typeof override === "string" && override.length > 0) {
+    const parsed = Number(override);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return import.meta.env.DEV ? 1 : 0.1;
 }

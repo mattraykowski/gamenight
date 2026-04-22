@@ -12,6 +12,12 @@ defmodule GameNight.Application do
       GameNight.Repo,
       {DNSCluster, query: Application.get_env(:game_night, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: GameNight.PubSub},
+      # ETS-backed bucket store for plug_attack. Running it as a
+      # supervised child (rather than letting plug_attack create the
+      # table lazily) lets it survive endpoint restarts during dev
+      # without losing state.
+      {PlugAttack.Storage.Ets,
+       name: GameNightWeb.Plugs.VitalsRateLimiter.Storage, clean_period: 60_000},
       # Start a worker by calling: GameNight.Worker.start_link(arg)
       # {GameNight.Worker, arg},
       # Start to serve requests, typically the last entry

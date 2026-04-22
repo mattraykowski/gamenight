@@ -25,6 +25,20 @@ defmodule GameNightWeb.Router do
     plug :set_actor, :user
   end
 
+  # Ingestion pipeline for `/api/vitals`: JSON:API content type,
+  # session-aware so authenticated samples are attributed to a user,
+  # and rate-limited to keep a runaway tab from flooding the table.
+  # CSRF protection is intentionally absent — the endpoint accepts
+  # anonymous writes and the route isn't used for state-changing
+  # operations beyond appending to a telemetry table.
+  pipeline :vitals_api do
+    plug :accepts, ["json"]
+    plug :fetch_session
+    plug :load_from_session
+    plug :set_actor, :user
+    plug GameNightWeb.Plugs.VitalsRateLimiter
+  end
+
   # Playwright / dev-only: a session-aware JSON pipeline that skips
   # CSRF protection so seed requests from the test harness don't need
   # to bootstrap a token first. Never mounted in production (see the
@@ -56,12 +70,8 @@ defmodule GameNightWeb.Router do
     get "/ash-typescript", PageController, :index
   end
 
-  scope "/api/json" do
-    pipe_through [:api]
-
-    forward "/swaggerui", OpenApiSpex.Plug.SwaggerUI,
-      path: "/api/json/open_api",
-      default_model_expand_depth: 4
+  scope "/api" do
+    pipe_through [:vitals_api]
 
     forward "/", GameNightWeb.AshJsonApiRouter
   end
