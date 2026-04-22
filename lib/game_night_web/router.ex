@@ -67,7 +67,6 @@ defmodule GameNightWeb.Router do
 
     post "/rpc/run", AshTypescriptRpcController, :run
     post "/rpc/validate", AshTypescriptRpcController, :validate
-    get "/ash-typescript", PageController, :index
   end
 
   scope "/api" do

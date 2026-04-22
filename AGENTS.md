@@ -102,6 +102,12 @@ The project constitution at `.specify/memory/constitution.md` governs developmen
 - **Map errors to a discriminated union** in the `queryFn` so `error` is narrow in components.
 - **Never hand-edit generated files.** Regenerate via `mix ash_typescript.codegen`; CI fails on drift.
 
+## Frontend test guidelines
+
+- **Every component test that renders DOM MUST call `expectNoAxeViolations(container)`** at least once on its rendered output (import from `@/test/a11y`). Phase 3's `index.test.tsx` and `dashboard.test.tsx` plus Phase 2's `announcer.test.tsx` are the reference shape. The axe check is how we keep WCAG 2.2 AA a living gate instead of a pre-merge ritual — it fires on every run and surfaces regressions the moment a new component lands. If a test renders markup and skips the helper, reviewers should block the PR.
+- **Exempt categories**: tests that only exercise hooks or pure logic (Vitest `renderHook`, MSW-driven reducer tests, the reporter/ash_typescript unit tests) don't render visual DOM and are exempt. If a "hook" test adds a small visual probe component just to read context, add `expectNoAxeViolations(container)` anyway — the cost is negligible and the probe still renders.
+- **Enforcement today** is code review + this checklist. A custom ESLint rule is feasible (scan for `render(` without an accompanying `expectNoAxeViolations(`), but we haven't found the upkeep worthwhile yet given the small test surface. Revisit if drift appears.
+
 ## Authentication runtime guidelines
 
 - **Session/refresh tokens**: httpOnly + Secure + SameSite=Lax cookies (or stricter). Set via `Plug.Conn.put_resp_cookie/4`.

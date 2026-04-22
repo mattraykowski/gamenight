@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import { useEffect } from "react";
+import { expectNoAxeViolations } from "@/test/a11y";
 import { A11yAnnouncer, useAnnounce } from "./announcer";
 
 function AnnouncerConsumer({ message, priority }: { message: string; priority?: "polite" | "assertive" }) {
@@ -12,8 +13,8 @@ function AnnouncerConsumer({ message, priority }: { message: string; priority?: 
 }
 
 describe("A11yAnnouncer", () => {
-  it("renders one polite and one assertive aria-live region", () => {
-    render(
+  it("renders one polite and one assertive aria-live region", async () => {
+    const { container } = render(
       <A11yAnnouncer>
         <p>content</p>
       </A11yAnnouncer>,
@@ -26,6 +27,8 @@ describe("A11yAnnouncer", () => {
     expect(polite).toHaveAttribute("aria-atomic", "true");
     expect(assertive).toHaveAttribute("aria-live", "assertive");
     expect(assertive).toHaveAttribute("aria-atomic", "true");
+
+    await expectNoAxeViolations(container);
   });
 
   it("renders both regions with an sr-only-equivalent class so they stay visually hidden", () => {

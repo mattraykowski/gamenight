@@ -1,0 +1,207 @@
+name: Frontend
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ELIXIR_VERSION: "1.17.3"
+  OTP_VERSION: "27.1"
+  BUN_VERSION: "1.2.16"
+
+jobs:
+  lint:
+    name: bun run lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - name: Install frontend deps
+        working-directory: assets
+        run: bun install --frozen-lockfile
+      - name: bun run lint
+        working-directory: assets
+        run: bun run lint
+
+  typecheck:
+    # Also gates `ash_typescript.codegen` drift (absorbed from the
+    # former backend `ash_typescript_drift` job). Running it here keeps
+    # the generated-client check and the TS typecheck together — they
+    # share a failure mode (stale generated types) so co-locating the
+    # diagnostics helps whoever has to unblock the PR.
+    name: bun run typecheck (+ ash_typescript drift)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: game_night_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - name: Cache mix deps
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ hashFiles('mix.lock') }}
+      - name: Cache _build
+        uses: actions/cache@v4
+        with:
+          path: _build
+          key: ${{ runner.os }}-build-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ hashFiles('mix.lock') }}
+      - name: Install mix deps
+        run: mix deps.get --only test
+      - name: Regenerate ash_typescript client
+        run: mix ash_typescript.codegen
+      - name: Fail on generated-client drift
+        run: |
+          if ! git diff --exit-code -- 'assets/js/ash_rpc.ts' 'assets/js/ash_types.ts'; then
+            echo "::error::ash_typescript generated client is out of date. Run 'mix ash_typescript.codegen' locally and commit the result."
+            exit 1
+          fi
+      - name: Install frontend deps
+        working-directory: assets
+        run: bun install --frozen-lockfile
+      - name: bun run typecheck
+        working-directory: assets
+        run: bun run typecheck
+
+  test:
+    name: bun run test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - name: Install frontend deps
+        working-directory: assets
+        run: bun install --frozen-lockfile
+      - name: bun run test (vitest --coverage)
+        working-directory: assets
+        run: bun run test --coverage
+
+  size:
+    # Enforces the 350 KB gzipped initial-bundle cap defined in
+    # assets/.size-limit.cjs. The plan's 250 KB warn + >10 KB growth
+    # checks live in a separate PR comment bot we haven't wired up
+    # yet; this job carries the hard fail.
+    name: bun run size-limit
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: game_night_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      MIX_ENV: dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - name: Install mix deps
+        run: mix deps.get
+      - name: Install frontend deps
+        working-directory: assets
+        run: bun install --frozen-lockfile
+      - name: Build assets via Mix
+        # `mix assets.build` sets MIX_BUILD_PATH so the phoenix-colocated
+        # alias in vite.config.ts resolves. Running `bun run build`
+        # standalone fails on that alias.
+        run: mix assets.build
+      - name: bun run size-limit
+        working-directory: assets
+        run: bun run size-limit
+
+  e2e:
+    name: bun run test:e2e (Playwright)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: game_night_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      MIX_ENV: dev
+      DATABASE_URL: ecto://postgres:postgres@localhost:5432/game_night_dev
+      PHX_HOST: localhost
+      PHX_PORT: "4000"
+      PLAYWRIGHT_BASE_URL: http://localhost:4000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - name: Install mix deps
+        run: mix deps.get
+      - name: Install frontend deps
+        working-directory: assets
+        run: bun install --frozen-lockfile
+      - name: Install Playwright browsers
+        working-directory: assets
+        run: bunx playwright install --with-deps chromium
+      - name: Ash setup (migrate)
+        run: mix ash.setup --quiet
+      - name: Build frontend assets
+        run: mix assets.build
+      - name: bun run test:e2e
+        working-directory: assets
+        run: bun run test:e2e
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: assets/playwright-report/
+          retention-days: 7

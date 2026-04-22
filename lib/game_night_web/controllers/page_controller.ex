@@ -1,14 +1,6 @@
 defmodule GameNightWeb.PageController do
   use GameNightWeb, :controller
 
-  def home(conn, _params) do
-    render(conn, :home)
-  end
-
-  def index(conn, _params) do
-    conn |> put_root_layout(html: {GameNightWeb.Layouts, :spa_root}) |> render(:index)
-  end
-
   @doc """
   Serves the SPA shell for `/` and any unclaimed deep-link path (e.g.
   `/dashboard` on a hard refresh). The template embeds a JSON island
