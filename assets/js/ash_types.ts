@@ -23,6 +23,28 @@ export type UserAttributesOnlySchema = {
 };
 
 
+// Game Schema
+export type GameResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "title" | "description" | "status";
+  id: UUID;
+  title: string;
+  description: string | null;
+  status: "active" | "paused" | "cancelled" | "completed";
+};
+
+
+
+export type GameAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "title" | "description" | "status";
+  id: UUID;
+  title: string;
+  description: string | null;
+  status: "active" | "paused" | "cancelled" | "completed";
+};
+
+
 export type UserFilterInput = {
   and?: Array<UserFilterInput>;
   or?: Array<UserFilterInput>;
@@ -43,14 +65,53 @@ export type UserFilterInput = {
 
 
 };
+export type GameFilterInput = {
+  and?: Array<GameFilterInput>;
+  or?: Array<GameFilterInput>;
+  not?: Array<GameFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  title?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  description?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+    isNil?: boolean;
+  };
+
+  status?: {
+    eq?: "active" | "paused" | "cancelled" | "completed";
+    notEq?: "active" | "paused" | "cancelled" | "completed";
+    in?: Array<"active" | "paused" | "cancelled" | "completed">;
+  };
+
+
+
+};
 
 
 export const userFilterFields = ["id", "email"] as const;
 export type UserFilterField = (typeof userFilterFields)[number];
 
+export const gameFilterFields = ["id", "title", "description", "status"] as const;
+export type GameFilterField = (typeof gameFilterFields)[number];
+
 
 export const userSortFields = ["id", "email"] as const;
 export type UserSortField = (typeof userSortFields)[number];
+
+export const gameSortFields = ["id", "title", "description", "status"] as const;
+export type GameSortField = (typeof gameSortFields)[number];
 
 
 // Utility Types

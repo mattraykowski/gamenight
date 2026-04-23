@@ -39,9 +39,9 @@ in every frontend dep this feature needs (`react-hook-form`, `zod`,
 Radix primitives). These tasks just confirm the branch is on a clean
 starting baseline and prepare space for generated artifacts.
 
-- [ ] T001 Verify current branch is `001-register-game` and working tree is clean (no uncommitted changes outside this feature) via `git status`
-- [ ] T002 Confirm `mix ash.setup --quiet` runs cleanly and the existing test suites are green (`mix test`, `cd assets && bun run test && bun run lint && bun run typecheck && bun run test:e2e`) so any regressions in this feature are attributable to its own changes
-- [ ] T003 Create empty directories that phase 2+ will populate: `lib/game_night/games/`, `test/game_night/games/`, `assets/js/features/games/components/`, `assets/e2e/` (already exists — no-op; verify)
+- [X] T001 Verify current branch is `001-register-game` and working tree is clean (no uncommitted changes outside this feature) via `git status`
+- [X] T002 Confirm `mix ash.setup --quiet` runs cleanly and the existing test suites are green (`mix test`, `cd assets && bun run test && bun run lint && bun run typecheck && bun run test:e2e`) so any regressions in this feature are attributable to its own changes
+- [X] T003 Create empty directories that phase 2+ will populate: `lib/game_night/games/`, `test/game_night/games/`, `assets/js/features/games/components/`, `assets/e2e/` (already exists — no-op; verify)
 
 ---
 
@@ -55,30 +55,30 @@ client. Every user story depends on this being complete and green.
 
 ### Resource and domain shell (tests written first per TDD)
 
-- [ ] T004 Add failing ExUnit test `test/game_night/games/game_test.exs` asserting `GameNight.Games.Game.__schema__(:source) == "games"` and that `Ash.Domain.Info.resources(GameNight.Games)` returns `[GameNight.Games.Game]` — this test must fail red because the modules do not exist yet
-- [ ] T005 Create `lib/game_night/games.ex` declaring the `GameNight.Games` domain with `extensions: [AshJsonApi.Domain, AshTypescript.Rpc]` and an empty `resources do end` block (do not add the resource yet so T004's failure shape is controlled)
-- [ ] T006 Create `lib/game_night/games/game.ex` with the attributes (`id`, `title`, `description`, `status`, `owner_id` via belongs_to, `inserted_at`, `updated_at`), the `belongs_to :owner` relationship, the `postgres do ... end` block with `references` and `custom_indexes` per [data-model.md](./data-model.md), the `policies do ... end` block per [research.md §5](./research.md#5), an empty `actions do ... end` block, and a `json_api do type "game" ; routes do end end` block so later tasks can extend it — no actions or routes yet, so any attempt to read/create fails
-- [ ] T007 Register the resource in the domain: add `resource GameNight.Games.Game` inside `resources do` in `lib/game_night/games.ex`; add `GameNight.Games` to the domain list in `config/config.exs` `config :game_night, ash_domains: [...]` so Ash can discover it
-- [ ] T008 Run `mix ash.codegen add_games_resource --quiet` to generate the Postgres migration at `priv/repo/migrations/<timestamp>_add_games_resource.exs` and the resource snapshot at `priv/resource_snapshots/repo/games/`; commit both
-- [ ] T009 Run `mix ecto.migrate` and verify T004's test now passes (module exists, schema source matches)
-- [ ] T010 Add a second failing test to `test/game_night/games/game_test.exs` asserting the Postgres composite index `games_owner_status_updated_at_index` exists on `[:owner_id, :status, :updated_at]` via `Ecto.Adapters.SQL.query!` against `pg_indexes`; this gates whether the index from the `custom_indexes` block actually landed in the generated migration
+- [X] T004 Add failing ExUnit test `test/game_night/games/game_test.exs` asserting `GameNight.Games.Game.__schema__(:source) == "games"` and that `Ash.Domain.Info.resources(GameNight.Games)` returns `[GameNight.Games.Game]` — this test must fail red because the modules do not exist yet
+- [X] T005 Create `lib/game_night/games.ex` declaring the `GameNight.Games` domain with `extensions: [AshJsonApi.Domain, AshTypescript.Rpc]` and an empty `resources do end` block (do not add the resource yet so T004's failure shape is controlled)
+- [X] T006 Create `lib/game_night/games/game.ex` with the attributes (`id`, `title`, `description`, `status`, `owner_id` via belongs_to, `inserted_at`, `updated_at`), the `belongs_to :owner` relationship, the `postgres do ... end` block with `references` and `custom_indexes` per [data-model.md](./data-model.md), the `policies do ... end` block per [research.md §5](./research.md#5), an empty `actions do ... end` block, and a `json_api do type "game" ; routes do end end` block so later tasks can extend it — no actions or routes yet, so any attempt to read/create fails
+- [X] T007 Register the resource in the domain: add `resource GameNight.Games.Game` inside `resources do` in `lib/game_night/games.ex`; add `GameNight.Games` to the domain list in `config/config.exs` `config :game_night, ash_domains: [...]` so Ash can discover it
+- [X] T008 Run `mix ash.codegen add_games_resource --quiet` to generate the Postgres migration at `priv/repo/migrations/<timestamp>_add_games_resource.exs` and the resource snapshot at `priv/resource_snapshots/repo/games/`; commit both
+- [X] T009 Run `mix ecto.migrate` and verify T004's test now passes (module exists, schema source matches)
+- [X] T010 Add a second failing test to `test/game_night/games/game_test.exs` asserting the Postgres composite index `games_owner_status_updated_at_index` exists on `[:owner_id, :status, :updated_at]` via `Ecto.Adapters.SQL.query!` against `pg_indexes`; this gates whether the index from the `custom_indexes` block actually landed in the generated migration
 
 ### JSON:API router wiring
 
-- [ ] T011 [P] Add a failing request test `test/game_night_web/controllers/games_request_test.exs` asserting an anonymous `GET /api/json/games/all` returns 401 (or whatever the session-loading pipeline surfaces as no-actor) — this must fail until the domain is registered with the JSON:API router
-- [ ] T012 Add `GameNight.Games` to `GameNightWeb.AshJsonApiRouter`'s `:domains` list (was `[GameNight.Telemetry]`, becomes `[GameNight.Telemetry, GameNight.Games]`)
-- [ ] T013 Decide and implement the JSON:API pipeline for Games (per plan.md post-design note): either (a) keep `:vitals_api` as-is and accept the misleading name, (b) rename `:vitals_api` → `:json_api_browser` and wire Games plus rate-limiter passthrough for vitals, or (c) split into two pipelines. Apply the chosen approach in `lib/game_night_web/router.ex`; make sure `:set_actor, :user` is in the pipeline so Ash policies see the authenticated user
-- [ ] T014 Re-run T011's test and verify it now fails with the expected-shape 401 (the domain routes exist but have no actions, so other responses would be wrong); the test will be extended in later phases as actions land
+- [X] T011 [P] Add a failing request test `test/game_night_web/controllers/games_request_test.exs` asserting an anonymous `GET /api/json/games/all` returns 401 (or whatever the session-loading pipeline surfaces as no-actor) — this must fail until the domain is registered with the JSON:API router
+- [X] T012 Add `GameNight.Games` to `GameNightWeb.AshJsonApiRouter`'s `:domains` list (was `[GameNight.Telemetry]`, becomes `[GameNight.Telemetry, GameNight.Games]`)
+- [X] T013 Decide and implement the JSON:API pipeline for Games (per plan.md post-design note): either (a) keep `:vitals_api` as-is and accept the misleading name, (b) rename `:vitals_api` → `:json_api_browser` and wire Games plus rate-limiter passthrough for vitals, or (c) split into two pipelines. Apply the chosen approach in `lib/game_night_web/router.ex`; make sure `:set_actor, :user` is in the pipeline so Ash policies see the authenticated user
+- [X] T014 Re-run T011's test and verify it now fails with the expected-shape 401 (the domain routes exist but have no actions, so other responses would be wrong); the test will be extended in later phases as actions land
 
 ### `ash_typescript` RPC wiring
 
-- [ ] T015 [P] Add a failing ExUnit test `test/game_night/games/game_rpc_test.exs` asserting `AshTypescript.Rpc.actions_for(GameNight.Games)` lists all six expected RPC bindings (`list_mine_active`, `list_mine`, `get_mine`, `register_game`, `update_game`, `destroy_game`) — must fail red because the domain's `typescript_rpc do end` block is empty
-- [ ] T016 Add the `typescript_rpc do ... end` block to `lib/game_night/games.ex` per [contracts/rpc.md](./contracts/rpc.md), declaring all six bindings (names in T015); T015 still fails until the actions themselves exist in later phases, but the block is in place
-- [ ] T017 Run `mix ash_typescript.codegen` — it will emit warnings about missing actions but should regenerate `assets/js/ash_rpc.ts` and `assets/js/ash_types.ts` with whatever bindings are available; commit any baseline diff so later per-story regenerations have a clean delta
+- [X] T015 [P] Add a failing ExUnit test `test/game_night/games/game_rpc_test.exs` asserting `AshTypescript.Rpc.actions_for(GameNight.Games)` lists all six expected RPC bindings (`list_mine_active`, `list_mine`, `get_mine`, `register_game`, `update_game`, `destroy_game`) — must fail red because the domain's `typescript_rpc do end` block is empty
+- [X] T016 Add the `typescript_rpc do ... end` block to `lib/game_night/games.ex` per [contracts/rpc.md](./contracts/rpc.md), declaring all six bindings (names in T015); T015 still fails until the actions themselves exist in later phases, but the block is in place
+- [X] T017 Run `mix ash_typescript.codegen` — it will emit warnings about missing actions but should regenerate `assets/js/ash_rpc.ts` and `assets/js/ash_types.ts` with whatever bindings are available; commit any baseline diff so later per-story regenerations have a clean delta
 
 ### Foundational gate
 
-- [ ] T018 Run `mix precommit` from the repo root; expect it to PASS except the pending action tests from T010 and T015 (document the expected reds in the PR or phase note). All other gates (Credo, format, codegen check, dialyzer) must be clean.
+- [X] T018 Run `mix precommit` from the repo root; expect it to PASS except the pending action tests from T010 and T015 (document the expected reds in the PR or phase note). All other gates (Credo, format, codegen check, dialyzer) must be clean.
 
 **Checkpoint**: Domain and resource compile; migration applied; JSON:API
 and RPC bindings are visible in their respective routers; client

@@ -42,13 +42,14 @@ defmodule GameNightWeb.Router do
     plug GameNightWeb.Plugs.AuthRateLimiter
   end
 
-  # Ingestion pipeline for `/api/vitals`: JSON:API content type,
-  # session-aware so authenticated samples are attributed to a user,
-  # and rate-limited to keep a runaway tab from flooding the table.
-  # CSRF protection is intentionally absent — the endpoint accepts
-  # anonymous writes and the route isn't used for state-changing
-  # operations beyond appending to a telemetry table.
-  pipeline :vitals_api do
+  # Pipeline for the AshJsonApi router forwarded at `/api`. Serves
+  # both vitals (`/api/vitals`) and Games (`/api/json/games/**`).
+  # Session-aware so authenticated actions see the current actor, and
+  # runs the vitals rate limiter (which gates itself to `/api/vitals`
+  # paths, so Games traffic passes through untouched). CSRF is
+  # intentionally absent — vitals is anonymous-write by design, and
+  # Games SPA calls ride the RPC path, which has its own CSRF story.
+  pipeline :json_api_browser do
     plug :accepts, ["json"]
     plug :fetch_session
     plug :load_from_session
@@ -74,7 +75,7 @@ defmodule GameNightWeb.Router do
   end
 
   scope "/api" do
-    pipe_through [:vitals_api]
+    pipe_through [:json_api_browser]
 
     forward "/", GameNightWeb.AshJsonApiRouter
   end
