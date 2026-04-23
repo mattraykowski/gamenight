@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -71,9 +72,9 @@ export function GamesTable({ games, showStatus = false, onDelete }: GamesTablePr
                   size="sm"
                   data-testid={`game-row-view-${game.id}`}
                 >
-                  {/* `<a href>` until /games/$id lands in US2 — switch to the typed
-                      `<Link to="/games/$id" params>` then. */}
-                  <a href={`/games/${game.id}`}>View</a>
+                  <Link to="/games/$id" params={{ id: game.id }}>
+                    View
+                  </Link>
                 </Button>
                 <Button
                   type="button"

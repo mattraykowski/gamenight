@@ -6,6 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import {
+  getMine,
   listMineActive,
   registerGame,
   type AshRpcError,
@@ -58,6 +59,31 @@ export function useListMineActive(): UseQueryResult<Game[], ApiError> {
           ...(customFetch !== undefined ? { customFetch } : {}),
         }) as Promise<
           | { success: true; data: Game[] }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+  });
+}
+
+/**
+ * Fetches a single game owned by the current actor. Cross-tenant
+ * access produces a not-found error the SPA renders as a dedicated
+ * empty state.
+ */
+export function useGame(id: string): UseQueryResult<Game, ApiError> {
+  return useQuery({
+    queryKey: gamesKeys.detail(id),
+    queryFn: async () => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<Game>(
+        getMine({
+          input: { id },
+          fields: GAME_FIELDS as unknown as Array<"id" | "title" | "description" | "status">,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: Game }
           | { success: false; errors: AshRpcError[] }
         >,
       );

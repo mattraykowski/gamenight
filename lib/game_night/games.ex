@@ -20,6 +20,7 @@ defmodule GameNight.Games do
   typescript_rpc do
     resource GameNight.Games.Game do
       rpc_action :list_mine_active, :list_mine_active
+      rpc_action :get_mine, :get_mine
       rpc_action :register_game, :register
     end
   end

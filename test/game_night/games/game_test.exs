@@ -127,6 +127,41 @@ defmodule GameNight.Games.GameTest do
     end
   end
 
+  describe ":get_mine action (T048 policies + behaviour)" do
+    setup do
+      {:ok, owner} = create_user()
+      {:ok, other} = create_user()
+      {:ok, game} = register_game(owner, %{title: "Mine", status: :active})
+      {:ok, owner: owner, other: other, game: game}
+    end
+
+    test "owner can fetch their own game by id", %{owner: owner, game: game} do
+      assert {:ok, loaded} =
+               Game
+               |> Ash.Query.for_read(:get_mine, %{id: game.id}, actor: owner)
+               |> Ash.read_one()
+
+      assert loaded.id == game.id
+    end
+
+    test "a different user receives :not_found (no leak)", %{other: other, game: game} do
+      # Read returns nil for a row the actor cannot see — the policy
+      # filter collapses to empty. The JSON:API / RPC layer surfaces
+      # this as 404, equivalent to "does not exist".
+      assert {:ok, nil} =
+               Game
+               |> Ash.Query.for_read(:get_mine, %{id: game.id}, actor: other)
+               |> Ash.read_one()
+    end
+
+    test "anonymous caller cannot fetch any game", %{game: game} do
+      assert {:ok, nil} =
+               Game
+               |> Ash.Query.for_read(:get_mine, %{id: game.id})
+               |> Ash.read_one()
+    end
+  end
+
   describe "postgres indexes (T010)" do
     test "composite index on (owner_id, status, updated_at) exists" do
       %Postgrex.Result{rows: rows} =

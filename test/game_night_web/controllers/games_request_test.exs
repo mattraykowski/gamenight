@@ -121,6 +121,52 @@ defmodule GameNightWeb.GamesRequestTest do
     end
   end
 
+  describe "GET /api/games/:id (T049)" do
+    setup do
+      {:ok, owner} = create_user()
+      {:ok, other} = create_user()
+      {:ok, game} = register_game(owner, %{title: "Mine", status: :active})
+      {:ok, owner: owner, other: other, game: game}
+    end
+
+    test "owner sees their own game", %{conn: conn, owner: owner, game: game} do
+      conn =
+        conn
+        |> sign_in(owner)
+        |> put_req_header("accept", @jsonapi)
+        |> get(~p"/api/games/#{game.id}")
+
+      assert %{"data" => %{"type" => "game", "id" => id, "attributes" => attrs}} =
+               json_response(conn, 200)
+
+      assert id == game.id
+      assert attrs["title"] == "Mine"
+    end
+
+    test "a different user gets 404 (cross-tenant protection)", %{
+      conn: conn,
+      other: other,
+      game: game
+    } do
+      conn =
+        conn
+        |> sign_in(other)
+        |> put_req_header("accept", @jsonapi)
+        |> get(~p"/api/games/#{game.id}")
+
+      assert conn.status == 404
+    end
+
+    test "anonymous caller is rejected", %{conn: conn, game: game} do
+      conn =
+        conn
+        |> put_req_header("accept", @jsonapi)
+        |> get(~p"/api/games/#{game.id}")
+
+      assert conn.status >= 400
+    end
+  end
+
   defp create_user do
     email = "games-req-#{System.unique_integer([:positive])}@example.test"
     password = "games-req-password-1"

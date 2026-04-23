@@ -177,25 +177,25 @@ returns a not-found view.
 
 ### Tests for User Story 2 (REQUIRED — write and verify RED first) ⚠️
 
-- [ ] T048 [P] [US2] Extend `test/game_night/games/game_test.exs` with policy tests for `:get_mine`: (a) owner can `Ash.read_one!(:get_mine, arguments: %{id: id})`, (b) a different user receives `Ash.Error.Query.NotFound`, (c) anonymous receives `Ash.Policy.AuthorizeError`
-- [ ] T049 [P] [US2] Extend `test/game_night_web/controllers/games_request_test.exs` with a `GET /api/json/games/:id` test: owner gets 200 with the resource; a different authenticated user gets 404; an anonymous caller gets 401
-- [ ] T050 [P] [US2] Extend `test/game_night/games/game_rpc_test.exs` with a `getMine` happy-path and cross-tenant 404 case
-- [ ] T051 [P] [US2] Add `assets/js/features/games/components/game-field-row.test.tsx` asserting the `<GameFieldRow>` primitive renders in `view` and `edit` modes with identical layout wrappers (verified by `data-testid` or class fingerprints) so the mirror contract is covered
-- [ ] T052 [P] [US2] Add `assets/js/routes/games.$id.test.tsx` using the router harness: successful render shows title/description/status via `<GameFieldRow>` instances, an MSW 404 renders a "not found" state with a back-to-dashboard link, assert the detail page's `<h1>` carries `data-route-heading` and `tabIndex="-1"` (FR-023), include `expectNoAxeViolations`
-- [ ] T053 [P] [US2] Add `assets/e2e/games-view.spec.ts` covering: click view from the dashboard row, see the detail page; direct navigation to a stranger's game URL returns the not-found state
+- [X] T048 [P] [US2] Extend `test/game_night/games/game_test.exs` with policy tests for `:get_mine`: (a) owner can `Ash.read_one!(:get_mine, arguments: %{id: id})`, (b) a different user receives `Ash.Error.Query.NotFound`, (c) anonymous receives `Ash.Policy.AuthorizeError`
+- [X] T049 [P] [US2] Extend `test/game_night_web/controllers/games_request_test.exs` with a `GET /api/json/games/:id` test: owner gets 200 with the resource; a different authenticated user gets 404; an anonymous caller gets 401
+- [X] T050 [P] [US2] Extend `test/game_night/games/game_rpc_test.exs` with a `getMine` happy-path and cross-tenant 404 case
+- [X] T051 [P] [US2] Add `assets/js/features/games/components/game-field-row.test.tsx` asserting the `<GameFieldRow>` primitive renders in `view` and `edit` modes with identical layout wrappers (verified by `data-testid` or class fingerprints) so the mirror contract is covered
+- [X] T052 [P] [US2] Add `assets/js/routes/games.$id.test.tsx` using the router harness: successful render shows title/description/status via `<GameFieldRow>` instances, an MSW 404 renders a "not found" state with a back-to-dashboard link, assert the detail page's `<h1>` carries `data-route-heading` and `tabIndex="-1"` (FR-023), include `expectNoAxeViolations`
+- [X] T053 [P] [US2] Add `assets/e2e/games-view.spec.ts` covering: click view from the dashboard row, see the detail page; direct navigation to a stranger's game URL returns the not-found state
 
 ### Implementation for User Story 2
 
-- [ ] T054 [US2] Implement the `:get_mine` read action in `lib/game_night/games/game.ex` with `get? true`, `argument :id, :uuid, allow_nil?: false`, `filter expr(id == ^arg(:id))`; it inherits the shared read policy. Run `mix ash_typescript.codegen` and commit the regen; T048 / T050 pass
-- [ ] T055 [US2] Add `get :get_mine` to the `json_api do routes do ... end` block for `/api/json/games/:id`; T049 passes
-- [ ] T056 [US2] Extend `assets/js/features/games/hooks.ts` with `useGame(id: string)` backed by `getMine` RPC + `gamesKeys.detail(id)`; add any shared error-narrowing helper if needed
-- [ ] T057 [US2] Create `assets/js/features/games/components/game-field-row.tsx` — discriminated primitive accepting `mode: "view" | "edit"` plus a label and either a `value` (view) or a `render` callback for the form field (edit); T051 passes
-- [ ] T058 [US2] Create `assets/js/routes/games.$id.tsx` — `createFileRoute("/games/$id")`, `beforeLoad` redirects unauthenticated users, `loader` prefetches `useGame` (or the route just reads the hook inside the component — decide based on harness ergonomics); renders three `<GameFieldRow mode="view">` instances plus an `<Edit>` button linking to `/games/$id/edit` and a `<Delete>` button stub (wired in US4); T052 passes
-- [ ] T059 [US2] Update `assets/js/features/games/components/games-table.tsx` so the row's view action links to `/games/${game.id}` (was a stub in US1)
+- [X] T054 [US2] Implement the `:get_mine` read action in `lib/game_night/games/game.ex` with `get? true`, `argument :id, :uuid, allow_nil?: false`, `filter expr(id == ^arg(:id))`; it inherits the shared read policy. Run `mix ash_typescript.codegen` and commit the regen; T048 / T050 pass
+- [X] T055 [US2] Add `get :get_mine` to the `json_api do routes do ... end` block for `/api/json/games/:id`; T049 passes
+- [X] T056 [US2] Extend `assets/js/features/games/hooks.ts` with `useGame(id: string)` backed by `getMine` RPC + `gamesKeys.detail(id)`; add any shared error-narrowing helper if needed
+- [X] T057 [US2] Create `assets/js/features/games/components/game-field-row.tsx` — discriminated primitive accepting `mode: "view" | "edit"` plus a label and either a `value` (view) or a `render` callback for the form field (edit); T051 passes
+- [X] T058 [US2] Create `assets/js/routes/games.$id.tsx` — `createFileRoute("/games/$id")`, `beforeLoad` redirects unauthenticated users, `loader` prefetches `useGame` (or the route just reads the hook inside the component — decide based on harness ergonomics); renders three `<GameFieldRow mode="view">` instances plus an `<Edit>` button linking to `/games/$id/edit` and a `<Delete>` button stub (wired in US4); T052 passes
+- [X] T059 [US2] Update `assets/js/features/games/components/games-table.tsx` so the row's view action links to `/games/${game.id}` (was a stub in US1)
 
 #### Verification
 
-- [ ] T060 [US2] Full gate run (`mix test`, `bun run test`, `bun run lint`, `bun run typecheck`, `bun run test:e2e -- games-view.spec.ts`); all green
+- [X] T060 [US2] Full gate run (`mix test`, `bun run test`, `bun run lint`, `bun run typecheck`, `bun run test:e2e -- games-view.spec.ts`); all green
 
 **Checkpoint**: User Stories 1 AND 2 are independently demoable.
 

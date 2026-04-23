@@ -47,6 +47,7 @@ defmodule GameNight.Games.Game do
       base "/games"
 
       index :list_mine_active, route: "/active"
+      get :get_mine, route: "/:id"
       post :register
     end
   end
@@ -57,6 +58,17 @@ defmodule GameNight.Games.Game do
     read :list_mine_active do
       description "Return the actor's games whose status is Active, newest-updated first."
       prepare build(filter: [status: :active], sort: [updated_at: :desc])
+    end
+
+    read :get_mine do
+      description "Fetch one of the actor's games by id. Cross-tenant access returns not-found."
+      get? true
+
+      argument :id, :uuid do
+        allow_nil? false
+      end
+
+      filter expr(id == ^arg(:id))
     end
 
     create :register do
