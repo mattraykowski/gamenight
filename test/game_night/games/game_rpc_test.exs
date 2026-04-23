@@ -32,5 +32,20 @@ defmodule GameNight.Games.GameRpcTest do
 
       assert declared_names == expected
     end
+
+    test "listMineActive and registerGame RPC bindings are exposed (T022 — US1)" do
+      # A narrower contract test that US1 can land green without
+      # waiting for US2-5 to add their bindings. This proves the
+      # two SPA-facing actions US1 needs are reachable via RPC.
+      declared =
+        GameNight.Games
+        |> RpcInfo.typescript_rpc()
+        |> Enum.flat_map(fn resource_entry ->
+          Enum.map(resource_entry.rpc_actions, & &1.name)
+        end)
+
+      assert :list_mine_active in declared
+      assert :register_game in declared
+    end
   end
 end

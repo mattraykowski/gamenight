@@ -44,10 +44,26 @@ defmodule GameNight.Games.Game do
     type "game"
 
     routes do
+      base "/games"
+
+      index :list_mine_active, route: "/active"
+      post :register
     end
   end
 
   actions do
+    defaults [:read]
+
+    read :list_mine_active do
+      description "Return the actor's games whose status is Active, newest-updated first."
+      prepare build(filter: [status: :active], sort: [updated_at: :desc])
+    end
+
+    create :register do
+      description "Register a new game owned by the current actor."
+      accept [:title, :description, :status]
+      change relate_actor(:owner)
+    end
   end
 
   policies do

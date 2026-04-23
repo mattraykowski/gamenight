@@ -17,6 +17,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PasswordResetTokenRouteImport } from './routes/password-reset.$token'
 import { Route as Magic_linkTokenRouteImport } from './routes/magic_link.$token'
+import { Route as GamesNewRouteImport } from './routes/games.new'
 import { Route as Confirm_new_userTokenRouteImport } from './routes/confirm_new_user.$token'
 
 const SignInRoute = SignInRouteImport.update({
@@ -59,6 +60,11 @@ const Magic_linkTokenRoute = Magic_linkTokenRouteImport.update({
   path: '/magic_link/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GamesNewRoute = GamesNewRouteImport.update({
+  id: '/games/new',
+  path: '/games/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Confirm_new_userTokenRoute = Confirm_new_userTokenRouteImport.update({
   id: '/confirm_new_user/$token',
   path: '/confirm_new_user/$token',
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/reset': typeof ResetRoute
   '/sign-in': typeof SignInRoute
   '/confirm_new_user/$token': typeof Confirm_new_userTokenRoute
+  '/games/new': typeof GamesNewRoute
   '/magic_link/$token': typeof Magic_linkTokenRoute
   '/password-reset/$token': typeof PasswordResetTokenRoute
 }
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/reset': typeof ResetRoute
   '/sign-in': typeof SignInRoute
   '/confirm_new_user/$token': typeof Confirm_new_userTokenRoute
+  '/games/new': typeof GamesNewRoute
   '/magic_link/$token': typeof Magic_linkTokenRoute
   '/password-reset/$token': typeof PasswordResetTokenRoute
 }
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/reset': typeof ResetRoute
   '/sign-in': typeof SignInRoute
   '/confirm_new_user/$token': typeof Confirm_new_userTokenRoute
+  '/games/new': typeof GamesNewRoute
   '/magic_link/$token': typeof Magic_linkTokenRoute
   '/password-reset/$token': typeof PasswordResetTokenRoute
 }
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/reset'
     | '/sign-in'
     | '/confirm_new_user/$token'
+    | '/games/new'
     | '/magic_link/$token'
     | '/password-reset/$token'
   fileRoutesByTo: FileRoutesByTo
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/reset'
     | '/sign-in'
     | '/confirm_new_user/$token'
+    | '/games/new'
     | '/magic_link/$token'
     | '/password-reset/$token'
   id:
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/reset'
     | '/sign-in'
     | '/confirm_new_user/$token'
+    | '/games/new'
     | '/magic_link/$token'
     | '/password-reset/$token'
   fileRoutesById: FileRoutesById
@@ -143,6 +155,7 @@ export interface RootRouteChildren {
   ResetRoute: typeof ResetRoute
   SignInRoute: typeof SignInRoute
   Confirm_new_userTokenRoute: typeof Confirm_new_userTokenRoute
+  GamesNewRoute: typeof GamesNewRoute
   Magic_linkTokenRoute: typeof Magic_linkTokenRoute
   PasswordResetTokenRoute: typeof PasswordResetTokenRoute
 }
@@ -205,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Magic_linkTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/games/new': {
+      id: '/games/new'
+      path: '/games/new'
+      fullPath: '/games/new'
+      preLoaderRoute: typeof GamesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/confirm_new_user/$token': {
       id: '/confirm_new_user/$token'
       path: '/confirm_new_user/$token'
@@ -223,6 +243,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetRoute: ResetRoute,
   SignInRoute: SignInRoute,
   Confirm_new_userTokenRoute: Confirm_new_userTokenRoute,
+  GamesNewRoute: GamesNewRoute,
   Magic_linkTokenRoute: Magic_linkTokenRoute,
   PasswordResetTokenRoute: PasswordResetTokenRoute,
 }

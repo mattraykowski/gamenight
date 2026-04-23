@@ -8,8 +8,11 @@ defmodule GameNight.Games.GameTest do
   """
   use GameNight.DataCase, async: false
 
+  require Ash.Query
+
   alias Ash.Domain.Info, as: DomainInfo
   alias Ecto.Adapters.SQL, as: Sql
+  alias GameNight.Accounts.User
   alias GameNight.Games.Game
 
   describe "resource and domain wiring (T004)" do
@@ -19,6 +22,108 @@ defmodule GameNight.Games.GameTest do
 
     test "Games domain knows about the Game resource" do
       assert DomainInfo.resources(GameNight.Games) == [Game]
+    end
+  end
+
+  describe ":register action (T019 policies + T031 behaviour)" do
+    setup do
+      {:ok, owner} = create_user()
+      {:ok, owner: owner}
+    end
+
+    test "owner can register a game and owner_id is set to the actor's id", %{owner: owner} do
+      {:ok, game} =
+        Game
+        |> Ash.Changeset.for_create(
+          :register,
+          %{title: "Lost Mine", description: "Opening adventure", status: :active},
+          actor: owner
+        )
+        |> Ash.create()
+
+      assert game.owner_id == owner.id
+      assert game.title == "Lost Mine"
+      assert game.status == :active
+    end
+
+    test "anonymous caller cannot register a game" do
+      # Without an actor the policy denies the action AND
+      # `relate_actor(:owner)` has nothing to relate to. Either error
+      # path is acceptable — both prevent the row from being created.
+      result =
+        Game
+        |> Ash.Changeset.for_create(
+          :register,
+          %{title: "No actor", status: :active}
+        )
+        |> Ash.create()
+
+      assert match?({:error, %Ash.Error.Forbidden{}}, result) or
+               match?({:error, %Ash.Error.Invalid{}}, result)
+    end
+
+    test "unknown status atom is rejected with Ash.Error.Invalid", %{owner: owner} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               Game
+               |> Ash.Changeset.for_create(
+                 :register,
+                 %{title: "Bad status", status: :wobbly},
+                 actor: owner
+               )
+               |> Ash.create()
+    end
+
+    test "empty title is rejected with Ash.Error.Invalid", %{owner: owner} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               Game
+               |> Ash.Changeset.for_create(
+                 :register,
+                 %{title: "", status: :active},
+                 actor: owner
+               )
+               |> Ash.create()
+    end
+  end
+
+  describe ":list_mine_active action (T020 behaviour)" do
+    setup do
+      {:ok, owner} = create_user()
+      {:ok, other} = create_user()
+      {:ok, owner: owner, other: other}
+    end
+
+    test "returns only the actor's Active games, newest first", %{owner: owner, other: other} do
+      {:ok, _paused} =
+        register_game(owner, %{title: "Paused campaign", status: :paused})
+
+      {:ok, older_active} =
+        register_game(owner, %{title: "Older", status: :active})
+
+      {:ok, _someone_elses} =
+        register_game(other, %{title: "Stranger's", status: :active})
+
+      # Small delay to make updated_at comparable.
+      :timer.sleep(10)
+
+      {:ok, newer_active} =
+        register_game(owner, %{title: "Newer", status: :active})
+
+      {:ok, results} =
+        Game
+        |> Ash.Query.for_read(:list_mine_active, %{}, actor: owner)
+        |> Ash.read()
+
+      ids = Enum.map(results, & &1.id)
+      assert ids == [newer_active.id, older_active.id]
+    end
+
+    test "anonymous caller sees no games at all", %{owner: owner} do
+      {:ok, _} = register_game(owner, %{title: "Visible to owner only", status: :active})
+
+      assert {:ok, []} =
+               Game
+               |> Ash.Query.for_read(:list_mine_active, %{})
+               |> Ash.read()
     end
   end
 
@@ -43,5 +148,27 @@ defmodule GameNight.Games.GameTest do
       assert indexdef =~ "status"
       assert indexdef =~ "updated_at"
     end
+  end
+
+  defp create_user do
+    email = "games-test-#{System.unique_integer([:positive])}@example.test"
+    password = "games-test-password-1"
+
+    User
+    |> Ash.Changeset.for_create(:register_with_password, %{
+      email: email,
+      password: password,
+      password_confirmation: password
+    })
+    |> Ash.create(authorize?: false)
+  end
+
+  defp register_game(owner, attrs) do
+    defaults = %{description: nil}
+    attrs = Map.merge(defaults, Map.new(attrs))
+
+    Game
+    |> Ash.Changeset.for_create(:register, attrs, actor: owner)
+    |> Ash.create()
   end
 end

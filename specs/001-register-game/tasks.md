@@ -105,14 +105,14 @@ appears in the dashboard table with the expected title.
 
 #### Backend
 
-- [ ] T019 [P] [US1] Add policy tests to `test/game_night/games/game_test.exs`: (a) the owner can successfully run `Ash.create!(:register, …)` on `GameNight.Games.Game`, (b) an anonymous caller (no actor) is rejected by `Ash.Policy.AuthorizeError`, (c) `owner_id` in the resulting row equals the actor's id (set by `relate_actor(:owner)`), (d) submitting an unknown status atom fails with `Ash.Error.Invalid`
-- [ ] T020 [P] [US1] Add action tests to `test/game_night/games/game_test.exs`: (a) `Ash.read!(:list_mine_active, actor: owner)` returns only that owner's Active games, (b) games in other statuses owned by the same user are excluded, (c) games owned by a different user are excluded even if Active, (d) the result is sorted by `updated_at DESC`
-- [ ] T021 [P] [US1] Add JSON:API request tests to `test/game_night_web/controllers/games_request_test.exs`: (a) authenticated `GET /api/json/games/active` returns `200` with `data: []` for a user with no games, (b) same for a user with Active games returns the expected shape, (c) `POST /api/json/games` with a valid body returns `201` and the created resource, (d) `POST /api/json/games` with an empty title returns `422` with a field error on `title`
-- [ ] T022 [P] [US1] Extend the RPC contract test `test/game_night/games/game_rpc_test.exs`: call `registerGame` and `listMineActive` via `AshTypescript.Rpc.run!/3` directly and assert the return shapes match the types the SPA will consume
+- [X] T019 [P] [US1] Add policy tests to `test/game_night/games/game_test.exs`: (a) the owner can successfully run `Ash.create!(:register, …)` on `GameNight.Games.Game`, (b) an anonymous caller (no actor) is rejected by `Ash.Policy.AuthorizeError`, (c) `owner_id` in the resulting row equals the actor's id (set by `relate_actor(:owner)`), (d) submitting an unknown status atom fails with `Ash.Error.Invalid`
+- [X] T020 [P] [US1] Add action tests to `test/game_night/games/game_test.exs`: (a) `Ash.read!(:list_mine_active, actor: owner)` returns only that owner's Active games, (b) games in other statuses owned by the same user are excluded, (c) games owned by a different user are excluded even if Active, (d) the result is sorted by `updated_at DESC`
+- [X] T021 [P] [US1] Add JSON:API request tests to `test/game_night_web/controllers/games_request_test.exs`: (a) authenticated `GET /api/json/games/active` returns `200` with `data: []` for a user with no games, (b) same for a user with Active games returns the expected shape, (c) `POST /api/json/games` with a valid body returns `201` and the created resource, (d) `POST /api/json/games` with an empty title returns `422` with a field error on `title`
+- [X] T022 [P] [US1] Extend the RPC contract test `test/game_night/games/game_rpc_test.exs`: call `registerGame` and `listMineActive` via `AshTypescript.Rpc.run!/3` directly and assert the return shapes match the types the SPA will consume
 
 #### Frontend
 
-- [ ] T023 [P] [US1] Add `assets/js/features/games/schemas.test.ts` asserting the Zod schema (to be implemented) accepts valid input and rejects empty title, missing status, and invalid status atoms
+- [X] T023 [P] [US1] Add `assets/js/features/games/schemas.test.ts` asserting the Zod schema (to be implemented) accepts valid input and rejects empty title, missing status, and invalid status atoms
 - [ ] T024 [P] [US1] Add `assets/js/features/games/hooks.test.ts` with MSW-mocked `/rpc/run` handlers for `list_mine_active` and `register_game`: assert `useListMineActive` returns the mocked list, `useRegisterGame` posts the right body and invalidates `gamesKeys.all` on success; failure cases map to the discriminated `ApiError` union (validation, auth, network)
 - [ ] T025 [P] [US1] Add `assets/js/features/games/components/game-form.test.tsx` asserting the shared `<GameForm>` renders all three fields, validates client-side via the Zod schema, and calls a provided `onSubmit` with the expected shape on valid submit; include `expectNoAxeViolations`
 - [ ] T026 [P] [US1] Add `assets/js/features/games/components/games-table.test.tsx` asserting `<GamesTable>` renders rows with title, description (ellipsised on long values), and action cells (view + delete stub buttons). Assert each action button's rendered `getBoundingClientRect()` reports at least 24×24 CSS px (WCAG 2.5.8, constitution Principle IV — Shadcn icon-button defaults are borderline). Render one row with a 2000-character description and assert the rendered cell has the truncation class (`line-clamp-2`) or that the visible text length is bounded. Include `expectNoAxeViolations`
@@ -122,40 +122,40 @@ appears in the dashboard table with the expected title.
 
 #### E2E
 
-- [ ] T030 [P] [US1] Add `assets/e2e/games-register.spec.ts` covering the full happy path end-to-end: seed a fresh GM via `/test/sign-in-as`, record `performance.now()` after the dashboard load event fires, confirm the `no_games_at_all` empty state, click "Create new game", fill title + description + status=Active, submit, and assert the new row appears in the dashboard table. Record `performance.now()` again when the row is visible and assert the elapsed interactive time is under 30 seconds (SC-001 is "under 60 seconds of interaction time"; the 30s guard is a regression cap, not a product SLA)
+- [X] T030 [P] [US1] Add `assets/e2e/games-register.spec.ts` covering the full happy path end-to-end: seed a fresh GM via `/test/sign-in-as`, record `performance.now()` after the dashboard load event fires, confirm the `no_games_at_all` empty state, click "Create new game", fill title + description + status=Active, submit, and assert the new row appears in the dashboard table. Record `performance.now()` again when the row is visible and assert the elapsed interactive time is under 30 seconds (SC-001 is "under 60 seconds of interaction time"; the 30s guard is a regression cap, not a product SLA)
 
 ### Implementation for User Story 1
 
 #### Backend
 
-- [ ] T031 [US1] Implement the `:register` create action in `lib/game_night/games/game.ex` with `accept [:title, :description, :status]`, `change relate_actor(:owner)`, and the policy `policy action(:register) do authorize_if actor_present() end`; verify T019 and the relevant parts of T021/T022 now pass
-- [ ] T032 [US1] Implement the `:list_mine_active` read action in `lib/game_night/games/game.ex` with `prepare build(filter: [status: :active], sort: [updated_at: :desc])` and a policy under `action_type(:read)` with `authorize_if expr(owner_id == ^actor(:id))` (covers all named reads); verify T020 and the relevant parts of T021/T022 now pass
-- [ ] T033 [US1] Run `mix ash_typescript.codegen` and commit the regenerated `assets/js/ash_rpc.ts` / `assets/js/ash_types.ts`; verify T015 now fully passes
-- [ ] T034 [US1] In `lib/game_night/games/game.ex`, extend the `json_api.routes` block (created empty in T006) with `index :list_mine_active, route: "/active"` and `post :register`; verify the remaining parts of T021 pass
+- [X] T031 [US1] Implement the `:register` create action in `lib/game_night/games/game.ex` with `accept [:title, :description, :status]`, `change relate_actor(:owner)`, and the policy `policy action(:register) do authorize_if actor_present() end`; verify T019 and the relevant parts of T021/T022 now pass
+- [X] T032 [US1] Implement the `:list_mine_active` read action in `lib/game_night/games/game.ex` with `prepare build(filter: [status: :active], sort: [updated_at: :desc])` and a policy under `action_type(:read)` with `authorize_if expr(owner_id == ^actor(:id))` (covers all named reads); verify T020 and the relevant parts of T021/T022 now pass
+- [X] T033 [US1] Run `mix ash_typescript.codegen` and commit the regenerated `assets/js/ash_rpc.ts` / `assets/js/ash_types.ts`; verify T015 now fully passes
+- [X] T034 [US1] In `lib/game_night/games/game.ex`, extend the `json_api.routes` block (created empty in T006) with `index :list_mine_active, route: "/active"` and `post :register`; verify the remaining parts of T021 pass
 
 #### Frontend primitives
 
-- [ ] T035 [P] [US1] Copy Shadcn `textarea.tsx` into `assets/js/components/ui/textarea.tsx` (follow the Shadcn copy-paste flow from AGENTS.md; verify icon/interactive sizing; no Radix dep)
-- [ ] T036 [P] [US1] Copy Shadcn `select.tsx` into `assets/js/components/ui/select.tsx` — requires `@radix-ui/react-select` (add to `assets/package.json` via `bun add @radix-ui/react-select`)
-- [ ] T037 [P] [US1] Copy Shadcn `table.tsx` into `assets/js/components/ui/table.tsx` (no Radix dep)
+- [X] T035 [P] [US1] Copy Shadcn `textarea.tsx` into `assets/js/components/ui/textarea.tsx` (follow the Shadcn copy-paste flow from AGENTS.md; verify icon/interactive sizing; no Radix dep)
+- [X] T036 [P] [US1] Copy Shadcn `select.tsx` into `assets/js/components/ui/select.tsx` — requires `@radix-ui/react-select` (add to `assets/package.json` via `bun add @radix-ui/react-select`)
+- [X] T037 [P] [US1] Copy Shadcn `table.tsx` into `assets/js/components/ui/table.tsx` (no Radix dep)
 
 #### Frontend feature module
 
-- [ ] T038 [US1] Create `assets/js/features/games/schemas.ts` with the shared Zod schema (`title`, `description`, `status`) used by create and edit forms; status enum pulled from the generated TypeScript type; T023 now passes
-- [ ] T039 [US1] Create `assets/js/features/games/hooks.ts` exporting `gamesKeys`, `useListMineActive`, and `useRegisterGame` per [contracts/rpc.md](./contracts/rpc.md); extend `TOAST_MESSAGES` in `assets/js/features/toasts/toast-provider.tsx` with `game_created`; T024 now passes
-- [ ] T040 [US1] Create `assets/js/features/games/components/game-form.tsx` — Shadcn `<Form>` + `<FormField>` for title (Input), description (Textarea), status (Select); `mode: "onTouched"`; pure form component that calls a prop `onSubmit(values: GameFormValues)`; T025 now passes
-- [ ] T041 [US1] Create `assets/js/features/games/components/games-table.tsx` rendering the table header + rows with title, description (truncated via `line-clamp-2`), and an actions cell with `View` link + `Delete` button stub (wired to the modal in US4); T026 now passes
-- [ ] T042 [US1] Create `assets/js/features/games/components/empty-state.tsx` rendering the two discriminated-state variants with correct copy and CTAs; T027 now passes
+- [X] T038 [US1] Create `assets/js/features/games/schemas.ts` with the shared Zod schema (`title`, `description`, `status`) used by create and edit forms; status enum pulled from the generated TypeScript type; T023 now passes
+- [X] T039 [US1] Create `assets/js/features/games/hooks.ts` exporting `gamesKeys`, `useListMineActive`, and `useRegisterGame` per [contracts/rpc.md](./contracts/rpc.md); extend `TOAST_MESSAGES` in `assets/js/features/toasts/toast-provider.tsx` with `game_created`; T024 now passes
+- [X] T040 [US1] Create `assets/js/features/games/components/game-form.tsx` — Shadcn `<Form>` + `<FormField>` for title (Input), description (Textarea), status (Select); `mode: "onTouched"`; pure form component that calls a prop `onSubmit(values: GameFormValues)`; T025 now passes
+- [X] T041 [US1] Create `assets/js/features/games/components/games-table.tsx` rendering the table header + rows with title, description (truncated via `line-clamp-2`), and an actions cell with `View` link + `Delete` button stub (wired to the modal in US4); T026 now passes
+- [X] T042 [US1] Create `assets/js/features/games/components/empty-state.tsx` rendering the two discriminated-state variants with correct copy and CTAs; T027 now passes
 
 #### Routes
 
-- [ ] T043 [US1] Create `assets/js/routes/games.new.tsx` — `createFileRoute("/games/new")`, `beforeLoad` redirects unauthenticated users to `/sign-in?redirect=%2Fgames%2Fnew`; renders `<GameForm>` with an `onSubmit` that calls `useRegisterGame`; on success, push the `game_created` toast, then `navigate({ to: "/dashboard" })`; T028 now passes
-- [ ] T044 [US1] Update `assets/js/routes/dashboard.tsx` to render the "My Active Games" section: header with the title + "Create new game" primary `<Link>` + "View All Games" secondary link; body is `<GamesTable>` driven by `useListMineActive` + `useListMine` (for count), collapsing to `<EmptyState>` when the active list is empty; T029 passes
-- [ ] T045 [US1] Regenerate `assets/js/routeTree.gen.ts` (automatically done by the Vite plugin on next build — verify the new `/games/new` route is present)
+- [X] T043 [US1] Create `assets/js/routes/games.new.tsx` — `createFileRoute("/games/new")`, `beforeLoad` redirects unauthenticated users to `/sign-in?redirect=%2Fgames%2Fnew`; renders `<GameForm>` with an `onSubmit` that calls `useRegisterGame`; on success, push the `game_created` toast, then `navigate({ to: "/dashboard" })`; T028 now passes
+- [X] T044 [US1] Update `assets/js/routes/dashboard.tsx` to render the "My Active Games" section: header with the title + "Create new game" primary `<Link>` + "View All Games" secondary link; body is `<GamesTable>` driven by `useListMineActive` + `useListMine` (for count), collapsing to `<EmptyState>` when the active list is empty; T029 passes
+- [X] T045 [US1] Regenerate `assets/js/routeTree.gen.ts` (automatically done by the Vite plugin on next build — verify the new `/games/new` route is present)
 
 #### Verification
 
-- [ ] T046 [US1] Run `mix test`, `bun run test`, `bun run lint`, `bun run typecheck` — all green
+- [X] T046 [US1] Run `mix test`, `bun run test`, `bun run lint`, `bun run typecheck` — all green
 - [ ] T047 [US1] Run `bun run test:e2e -- games-register.spec.ts` against a live `mix phx.server` (rebuild assets first via `mix assets.build`); verify T030 passes end-to-end
 
 **Checkpoint**: User Story 1 is independently demoable. A new GM can

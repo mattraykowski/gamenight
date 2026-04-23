@@ -19,6 +19,9 @@ const TOAST_MESSAGES: Record<string, { title: string; variant: ToastVariant }> =
   password_reset: { title: "Your password has been reset.", variant: "success" },
   signed_in: { title: "Welcome back!", variant: "success" },
   signed_out: { title: "You are now signed out.", variant: "info" },
+  game_created: { title: "Game registered.", variant: "success" },
+  game_updated: { title: "Game updated.", variant: "success" },
+  game_deleted: { title: "Game deleted.", variant: "success" },
 };
 
 export type ToastVariant = "success" | "info" | "error";

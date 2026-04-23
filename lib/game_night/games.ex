@@ -19,6 +19,8 @@ defmodule GameNight.Games do
   # rpc_action entries) so the typed client picks up the Game type.
   typescript_rpc do
     resource GameNight.Games.Game do
+      rpc_action :list_mine_active, :list_mine_active
+      rpc_action :register_game, :register
     end
   end
 
