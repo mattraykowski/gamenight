@@ -1,15 +1,22 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 import { useCurrentUser } from "@/features/current-user/hooks";
 import { useAuth } from "@/lib/auth/auth-context";
+import { useSignOut } from "@/features/auth/hooks";
+import { useConsumeToastParam } from "@/features/toasts/toast-provider";
+import { Button } from "@/components/ui/button";
+
+const dashboardSearchSchema = z.object({
+  toast: z.string().optional(),
+});
 
 export const Route = createFileRoute("/dashboard")({
+  validateSearch: dashboardSearchSchema,
   beforeLoad: ({ context, location }) => {
     if (!context.auth?.isAuthenticated) {
-      // `/sign-in` is served by Phoenix (ash_authentication_phoenix), not
-      // by the SPA router, so use `href` to trigger a full-document
-      // navigation instead of a typed internal route.
       throw redirect({
-        href: `/sign-in?redirect=${encodeURIComponent(location.href)}`,
+        to: "/sign-in",
+        search: { redirect: location.href },
       });
     }
   },
@@ -23,19 +30,46 @@ export const Route = createFileRoute("/dashboard")({
  */
 export function DashboardRoute() {
   const auth = useAuth();
+  const search = Route.useSearch();
+  const navigate = useNavigate();
+  const signOut = useSignOut();
   const { data, isPending, isError, error } = useCurrentUser();
+
+  useConsumeToastParam(search.toast);
 
   const displayName = data?.email ?? auth.user?.email ?? "";
 
+  async function onSignOut() {
+    try {
+      await signOut.mutateAsync();
+      await navigate({ to: "/" });
+    } catch {
+      // Swallow — clearAuth already ran only on success, so the UI
+      // remains authenticated and the user can retry. Error rendering
+      // is deferred until we add a shared toast surface.
+    }
+  }
+
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1
-        data-route-heading
-        tabIndex={-1}
-        className="text-4xl font-bold tracking-tight"
-      >
-        Dashboard
-      </h1>
+      <div className="flex items-start justify-between gap-4">
+        <h1
+          data-route-heading
+          tabIndex={-1}
+          className="text-4xl font-bold tracking-tight"
+        >
+          Dashboard
+        </h1>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onSignOut}
+          disabled={signOut.isPending}
+          data-testid="sign-out-button"
+        >
+          {signOut.isPending ? "Signing out…" : "Sign out"}
+        </Button>
+      </div>
       {isPending ? (
         <p className="mt-4 text-muted-foreground" aria-live="polite">
           Loading your account…

@@ -25,6 +25,23 @@ defmodule GameNightWeb.Router do
     plug :set_actor, :user
   end
 
+  # Browser pipeline for `auth_routes` endpoints. Accepts both HTML
+  # (for defensive direct-navigation fallbacks) and JSON (the SPA's
+  # primary form-submit content type). The rate limiter runs last so
+  # session loading has already populated `conn.params` with the body
+  # keys it reads for per-email keying.
+  pipeline :auth_browser do
+    plug :accepts, ["html", "json"]
+    plug :fetch_session
+    plug :fetch_live_flash
+    plug :put_root_layout, html: {GameNightWeb.Layouts, :root}
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+    plug :load_from_session
+    plug :set_actor, :user
+    plug GameNightWeb.Plugs.AuthRateLimiter
+  end
+
   # Ingestion pipeline for `/api/vitals`: JSON:API content type,
   # session-aware so authenticated samples are attributed to a user,
   # and rate-limited to keep a runaway tab from flooding the table.
@@ -52,19 +69,6 @@ defmodule GameNightWeb.Router do
   scope "/", GameNightWeb do
     pipe_through :browser
 
-    ash_authentication_live_session :authenticated_routes do
-      # in each liveview, add one of the following at the top of the module:
-      #
-      # If an authenticated user must be present:
-      # on_mount {GameNightWeb.LiveUserAuth, :live_user_required}
-      #
-      # If an authenticated user *may* be present:
-      # on_mount {GameNightWeb.LiveUserAuth, :live_user_optional}
-      #
-      # If an authenticated user must *not* be present:
-      # on_mount {GameNightWeb.LiveUserAuth, :live_no_user}
-    end
-
     post "/rpc/run", AshTypescriptRpcController, :run
     post "/rpc/validate", AshTypescriptRpcController, :validate
   end
@@ -80,36 +84,17 @@ defmodule GameNightWeb.Router do
 
     get "/", PageController, :spa
     get "/dashboard", PageController, :spa
+  end
+
+  # The SPA sign-out button fetches `DELETE /sign-out` with
+  # `Accept: application/json`; the browser pipeline only accepts
+  # `html`, so sign-out lives under `:auth_browser` alongside the
+  # other auth endpoints.
+  scope "/", GameNightWeb do
+    pipe_through :auth_browser
+
+    delete "/sign-out", AuthController, :sign_out
     auth_routes AuthController, GameNight.Accounts.User, path: "/auth"
-    sign_out_route AuthController
-
-    # Remove these if you'd like to use your own authentication views
-    sign_in_route register_path: "/register",
-                  reset_path: "/reset",
-                  auth_routes_prefix: "/auth",
-                  on_mount: [{GameNightWeb.LiveUserAuth, :live_no_user}],
-                  overrides: [
-                    GameNightWeb.AuthOverrides,
-                    Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI
-                  ]
-
-    # Remove this if you do not want to use the reset password feature
-    reset_route auth_routes_prefix: "/auth",
-                overrides: [
-                  GameNightWeb.AuthOverrides,
-                  Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI
-                ]
-
-    # Remove this if you do not use the confirmation strategy
-    confirm_route GameNight.Accounts.User, :confirm_new_user,
-      auth_routes_prefix: "/auth",
-      overrides: [GameNightWeb.AuthOverrides, Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI]
-
-    # Remove this if you do not use the magic link strategy.
-    magic_sign_in_route(GameNight.Accounts.User, :magic_link,
-      auth_routes_prefix: "/auth",
-      overrides: [GameNightWeb.AuthOverrides, Elixir.AshAuthentication.Phoenix.Overrides.DaisyUI]
-    )
   end
 
   # Other scopes may use custom stacks.
@@ -144,14 +129,18 @@ defmodule GameNightWeb.Router do
     end
   end
 
-  # Playwright / E2E helper — guarded behind :dev_routes so the endpoint
-  # is never mounted in production. The controller upserts a user and
-  # stores them in the Phoenix session.
+  # Playwright / E2E helpers — guarded behind :dev_routes so the
+  # endpoints are never mounted in production. `TestAuthController`
+  # upserts a user + stores them in the session; `TestMailboxController`
+  # reads/clears the in-memory Swoosh local mailbox so specs can follow
+  # token URLs from confirmation / reset / magic-link emails.
   if Application.compile_env(:game_night, :dev_routes) do
     scope "/test", GameNightWeb do
       pipe_through :test_session_api
 
       post "/sign-in-as", TestAuthController, :sign_in_as
+      get "/mailbox", TestMailboxController, :index
+      delete "/mailbox", TestMailboxController, :clear
     end
   end
 

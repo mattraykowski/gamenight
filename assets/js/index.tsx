@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/lib/auth/auth-context";
 import { createAuthedFetch } from "@/lib/auth/authed-fetch";
 import { configureApiClient } from "@/lib/api/client";
 import { installReporter } from "@/features/vitals/reporter";
+import { ToastProvider } from "@/features/toasts/toast-provider";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,11 +47,9 @@ function AuthInterceptor() {
     const authedFetch = createAuthedFetch({
       onAuthFailed: ({ currentPath }) => {
         auth.clearAuth();
-        // `/sign-in` is served by Phoenix; force a full-document
-        // navigation via `href` so the cookie-based session flow picks
-        // up from there.
         router.navigate({
-          href: `/sign-in?redirect=${encodeURIComponent(currentPath)}`,
+          to: "/sign-in",
+          search: { redirect: currentPath },
         });
       },
     });
@@ -78,7 +77,9 @@ if (rootEl && !rootEl.innerHTML) {
     <StrictMode>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <AppRouter />
+          <ToastProvider>
+            <AppRouter />
+          </ToastProvider>
         </AuthProvider>
       </QueryClientProvider>
     </StrictMode>,

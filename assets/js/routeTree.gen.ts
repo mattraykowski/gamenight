@@ -9,9 +9,36 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as ResetRouteImport } from './routes/reset'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as MagicLinkRouteImport } from './routes/magic-link'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PasswordResetTokenRouteImport } from './routes/password-reset.$token'
+import { Route as Magic_linkTokenRouteImport } from './routes/magic_link.$token'
+import { Route as Confirm_new_userTokenRouteImport } from './routes/confirm_new_user.$token'
 
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetRoute = ResetRouteImport.update({
+  id: '/reset',
+  path: '/reset',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MagicLinkRoute = MagicLinkRouteImport.update({
+  id: '/magic-link',
+  path: '/magic-link',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -22,35 +49,134 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PasswordResetTokenRoute = PasswordResetTokenRouteImport.update({
+  id: '/password-reset/$token',
+  path: '/password-reset/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Magic_linkTokenRoute = Magic_linkTokenRouteImport.update({
+  id: '/magic_link/$token',
+  path: '/magic_link/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Confirm_new_userTokenRoute = Confirm_new_userTokenRouteImport.update({
+  id: '/confirm_new_user/$token',
+  path: '/confirm_new_user/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/magic-link': typeof MagicLinkRoute
+  '/register': typeof RegisterRoute
+  '/reset': typeof ResetRoute
+  '/sign-in': typeof SignInRoute
+  '/confirm_new_user/$token': typeof Confirm_new_userTokenRoute
+  '/magic_link/$token': typeof Magic_linkTokenRoute
+  '/password-reset/$token': typeof PasswordResetTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/magic-link': typeof MagicLinkRoute
+  '/register': typeof RegisterRoute
+  '/reset': typeof ResetRoute
+  '/sign-in': typeof SignInRoute
+  '/confirm_new_user/$token': typeof Confirm_new_userTokenRoute
+  '/magic_link/$token': typeof Magic_linkTokenRoute
+  '/password-reset/$token': typeof PasswordResetTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/magic-link': typeof MagicLinkRoute
+  '/register': typeof RegisterRoute
+  '/reset': typeof ResetRoute
+  '/sign-in': typeof SignInRoute
+  '/confirm_new_user/$token': typeof Confirm_new_userTokenRoute
+  '/magic_link/$token': typeof Magic_linkTokenRoute
+  '/password-reset/$token': typeof PasswordResetTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/magic-link'
+    | '/register'
+    | '/reset'
+    | '/sign-in'
+    | '/confirm_new_user/$token'
+    | '/magic_link/$token'
+    | '/password-reset/$token'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard'
-  id: '__root__' | '/' | '/dashboard'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/magic-link'
+    | '/register'
+    | '/reset'
+    | '/sign-in'
+    | '/confirm_new_user/$token'
+    | '/magic_link/$token'
+    | '/password-reset/$token'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/magic-link'
+    | '/register'
+    | '/reset'
+    | '/sign-in'
+    | '/confirm_new_user/$token'
+    | '/magic_link/$token'
+    | '/password-reset/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
+  MagicLinkRoute: typeof MagicLinkRoute
+  RegisterRoute: typeof RegisterRoute
+  ResetRoute: typeof ResetRoute
+  SignInRoute: typeof SignInRoute
+  Confirm_new_userTokenRoute: typeof Confirm_new_userTokenRoute
+  Magic_linkTokenRoute: typeof Magic_linkTokenRoute
+  PasswordResetTokenRoute: typeof PasswordResetTokenRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset': {
+      id: '/reset'
+      path: '/reset'
+      fullPath: '/reset'
+      preLoaderRoute: typeof ResetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/magic-link': {
+      id: '/magic-link'
+      path: '/magic-link'
+      fullPath: '/magic-link'
+      preLoaderRoute: typeof MagicLinkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -65,12 +191,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/password-reset/$token': {
+      id: '/password-reset/$token'
+      path: '/password-reset/$token'
+      fullPath: '/password-reset/$token'
+      preLoaderRoute: typeof PasswordResetTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/magic_link/$token': {
+      id: '/magic_link/$token'
+      path: '/magic_link/$token'
+      fullPath: '/magic_link/$token'
+      preLoaderRoute: typeof Magic_linkTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confirm_new_user/$token': {
+      id: '/confirm_new_user/$token'
+      path: '/confirm_new_user/$token'
+      fullPath: '/confirm_new_user/$token'
+      preLoaderRoute: typeof Confirm_new_userTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
+  MagicLinkRoute: MagicLinkRoute,
+  RegisterRoute: RegisterRoute,
+  ResetRoute: ResetRoute,
+  SignInRoute: SignInRoute,
+  Confirm_new_userTokenRoute: Confirm_new_userTokenRoute,
+  Magic_linkTokenRoute: Magic_linkTokenRoute,
+  PasswordResetTokenRoute: PasswordResetTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
