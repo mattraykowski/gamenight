@@ -395,6 +395,73 @@ export async function validateGetMine(
 }
 
 
+export type ListMineFields = UnifiedFieldSelection<GameResourceSchema>[];
+export type InferListMineResult<
+  Fields extends ListMineFields,
+> = Array<InferResult<GameResourceSchema, Fields>>;
+
+export type ListMineResult<Fields extends ListMineFields> = | { success: true; data: InferListMineResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Read Game records
+ *
+ * @ashActionType :read
+ */
+export async function listMine<Fields extends ListMineFields>(
+  config: {
+  tenant?: string;
+  fields: Fields;
+  filter?: GameFilterInput;
+  sort?: SortString<GameSortField> | SortString<GameSortField>[];
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ListMineResult<Fields>> {
+  const payload = {
+    action: "list_mine",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    ...(config.fields !== undefined && { fields: config.fields }),
+    ...(config.filter && { filter: config.filter }),
+    ...(config.sort && { sort: Array.isArray(config.sort) ? config.sort.join(",") : config.sort })
+  };
+
+  return executeActionRpcRequest<ListMineResult<Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Validate: Read Game records
+ *
+ * @ashActionType :read
+ * @validation true
+ */
+export async function validateListMine(
+  config: {
+  tenant?: string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ValidationResult> {
+  const payload = {
+    action: "list_mine",
+    ...(config.tenant !== undefined && { tenant: config.tenant })
+  };
+
+  return executeValidationRpcRequest<ValidationResult>(
+    payload,
+    config
+  );
+}
+
+
 export type ListMineActiveFields = UnifiedFieldSelection<GameResourceSchema>[];
 export type InferListMineActiveResult<
   Fields extends ListMineActiveFields,

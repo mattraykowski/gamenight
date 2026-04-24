@@ -221,6 +221,29 @@ defmodule GameNightWeb.GamesRequestTest do
     end
   end
 
+  describe "GET /api/games/all (T087)" do
+    test "returns the actor's mixed-status games", %{conn: conn} do
+      {:ok, owner} = create_user()
+      {:ok, _} = register_game(owner, %{title: "Active One", status: :active})
+      {:ok, _} = register_game(owner, %{title: "Paused One", status: :paused})
+      {:ok, _} = register_game(owner, %{title: "Done", status: :completed})
+
+      conn =
+        conn
+        |> sign_in(owner)
+        |> put_req_header("accept", @jsonapi)
+        |> get(~p"/api/games/all")
+
+      assert %{"data" => rows} = json_response(conn, 200)
+      assert length(rows) == 3
+
+      titles = Enum.map(rows, & &1["attributes"]["title"])
+      assert "Active One" in titles
+      assert "Paused One" in titles
+      assert "Done" in titles
+    end
+  end
+
   describe "DELETE /api/games/:id (T074)" do
     setup do
       {:ok, owner} = create_user()

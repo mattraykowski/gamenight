@@ -15,6 +15,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as MagicLinkRouteImport } from './routes/magic-link'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as GamesIndexRouteImport } from './routes/games.index'
 import { Route as PasswordResetTokenRouteImport } from './routes/password-reset.$token'
 import { Route as Magic_linkTokenRouteImport } from './routes/magic_link.$token'
 import { Route as GamesNewRouteImport } from './routes/games.new'
@@ -50,6 +51,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesIndexRoute = GamesIndexRouteImport.update({
+  id: '/games/',
+  path: '/games/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PasswordResetTokenRoute = PasswordResetTokenRouteImport.update({
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/games/new': typeof GamesNewRoute
   '/magic_link/$token': typeof Magic_linkTokenRoute
   '/password-reset/$token': typeof PasswordResetTokenRoute
+  '/games/': typeof GamesIndexRoute
   '/games/$id/edit': typeof GamesIdEditRoute
   '/games/$id/': typeof GamesIdIndexRoute
 }
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/games/new': typeof GamesNewRoute
   '/magic_link/$token': typeof Magic_linkTokenRoute
   '/password-reset/$token': typeof PasswordResetTokenRoute
+  '/games': typeof GamesIndexRoute
   '/games/$id/edit': typeof GamesIdEditRoute
   '/games/$id': typeof GamesIdIndexRoute
 }
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/games/new': typeof GamesNewRoute
   '/magic_link/$token': typeof Magic_linkTokenRoute
   '/password-reset/$token': typeof PasswordResetTokenRoute
+  '/games/': typeof GamesIndexRoute
   '/games/$id/edit': typeof GamesIdEditRoute
   '/games/$id/': typeof GamesIdIndexRoute
 }
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
     | '/games/new'
     | '/magic_link/$token'
     | '/password-reset/$token'
+    | '/games/'
     | '/games/$id/edit'
     | '/games/$id/'
   fileRoutesByTo: FileRoutesByTo
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/games/new'
     | '/magic_link/$token'
     | '/password-reset/$token'
+    | '/games'
     | '/games/$id/edit'
     | '/games/$id'
   id:
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/games/new'
     | '/magic_link/$token'
     | '/password-reset/$token'
+    | '/games/'
     | '/games/$id/edit'
     | '/games/$id/'
   fileRoutesById: FileRoutesById
@@ -182,6 +194,7 @@ export interface RootRouteChildren {
   GamesNewRoute: typeof GamesNewRoute
   Magic_linkTokenRoute: typeof Magic_linkTokenRoute
   PasswordResetTokenRoute: typeof PasswordResetTokenRoute
+  GamesIndexRoute: typeof GamesIndexRoute
   GamesIdEditRoute: typeof GamesIdEditRoute
   GamesIdIndexRoute: typeof GamesIdIndexRoute
 }
@@ -228,6 +241,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games/': {
+      id: '/games/'
+      path: '/games'
+      fullPath: '/games/'
+      preLoaderRoute: typeof GamesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/password-reset/$token': {
@@ -286,6 +306,7 @@ const rootRouteChildren: RootRouteChildren = {
   GamesNewRoute: GamesNewRoute,
   Magic_linkTokenRoute: Magic_linkTokenRoute,
   PasswordResetTokenRoute: PasswordResetTokenRoute,
+  GamesIndexRoute: GamesIndexRoute,
   GamesIdEditRoute: GamesIdEditRoute,
   GamesIdIndexRoute: GamesIdIndexRoute,
 }

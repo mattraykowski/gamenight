@@ -213,6 +213,35 @@ defmodule GameNight.Games.GameTest do
     end
   end
 
+  describe ":list_mine action (T086 behaviour)" do
+    setup do
+      {:ok, owner} = create_user()
+      {:ok, other} = create_user()
+      {:ok, owner: owner, other: other}
+    end
+
+    test "returns all of the actor's games regardless of status, newest first", %{
+      owner: owner,
+      other: other
+    } do
+      {:ok, _strangers} = register_game(other, %{title: "Stranger's", status: :active})
+      {:ok, paused} = register_game(owner, %{title: "Paused", status: :paused})
+      :timer.sleep(5)
+      {:ok, active} = register_game(owner, %{title: "Active", status: :active})
+      :timer.sleep(5)
+      {:ok, done} = register_game(owner, %{title: "Done", status: :completed})
+
+      {:ok, results} =
+        Game
+        |> Ash.Query.for_read(:list_mine, %{}, actor: owner)
+        |> Ash.read()
+
+      ids = Enum.map(results, & &1.id)
+      # Newest first + cross-tenant isolation.
+      assert ids == [done.id, active.id, paused.id]
+    end
+  end
+
   describe ":destroy action (T073 policies + behaviour)" do
     setup do
       {:ok, owner} = create_user()

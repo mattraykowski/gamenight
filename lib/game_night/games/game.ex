@@ -47,6 +47,7 @@ defmodule GameNight.Games.Game do
       base "/games"
 
       index :list_mine_active, route: "/active"
+      index :list_mine, route: "/all"
       get :get_mine, route: "/:id"
       post :register
       patch :update
@@ -60,6 +61,11 @@ defmodule GameNight.Games.Game do
     read :list_mine_active do
       description "Return the actor's games whose status is Active, newest-updated first."
       prepare build(filter: [status: :active], sort: [updated_at: :desc])
+    end
+
+    read :list_mine do
+      description "Return every one of the actor's games, regardless of status."
+      prepare build(sort: [updated_at: :desc])
     end
 
     read :get_mine do

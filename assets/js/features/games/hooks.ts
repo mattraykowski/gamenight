@@ -8,6 +8,7 @@ import {
 import {
   destroyGame,
   getMine,
+  listMine,
   listMineActive,
   registerGame,
   updateGame,
@@ -57,6 +58,29 @@ export function useListMineActive(): UseQueryResult<Game[], ApiError> {
       const { customFetch, headers } = getClientOptions();
       return runRpc<Game[]>(
         listMineActive({
+          fields: GAME_FIELDS as unknown as Array<"id" | "title" | "description" | "status">,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: Game[] }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+  });
+}
+
+/**
+ * Fetches every one of the actor's games regardless of status.
+ * Used by the "View All Games" page.
+ */
+export function useListMine(): UseQueryResult<Game[], ApiError> {
+  return useQuery({
+    queryKey: gamesKeys.mine(),
+    queryFn: async () => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<Game[]>(
+        listMine({
           fields: GAME_FIELDS as unknown as Array<"id" | "title" | "description" | "status">,
           headers,
           ...(customFetch !== undefined ? { customFetch } : {}),

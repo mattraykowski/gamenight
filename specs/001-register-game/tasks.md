@@ -290,24 +290,24 @@ works from an all-games row.
 
 ### Tests for User Story 5 (REQUIRED — write and verify RED first) ⚠️
 
-- [ ] T086 [P] [US5] Extend `test/game_night/games/game_test.exs` with action tests for `:list_mine`: returns the actor's games regardless of status, sorted by `updated_at DESC`
-- [ ] T087 [P] [US5] Extend `test/game_night_web/controllers/games_request_test.exs` with `GET /api/json/games/all` returning a mixed-status collection
-- [ ] T088 [P] [US5] Extend `test/game_night/games/game_rpc_test.exs` with a `listMine` happy-path
-- [ ] T089 [P] [US5] Add `assets/js/routes/games.index.test.tsx` using the router harness: renders a row per status, displays the status column, renders the shared empty state when the user has no games at all, assert the `<h1>` carries `data-route-heading` and `tabIndex="-1"` (FR-023), include `expectNoAxeViolations`
-- [ ] T090 [P] [US5] Add `assets/e2e/games-all.spec.ts` covering: navigation from dashboard "View All Games", visibility of a Paused game that is absent from the dashboard, deletion from an all-games row (assert `page.url()` matches `/games$` after the confirm click — FR-018 stay-in-place for the all-games surface)
+- [X] T086 [P] [US5] Extend `test/game_night/games/game_test.exs` with action tests for `:list_mine`: returns the actor's games regardless of status, sorted by `updated_at DESC`
+- [X] T087 [P] [US5] Extend `test/game_night_web/controllers/games_request_test.exs` with `GET /api/json/games/all` returning a mixed-status collection
+- [X] T088 [P] [US5] Extend `test/game_night/games/game_rpc_test.exs` with a `listMine` happy-path
+- [X] T089 [P] [US5] Add `assets/js/routes/games.index.test.tsx` using the router harness: renders a row per status, displays the status column, renders the shared empty state when the user has no games at all, assert the `<h1>` carries `data-route-heading` and `tabIndex="-1"` (FR-023), include `expectNoAxeViolations`
+- [X] T090 [P] [US5] Add `assets/e2e/games-all.spec.ts` covering: navigation from dashboard "View All Games", visibility of a Paused game that is absent from the dashboard, deletion from an all-games row (assert `page.url()` matches `/games$` after the confirm click — FR-018 stay-in-place for the all-games surface)
 
 ### Implementation for User Story 5
 
-- [ ] T091 [US5] Implement the `:list_mine` read action in `lib/game_night/games/game.ex` with `prepare build(sort: [updated_at: :desc])`; inherits the shared read policy. Run `mix ash_typescript.codegen` and commit the regen; T086 / T088 pass
-- [ ] T092 [US5] Add `index :list_mine, route: "/all"` to the `json_api do routes do ... end` block; T087 passes
-- [ ] T093 [US5] Extend `assets/js/features/games/hooks.ts` with `useListMine`
-- [ ] T094 [US5] Extend `assets/js/features/games/components/games-table.tsx` to accept an optional `showStatus` prop; when true, render a status column — used by the all-games route but not by the dashboard (which filters to Active only)
-- [ ] T095 [US5] Create `assets/js/routes/games.index.tsx` — `createFileRoute("/games/")`, `beforeLoad` redirects unauthenticated users, renders `<GamesTable showStatus={true}>` driven by `useListMine` with the shared `<EmptyState>` for the no-games-at-all case; T089 passes
-- [ ] T096 [US5] Ensure the "View All Games" link in the dashboard section header (created in US1) points at `/games` (was a placeholder href or empty link)
+- [X] T091 [US5] Implement the `:list_mine` read action in `lib/game_night/games/game.ex` with `prepare build(sort: [updated_at: :desc])`; inherits the shared read policy. Run `mix ash_typescript.codegen` and commit the regen; T086 / T088 pass
+- [X] T092 [US5] Add `index :list_mine, route: "/all"` to the `json_api do routes do ... end` block; T087 passes
+- [X] T093 [US5] Extend `assets/js/features/games/hooks.ts` with `useListMine`
+- [X] T094 [US5] Extend `assets/js/features/games/components/games-table.tsx` to accept an optional `showStatus` prop; when true, render a status column — used by the all-games route but not by the dashboard (which filters to Active only)
+- [X] T095 [US5] Create `assets/js/routes/games.index.tsx` — `createFileRoute("/games/")`, `beforeLoad` redirects unauthenticated users, renders `<GamesTable showStatus={true}>` driven by `useListMine` with the shared `<EmptyState>` for the no-games-at-all case; T089 passes
+- [X] T096 [US5] Ensure the "View All Games" link in the dashboard section header (created in US1) points at `/games` (was a placeholder href or empty link)
 
 #### Verification
 
-- [ ] T097 [US5] Full gate run including T090 E2E; all green
+- [X] T097 [US5] Full gate run including T090 E2E; all green
 
 **Checkpoint**: All five user stories are independently functional.
 

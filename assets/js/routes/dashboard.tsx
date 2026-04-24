@@ -3,7 +3,7 @@ import { z } from "zod";
 import { useCurrentUser } from "@/features/current-user/hooks";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useSignOut } from "@/features/auth/hooks";
-import { useListMineActive } from "@/features/games/hooks";
+import { useListMine, useListMineActive } from "@/features/games/hooks";
 import { GamesTable } from "@/features/games/components/games-table";
 import { GamesEmptyState } from "@/features/games/components/empty-state";
 import { useConsumeToastParam } from "@/features/toasts/toast-provider";
@@ -38,6 +38,12 @@ export function DashboardRoute() {
   const signOut = useSignOut();
   const { data, isPending, isError, error } = useCurrentUser();
   const activeGames = useListMineActive();
+  // Only fetch the full list when the active list is empty — it
+  // drives the discriminated empty-state (`no_games_at_all` vs
+  // `no_active_games` with a hint to View All Games).
+  const shouldCheckAll = activeGames.isSuccess && activeGames.data.length === 0;
+  const allGames = useListMine();
+  const totalCount = shouldCheckAll && allGames.isSuccess ? allGames.data.length : 0;
 
   useConsumeToastParam(search.toast);
 
@@ -94,13 +100,13 @@ export function DashboardRoute() {
             My Active Games
           </h2>
           <div className="flex items-center gap-3">
-            <a
-              href="/games"
+            <Link
+              to="/games"
               className="text-sm font-medium text-primary underline-offset-4 hover:underline"
               data-testid="dashboard-view-all-games"
             >
               View All Games
-            </a>
+            </Link>
             <Button asChild size="sm" data-testid="dashboard-create-game">
               <Link to="/games/new">Create new game</Link>
             </Button>
@@ -118,6 +124,8 @@ export function DashboardRoute() {
             </p>
           ) : activeGames.data.length > 0 ? (
             <GamesTable games={activeGames.data} />
+          ) : totalCount > 0 ? (
+            <GamesEmptyState kind="no_active_games" totalCount={totalCount} />
           ) : (
             <GamesEmptyState kind="no_games_at_all" />
           )}
