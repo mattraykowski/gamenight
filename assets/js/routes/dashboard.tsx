@@ -1,8 +1,7 @@
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import { useCurrentUser } from "@/features/current-user/hooks";
 import { useAuth } from "@/lib/auth/auth-context";
-import { useSignOut } from "@/features/auth/hooks";
 import { useListMine, useListMineActive } from "@/features/games/hooks";
 import { GamesTable } from "@/features/games/components/games-table";
 import { GamesEmptyState } from "@/features/games/components/empty-state";
@@ -34,8 +33,6 @@ export const Route = createFileRoute("/dashboard")({
 export function DashboardRoute() {
   const auth = useAuth();
   const search = Route.useSearch();
-  const navigate = useNavigate();
-  const signOut = useSignOut();
   const { data, isPending, isError, error } = useCurrentUser();
   const activeGames = useListMineActive();
   // Only fetch the full list when the active list is empty — it
@@ -49,17 +46,6 @@ export function DashboardRoute() {
 
   const displayName = data?.email ?? auth.user?.email ?? "";
 
-  async function onSignOut() {
-    try {
-      await signOut.mutateAsync();
-      await navigate({ to: "/" });
-    } catch {
-      // Swallow — clearAuth already ran only on success, so the UI
-      // remains authenticated and the user can retry. Error rendering
-      // is deferred until we add a shared toast surface.
-    }
-  }
-
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
       <div className="flex items-start justify-between gap-4">
@@ -70,15 +56,6 @@ export function DashboardRoute() {
         >
           Dashboard
         </h1>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onSignOut}
-          disabled={signOut.isPending}
-          data-testid="sign-out-button"
-        >
-          {signOut.isPending ? "Signing out…" : "Sign out"}
-        </Button>
       </div>
       {isPending ? (
         <p className="mt-4 text-muted-foreground" aria-live="polite">

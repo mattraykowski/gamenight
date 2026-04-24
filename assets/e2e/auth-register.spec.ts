@@ -1,4 +1,11 @@
-import { test, expect, latestEmailTo, extractLinkFromEmail, clearMailbox } from "./fixtures";
+import {
+  test,
+  expect,
+  latestEmailTo,
+  extractLinkFromEmail,
+  clearMailbox,
+  clickSignOut,
+} from "./fixtures";
 
 /**
  * Phase 2 E2E: proves the SPA register form signs the user in
@@ -75,7 +82,7 @@ test.describe("register flow", () => {
     await page.getByLabel(/confirm password/i).fill(REGISTER_PASSWORD);
     await page.getByRole("button", { name: /create account/i }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
-    await page.getByTestId("sign-out-button").click();
+    await clickSignOut(page);
 
     // Second register with the same email should leak + link back.
     await page.goto("/register");

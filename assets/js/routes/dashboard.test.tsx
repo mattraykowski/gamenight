@@ -147,12 +147,6 @@ describe("/dashboard route", () => {
     expect(heading).toHaveAttribute("tabIndex", "-1");
   });
 
-  it("renders a sign-out button", async () => {
-    renderDashboardAt();
-    await waitFor(() => screen.getByTestId("sign-out-button"));
-    expect(screen.getByRole("button", { name: /sign out/i })).toBeInTheDocument();
-  });
-
   it("renders a toast when ?toast=email_confirmed is in the URL", async () => {
     renderDashboardAt("/dashboard?toast=email_confirmed");
 

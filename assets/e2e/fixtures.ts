@@ -29,6 +29,16 @@ export async function signInAs(page: Page, email: string): Promise<void> {
   }
 }
 
+/**
+ * Opens the navbar user menu and clicks "Sign out". Helper so every
+ * spec that needs to drop auth doesn't have to remember the two-step
+ * dropdown dance.
+ */
+export async function clickSignOut(page: Page): Promise<void> {
+  await page.getByTestId("user-menu-trigger").click();
+  await page.getByTestId("user-menu-sign-out").click();
+}
+
 export interface CapturedEmail {
   to: Array<{ name: string; address: string }>;
   from: { name: string; address: string } | null;

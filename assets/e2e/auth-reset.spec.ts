@@ -1,4 +1,11 @@
-import { test, expect, latestEmailTo, extractLinkFromEmail, clearMailbox } from "./fixtures";
+import {
+  test,
+  expect,
+  latestEmailTo,
+  extractLinkFromEmail,
+  clearMailbox,
+  clickSignOut,
+} from "./fixtures";
 
 /**
  * Phase 3 E2E: request → email captured → click link → submit new
@@ -60,7 +67,7 @@ test.describe("password reset flow", () => {
     );
 
     // Sign out and confirm the new password works for sign-in.
-    await page.getByTestId("sign-out-button").click();
+    await clickSignOut(page);
     await page.goto("/sign-in");
     await page.getByLabel(/email/i).fill(RESET_EMAIL);
     await page.getByLabel("Password").fill(NEW_PASSWORD);

@@ -1,4 +1,4 @@
-import { test, expect, signInAs } from "./fixtures";
+import { test, expect, signInAs, clickSignOut } from "./fixtures";
 
 /**
  * Phase 1 E2E: proves sign-out clears the session cookie client-side
@@ -17,7 +17,7 @@ test.describe("sign-out", () => {
     await page.goto("/dashboard");
     await expect(page.getByRole("heading", { level: 1, name: /dashboard/i })).toBeVisible();
 
-    await page.getByTestId("sign-out-button").click();
+    await clickSignOut(page);
 
     // Landing page after sign-out is `/`.
     await expect(page).toHaveURL(/\/$/);
@@ -35,7 +35,7 @@ test.describe("sign-out", () => {
 
   test("visiting /dashboard after sign-out bounces back to /sign-in", async ({ page }) => {
     await page.goto("/dashboard");
-    await page.getByTestId("sign-out-button").click();
+    await clickSignOut(page);
     await expect(page).toHaveURL(/\/$/);
 
     await page.goto("/dashboard");
