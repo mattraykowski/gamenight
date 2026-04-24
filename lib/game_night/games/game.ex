@@ -22,10 +22,6 @@ defmodule GameNight.Games.Game do
 
   def statuses, do: @statuses
 
-  typescript do
-    type_name "Game"
-  end
-
   postgres do
     table "games"
     repo GameNight.Repo
@@ -53,6 +49,10 @@ defmodule GameNight.Games.Game do
       patch :update
       delete :destroy
     end
+  end
+
+  typescript do
+    type_name "Game"
   end
 
   actions do

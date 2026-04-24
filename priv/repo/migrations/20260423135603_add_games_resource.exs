@@ -29,7 +29,8 @@ defmodule GameNight.Repo.Migrations.AddGamesResource do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ), null: false
+          ),
+          null: false
     end
 
     create index(:games, [:owner_id, :status, :updated_at],
