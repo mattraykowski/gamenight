@@ -264,6 +264,66 @@ export async function validateReadCurrentUser(
 }
 
 
+export type DestroyGameResult = | { success: true; data: {}; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Delete a Game
+ *
+ * @ashActionType :destroy
+ */
+export async function destroyGame(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<DestroyGameResult> {
+  const payload = {
+    action: "destroy_game",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity
+  };
+
+  return executeActionRpcRequest<DestroyGameResult>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Validate: Delete a Game
+ *
+ * @ashActionType :destroy
+ * @validation true
+ */
+export async function validateDestroyGame(
+  config: {
+  tenant?: string;
+  identity: UUID | string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ValidationResult> {
+  const payload = {
+    action: "destroy_game",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity
+  };
+
+  return executeValidationRpcRequest<ValidationResult>(
+    payload,
+    config
+  );
+}
+
+
 export type GetMineInput = {
   id: UUID;
 };

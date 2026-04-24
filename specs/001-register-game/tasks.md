@@ -252,25 +252,25 @@ final post-delete landing location.
 
 ### Tests for User Story 4 (REQUIRED — write and verify RED first) ⚠️
 
-- [ ] T073 [P] [US4] Extend `test/game_night/games/game_test.exs` with policy + action tests for `:destroy`: owner can destroy; a different user cannot; destroying returns `:ok` and the row is gone
-- [ ] T074 [P] [US4] Extend `test/game_night_web/controllers/games_request_test.exs` with `DELETE /api/json/games/:id` cases: owner → 204, different user → 404, anonymous → 401
-- [ ] T075 [P] [US4] Extend `test/game_night/games/game_rpc_test.exs` with a `destroyGame` happy-path and forbidden case
-- [ ] T076 [P] [US4] Add `assets/js/features/games/components/delete-game-dialog.test.tsx` asserting: (a) confirm button is disabled initially, (b) disabled for near-misses `""`, `"Delete"`, `"delete "`, `"DELETE"`, (c) enabled for exact match `"delete"`, (d) cancel/Escape/backdrop close the dialog without calling the delete handler, (e) focus moves to the trigger button on close (Radix default — spot-check), (f) the confirm button is disabled while the mutation is in-flight so a second click cannot double-submit; include `expectNoAxeViolations` with the dialog open
-- [ ] T077 [P] [US4] Add `assets/e2e/games-delete.spec.ts` covering: delete from dashboard row (confirm disabled until typed; successful delete removes the row AND `page.url()` matches `/dashboard$` unchanged — FR-018 "stay on the same page" assertion), after deleting the only remaining Active game the dashboard shows the `no_active_games` (or `no_games_at_all`) empty state instead of a zero-row table, delete from detail page (successful delete navigates to `/dashboard`), Escape closes the dialog, backdrop-click closes the dialog
+- [X] T073 [P] [US4] Extend `test/game_night/games/game_test.exs` with policy + action tests for `:destroy`: owner can destroy; a different user cannot; destroying returns `:ok` and the row is gone
+- [X] T074 [P] [US4] Extend `test/game_night_web/controllers/games_request_test.exs` with `DELETE /api/json/games/:id` cases: owner → 204, different user → 404, anonymous → 401
+- [X] T075 [P] [US4] Extend `test/game_night/games/game_rpc_test.exs` with a `destroyGame` happy-path and forbidden case
+- [X] T076 [P] [US4] Add `assets/js/features/games/components/delete-game-dialog.test.tsx` asserting: (a) confirm button is disabled initially, (b) disabled for near-misses `""`, `"Delete"`, `"delete "`, `"DELETE"`, (c) enabled for exact match `"delete"`, (d) cancel/Escape/backdrop close the dialog without calling the delete handler, (e) focus moves to the trigger button on close (Radix default — spot-check), (f) the confirm button is disabled while the mutation is in-flight so a second click cannot double-submit; include `expectNoAxeViolations` with the dialog open
+- [X] T077 [P] [US4] Add `assets/e2e/games-delete.spec.ts` covering: delete from dashboard row (confirm disabled until typed; successful delete removes the row AND `page.url()` matches `/dashboard$` unchanged — FR-018 "stay on the same page" assertion), after deleting the only remaining Active game the dashboard shows the `no_active_games` (or `no_games_at_all`) empty state instead of a zero-row table, delete from detail page (successful delete navigates to `/dashboard`), Escape closes the dialog, backdrop-click closes the dialog
 
 ### Implementation for User Story 4
 
-- [ ] T078 [US4] Implement the `:destroy` action in `lib/game_night/games/game.ex`; the shared `update/destroy` policy covers authorization. Run `mix ash_typescript.codegen` and commit the regen; T073 / T075 pass
-- [ ] T079 [US4] Add `delete :destroy` to the `json_api do routes do ... end` block; T074 passes
-- [ ] T080 [US4] Copy Shadcn `dialog.tsx` into `assets/js/components/ui/dialog.tsx` — requires `@radix-ui/react-dialog` (add via `bun add @radix-ui/react-dialog`); verify icon sizes ≥24×24 CSS px per constitution Principle IV
-- [ ] T081 [US4] Extend `assets/js/features/games/hooks.ts` with `useDestroyGame` — invalidates `gamesKeys.all` and removes the `gamesKeys.detail(id)` cache entry on success; extend `TOAST_MESSAGES` with `game_deleted`
-- [ ] T082 [US4] Create `assets/js/features/games/components/delete-game-dialog.tsx` — Radix `<Dialog>` with a controlled text input, disabled confirm button gated by an exact-string comparison against `"delete"` (case-sensitive, whitespace-sensitive), identifies the game being deleted in the dialog heading; T076 passes
-- [ ] T083 [US4] Wire the delete dialog into `assets/js/features/games/components/games-table.tsx` (dashboard row): replace the stub delete button with the dialog trigger; on confirm, call `useDestroyGame`, push the `game_deleted` toast, and rely on query invalidation to refresh the table
-- [ ] T084 [US4] Wire the delete dialog into `assets/js/routes/games.$id.tsx` (detail page): on confirm, navigate to `/dashboard` and push the `game_deleted` toast
+- [X] T078 [US4] Implement the `:destroy` action in `lib/game_night/games/game.ex`; the shared `update/destroy` policy covers authorization. Run `mix ash_typescript.codegen` and commit the regen; T073 / T075 pass
+- [X] T079 [US4] Add `delete :destroy` to the `json_api do routes do ... end` block; T074 passes
+- [X] T080 [US4] Copy Shadcn `dialog.tsx` into `assets/js/components/ui/dialog.tsx` — requires `@radix-ui/react-dialog` (add via `bun add @radix-ui/react-dialog`); verify icon sizes ≥24×24 CSS px per constitution Principle IV
+- [X] T081 [US4] Extend `assets/js/features/games/hooks.ts` with `useDestroyGame` — invalidates `gamesKeys.all` and removes the `gamesKeys.detail(id)` cache entry on success; extend `TOAST_MESSAGES` with `game_deleted`
+- [X] T082 [US4] Create `assets/js/features/games/components/delete-game-dialog.tsx` — Radix `<Dialog>` with a controlled text input, disabled confirm button gated by an exact-string comparison against `"delete"` (case-sensitive, whitespace-sensitive), identifies the game being deleted in the dialog heading; T076 passes
+- [X] T083 [US4] Wire the delete dialog into `assets/js/features/games/components/games-table.tsx` (dashboard row): replace the stub delete button with the dialog trigger; on confirm, call `useDestroyGame`, push the `game_deleted` toast, and rely on query invalidation to refresh the table
+- [X] T084 [US4] Wire the delete dialog into `assets/js/routes/games.$id.tsx` (detail page): on confirm, navigate to `/dashboard` and push the `game_deleted` toast
 
 #### Verification
 
-- [ ] T085 [US4] Full gate run including T077 E2E; all green
+- [X] T085 [US4] Full gate run including T077 E2E; all green
 
 **Checkpoint**: All delete surfaces gated consistently. Accidental
 deletion is structurally prevented.

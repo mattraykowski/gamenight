@@ -213,6 +213,34 @@ defmodule GameNight.Games.GameTest do
     end
   end
 
+  describe ":destroy action (T073 policies + behaviour)" do
+    setup do
+      {:ok, owner} = create_user()
+      {:ok, other} = create_user()
+      {:ok, game} = register_game(owner, %{title: "Doomed", status: :active})
+      {:ok, owner: owner, other: other, game: game}
+    end
+
+    test "owner can destroy their own game", %{owner: owner, game: game} do
+      assert :ok =
+               game
+               |> Ash.Changeset.for_destroy(:destroy, %{}, actor: owner)
+               |> Ash.destroy()
+
+      assert {:ok, nil} =
+               Game
+               |> Ash.Query.for_read(:get_mine, %{id: game.id}, actor: owner)
+               |> Ash.read_one()
+    end
+
+    test "different user cannot destroy", %{other: other, game: game} do
+      assert {:error, %Ash.Error.Forbidden{}} =
+               game
+               |> Ash.Changeset.for_destroy(:destroy, %{}, actor: other)
+               |> Ash.destroy()
+    end
+  end
+
   describe "postgres indexes (T010)" do
     test "composite index on (owner_id, status, updated_at) exists" do
       %Postgrex.Result{rows: rows} =

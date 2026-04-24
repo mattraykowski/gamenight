@@ -50,6 +50,7 @@ defmodule GameNight.Games.Game do
       get :get_mine, route: "/:id"
       post :register
       patch :update
+      delete :destroy
     end
   end
 
@@ -82,6 +83,10 @@ defmodule GameNight.Games.Game do
       description "Update a game's editable attributes. owner_id is excluded and immutable."
       accept [:title, :description, :status]
       require_atomic? true
+    end
+
+    destroy :destroy do
+      description "Hard-delete a game. The owner-scoped policy gates access."
     end
   end
 

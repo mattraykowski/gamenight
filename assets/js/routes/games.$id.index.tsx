@@ -1,7 +1,9 @@
-import { createFileRoute, redirect, Link } from "@tanstack/react-router";
+import { createFileRoute, redirect, Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { GameFieldRow } from "@/features/games/components/game-field-row";
-import { useGame } from "@/features/games/hooks";
+import { DeleteGameDialog } from "@/features/games/components/delete-game-dialog";
+import { useDestroyGame, useGame } from "@/features/games/hooks";
+import { useToasts } from "@/features/toasts/toast-provider";
 
 const STATUS_LABELS: Record<string, string> = {
   active: "Active",
@@ -25,6 +27,22 @@ export const Route = createFileRoute("/games/$id/")({
 export function GameDetailRoute() {
   const { id } = Route.useParams();
   const game = useGame(id);
+  const destroy = useDestroyGame();
+  const navigate = useNavigate();
+  const { push } = useToasts();
+
+  async function onDelete() {
+    try {
+      await destroy.mutateAsync({ id });
+      push({ title: "Game deleted.", variant: "success" });
+      await navigate({ to: "/dashboard", search: {} });
+    } catch {
+      push({
+        title: "Could not delete the game. Please try again.",
+        variant: "error",
+      });
+    }
+  }
 
   if (game.isPending) {
     return (
@@ -83,16 +101,20 @@ export function GameDetailRoute() {
               Edit
             </Link>
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            data-testid="game-detail-delete"
-            disabled
-            title="Delete lands in US4"
+          <DeleteGameDialog
+            gameTitle={entry.title}
+            isPending={destroy.isPending}
+            onConfirm={onDelete}
           >
-            Delete
-          </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              data-testid="game-detail-delete"
+            >
+              Delete
+            </Button>
+          </DeleteGameDialog>
         </div>
       </div>
 

@@ -221,6 +221,48 @@ defmodule GameNightWeb.GamesRequestTest do
     end
   end
 
+  describe "DELETE /api/games/:id (T074)" do
+    setup do
+      {:ok, owner} = create_user()
+      {:ok, other} = create_user()
+      {:ok, game} = register_game(owner, %{title: "Doomed", status: :active})
+      {:ok, owner: owner, other: other, game: game}
+    end
+
+    test "owner deletes their own game (204 or equivalent)", %{
+      conn: conn,
+      owner: owner,
+      game: game
+    } do
+      conn =
+        conn
+        |> sign_in(owner)
+        |> put_req_header("accept", @jsonapi)
+        |> delete(~p"/api/games/#{game.id}")
+
+      assert conn.status in [200, 204]
+    end
+
+    test "different user cannot delete", %{conn: conn, other: other, game: game} do
+      conn =
+        conn
+        |> sign_in(other)
+        |> put_req_header("accept", @jsonapi)
+        |> delete(~p"/api/games/#{game.id}")
+
+      assert conn.status >= 400
+    end
+
+    test "anonymous caller cannot delete", %{conn: conn, game: game} do
+      conn =
+        conn
+        |> put_req_header("accept", @jsonapi)
+        |> delete(~p"/api/games/#{game.id}")
+
+      assert conn.status >= 400
+    end
+  end
+
   defp create_user do
     email = "games-req-#{System.unique_integer([:positive])}@example.test"
     password = "games-req-password-1"

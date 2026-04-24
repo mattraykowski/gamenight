@@ -6,6 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import {
+  destroyGame,
   getMine,
   listMineActive,
   registerGame,
@@ -152,6 +153,33 @@ export function useUpdateGame(): UseMutationResult<Game, ApiError, UpdateGameArg
     },
     onSuccess: (updated) => {
       queryClient.setQueryData(gamesKeys.detail(updated.id), updated);
+      void queryClient.invalidateQueries({ queryKey: gamesKeys.all });
+    },
+  });
+}
+
+/**
+ * Destroys a game owned by the current actor. On success the detail
+ * cache entry is removed and all list queries are invalidated so the
+ * row disappears from the dashboard and all-games table.
+ */
+export function useDestroyGame(): UseMutationResult<void, ApiError, { id: string }> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { customFetch, headers } = getClientOptions();
+      const result = await destroyGame({
+        identity: id,
+        headers,
+        ...(customFetch !== undefined ? { customFetch } : {}),
+      });
+      if (!result.success) {
+        throw narrowApiError(result.errors);
+      }
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.removeQueries({ queryKey: gamesKeys.detail(variables.id) });
       void queryClient.invalidateQueries({ queryKey: gamesKeys.all });
     },
   });

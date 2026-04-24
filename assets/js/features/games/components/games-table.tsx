@@ -8,7 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Game } from "../hooks";
+import { useDestroyGame, type Game } from "../hooks";
+import { useToasts } from "@/features/toasts/toast-provider";
+import { DeleteGameDialog } from "./delete-game-dialog";
 
 const STATUS_LABELS: Record<Game["status"], string> = {
   active: "Active",
@@ -21,18 +23,20 @@ export interface GamesTableProps {
   games: Game[];
   /** When true, adds a status column (used by the All Games page). */
   showStatus?: boolean;
-  /** Called when the user clicks a row's delete action. */
-  onDelete?: (game: Game) => void;
 }
 
 /**
  * Tabular display of Game rows. Used by both the dashboard section
  * (`showStatus={false}`) and the All Games page (`showStatus={true}`).
- * The action cell renders a view `<Link>` and a delete `<Button>` at
- * the Shadcn `sm` size (height 36px / ≥24×24 CSS px interactive target,
- * per constitution Principle IV / WCAG 2.5.8).
+ * The action cell renders a view `<Link>` and a delete action that
+ * opens a typed-confirmation modal (FR-016 / FR-017) before the
+ * actual destroy. Buttons render at Shadcn `sm` size (height 32px,
+ * ≥24×24 CSS px interactive target, WCAG 2.5.8).
  */
-export function GamesTable({ games, showStatus = false, onDelete }: GamesTableProps) {
+export function GamesTable({ games, showStatus = false }: GamesTableProps) {
+  const destroy = useDestroyGame();
+  const { push } = useToasts();
+
   return (
     <Table>
       <TableHeader>
@@ -76,15 +80,30 @@ export function GamesTable({ games, showStatus = false, onDelete }: GamesTablePr
                     View
                   </Link>
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onDelete?.(game)}
-                  data-testid={`game-row-delete-${game.id}`}
+                <DeleteGameDialog
+                  gameTitle={game.title}
+                  isPending={destroy.isPending}
+                  onConfirm={async () => {
+                    try {
+                      await destroy.mutateAsync({ id: game.id });
+                      push({ title: "Game deleted.", variant: "success" });
+                    } catch {
+                      push({
+                        title: "Could not delete the game. Please try again.",
+                        variant: "error",
+                      });
+                    }
+                  }}
                 >
-                  Delete
-                </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    data-testid={`game-row-delete-${game.id}`}
+                  >
+                    Delete
+                  </Button>
+                </DeleteGameDialog>
               </div>
             </TableCell>
           </TableRow>
