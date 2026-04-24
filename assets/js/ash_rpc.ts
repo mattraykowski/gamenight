@@ -475,3 +475,81 @@ export async function validateRegisterGame(
   );
 }
 
+
+export type UpdateGameInput = {
+  title?: string;
+  description?: string | null;
+  status?: "active" | "paused" | "cancelled" | "completed";
+};
+
+export type UpdateGameFields = UnifiedFieldSelection<GameResourceSchema>[];
+
+export type InferUpdateGameResult<
+  Fields extends UpdateGameFields | undefined,
+> = InferResult<GameResourceSchema, Fields>;
+
+export type UpdateGameResult<Fields extends UpdateGameFields | undefined = undefined> = | { success: true; data: InferUpdateGameResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing Game
+ *
+ * @ashActionType :update
+ */
+export async function updateGame<Fields extends UpdateGameFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input: UpdateGameInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<UpdateGameResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "update_game",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<UpdateGameResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Validate: Update an existing Game
+ *
+ * @ashActionType :update
+ * @validation true
+ */
+export async function validateUpdateGame(
+  config: {
+  tenant?: string;
+  identity: UUID | string;
+  input: UpdateGameInput;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ValidationResult> {
+  const payload = {
+    action: "update_game",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input
+  };
+
+  return executeValidationRpcRequest<ValidationResult>(
+    payload,
+    config
+  );
+}
+

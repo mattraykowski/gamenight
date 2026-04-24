@@ -215,24 +215,24 @@ and verifies the dashboard no longer shows the game.
 
 ### Tests for User Story 3 (REQUIRED — write and verify RED first) ⚠️
 
-- [ ] T061 [P] [US3] Extend `test/game_night/games/game_test.exs` with policy + action tests for `:update`: owner can update title/description/status; a different user cannot; an unknown status is rejected; submitting `owner_id` in the input is ignored (not accepted by the action); `require_atomic? true` is preserved (assert via action introspection)
-- [ ] T062 [P] [US3] Extend `test/game_night_web/controllers/games_request_test.exs` with `PATCH /api/json/games/:id` cases: owner success, different-user 404, validation 422 on empty title
-- [ ] T063 [P] [US3] Extend `test/game_night/games/game_rpc_test.exs` with an `updateGame` happy-path and forbidden case
-- [ ] T064 [P] [US3] Add `assets/js/routes/games.$id.edit.test.tsx` using the router harness: pre-fills from a mocked `useGame`, submit navigates to `/games/$id` with the updated values, validation errors surface inline AND the other fields the user modified remain populated after the error (FR-022), assert the `<h1>` carries `data-route-heading` and `tabIndex="-1"` (FR-023), include `expectNoAxeViolations`
-- [ ] T065 [P] [US3] Add a mirrored-layout Vitest test at `assets/js/features/games/components/game-field-row.mirror.test.tsx` that renders both the detail-page row tree and the edit-form row tree for the same game and asserts layout fingerprints match (same `data-testid` sequence, same wrapper class tokens) — enforces FR-013 / SC-004 automatically
-- [ ] T066 [P] [US3] Add `assets/e2e/games-edit.spec.ts` covering the full flow: view → click edit → change status to Paused → save → detail page shows Paused → dashboard no longer lists the game
+- [X] T061 [P] [US3] Extend `test/game_night/games/game_test.exs` with policy + action tests for `:update`: owner can update title/description/status; a different user cannot; an unknown status is rejected; submitting `owner_id` in the input is ignored (not accepted by the action); `require_atomic? true` is preserved (assert via action introspection)
+- [X] T062 [P] [US3] Extend `test/game_night_web/controllers/games_request_test.exs` with `PATCH /api/json/games/:id` cases: owner success, different-user 404, validation 422 on empty title
+- [X] T063 [P] [US3] Extend `test/game_night/games/game_rpc_test.exs` with an `updateGame` happy-path and forbidden case
+- [X] T064 [P] [US3] Add `assets/js/routes/games.$id.edit.test.tsx` using the router harness: pre-fills from a mocked `useGame`, submit navigates to `/games/$id` with the updated values, validation errors surface inline AND the other fields the user modified remain populated after the error (FR-022), assert the `<h1>` carries `data-route-heading` and `tabIndex="-1"` (FR-023), include `expectNoAxeViolations`
+- [X] T065 [P] [US3] Add a mirrored-layout Vitest test at `assets/js/features/games/components/game-field-row.mirror.test.tsx` that renders both the detail-page row tree and the edit-form row tree for the same game and asserts layout fingerprints match (same `data-testid` sequence, same wrapper class tokens) — enforces FR-013 / SC-004 automatically
+- [X] T066 [P] [US3] Add `assets/e2e/games-edit.spec.ts` covering the full flow: view → click edit → change status to Paused → save → detail page shows Paused → dashboard no longer lists the game
 
 ### Implementation for User Story 3
 
-- [ ] T067 [US3] Implement the `:update` action in `lib/game_night/games/game.ex` with `accept [:title, :description, :status]` and `require_atomic? true`; the shared `update/destroy` policy already authorizes-if `owner_id == ^actor(:id)`. Run `mix ash_typescript.codegen` and commit the regen; T061 / T063 pass
-- [ ] T068 [US3] Add `patch :update` to the `json_api do routes do ... end` block; T062 passes
-- [ ] T069 [US3] Extend `assets/js/features/games/hooks.ts` with `useUpdateGame` — invalidates `gamesKeys.detail(id)` and `gamesKeys.all` on success; extend `TOAST_MESSAGES` with `game_updated`
-- [ ] T070 [US3] Create `assets/js/routes/games.$id.edit.tsx` — `createFileRoute("/games/$id/edit")`, pre-fills from `useGame`, submits via `useUpdateGame`; on success, push the `game_updated` toast and navigate to `/games/$id`; uses `<GameFieldRow mode="edit">` instances rendered with the exact same parent layout as the view page; T064 / T065 pass
-- [ ] T071 [US3] Update `assets/js/routes/games.$id.tsx` so the `<Edit>` button links to `/games/$id/edit` (was a stub in US2)
+- [X] T067 [US3] Implement the `:update` action in `lib/game_night/games/game.ex` with `accept [:title, :description, :status]` and `require_atomic? true`; the shared `update/destroy` policy already authorizes-if `owner_id == ^actor(:id)`. Run `mix ash_typescript.codegen` and commit the regen; T061 / T063 pass
+- [X] T068 [US3] Add `patch :update` to the `json_api do routes do ... end` block; T062 passes
+- [X] T069 [US3] Extend `assets/js/features/games/hooks.ts` with `useUpdateGame` — invalidates `gamesKeys.detail(id)` and `gamesKeys.all` on success; extend `TOAST_MESSAGES` with `game_updated`
+- [X] T070 [US3] Create `assets/js/routes/games.$id.edit.tsx` — `createFileRoute("/games/$id/edit")`, pre-fills from `useGame`, submits via `useUpdateGame`; on success, push the `game_updated` toast and navigate to `/games/$id`; uses `<GameFieldRow mode="edit">` instances rendered with the exact same parent layout as the view page; T064 / T065 pass
+- [X] T071 [US3] Update `assets/js/routes/games.$id.tsx` so the `<Edit>` button links to `/games/$id/edit` (was a stub in US2)
 
 #### Verification
 
-- [ ] T072 [US3] Full gate run; all green including T066 E2E
+- [X] T072 [US3] Full gate run; all green including T066 E2E
 
 **Checkpoint**: Mirrored-layout contract is verifiable automatically;
 status changes propagate to the dashboard.

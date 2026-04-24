@@ -162,6 +162,57 @@ defmodule GameNight.Games.GameTest do
     end
   end
 
+  describe ":update action (T061 policies + behaviour)" do
+    setup do
+      {:ok, owner} = create_user()
+      {:ok, other} = create_user()
+      {:ok, game} = register_game(owner, %{title: "Mine", status: :active})
+      {:ok, owner: owner, other: other, game: game}
+    end
+
+    test "owner can change title/description/status", %{owner: owner, game: game} do
+      {:ok, updated} =
+        game
+        |> Ash.Changeset.for_update(
+          :update,
+          %{title: "Renamed", description: "Now explained.", status: :paused},
+          actor: owner
+        )
+        |> Ash.update()
+
+      assert updated.title == "Renamed"
+      assert updated.description == "Now explained."
+      assert updated.status == :paused
+      assert updated.owner_id == owner.id
+    end
+
+    test "different user cannot update", %{other: other, game: game} do
+      assert {:error, %Ash.Error.Forbidden{}} =
+               game
+               |> Ash.Changeset.for_update(:update, %{title: "Hacked"}, actor: other)
+               |> Ash.update()
+    end
+
+    test "unknown status atom is rejected", %{owner: owner, game: game} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               game
+               |> Ash.Changeset.for_update(:update, %{status: :wobbly}, actor: owner)
+               |> Ash.update()
+    end
+
+    test "empty title is rejected", %{owner: owner, game: game} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               game
+               |> Ash.Changeset.for_update(:update, %{title: ""}, actor: owner)
+               |> Ash.update()
+    end
+
+    test "update action is declared atomic", _ do
+      action = Ash.Resource.Info.action(Game, :update)
+      assert action.require_atomic? == true
+    end
+  end
+
   describe "postgres indexes (T010)" do
     test "composite index on (owner_id, status, updated_at) exists" do
       %Postgrex.Result{rows: rows} =

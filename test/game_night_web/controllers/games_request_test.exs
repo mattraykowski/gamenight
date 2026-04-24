@@ -167,6 +167,60 @@ defmodule GameNightWeb.GamesRequestTest do
     end
   end
 
+  describe "PATCH /api/games/:id (T062)" do
+    setup do
+      {:ok, owner} = create_user()
+      {:ok, other} = create_user()
+      {:ok, game} = register_game(owner, %{title: "Original", status: :active})
+      {:ok, owner: owner, other: other, game: game}
+    end
+
+    test "owner can update title + status", %{conn: conn, owner: owner, game: game} do
+      conn =
+        conn
+        |> sign_in(owner)
+        |> put_req_header("accept", @jsonapi)
+        |> put_req_header("content-type", @jsonapi)
+        |> patch(~p"/api/games/#{game.id}", %{
+          data: %{
+            type: "game",
+            id: game.id,
+            attributes: %{title: "Renamed", status: "paused"}
+          }
+        })
+
+      assert %{"data" => %{"attributes" => attrs}} = json_response(conn, 200)
+      assert attrs["title"] == "Renamed"
+      assert attrs["status"] == "paused"
+    end
+
+    test "a different user gets 404", %{conn: conn, other: other, game: game} do
+      conn =
+        conn
+        |> sign_in(other)
+        |> put_req_header("accept", @jsonapi)
+        |> put_req_header("content-type", @jsonapi)
+        |> patch(~p"/api/games/#{game.id}", %{
+          data: %{type: "game", id: game.id, attributes: %{title: "Hacked"}}
+        })
+
+      assert conn.status == 404
+    end
+
+    test "empty title fails validation with 422", %{conn: conn, owner: owner, game: game} do
+      conn =
+        conn
+        |> sign_in(owner)
+        |> put_req_header("accept", @jsonapi)
+        |> put_req_header("content-type", @jsonapi)
+        |> patch(~p"/api/games/#{game.id}", %{
+          data: %{type: "game", id: game.id, attributes: %{title: ""}}
+        })
+
+      assert conn.status in [400, 422]
+    end
+  end
+
   defp create_user do
     email = "games-req-#{System.unique_integer([:positive])}@example.test"
     password = "games-req-password-1"

@@ -22,6 +22,7 @@ defmodule GameNight.Games do
       rpc_action :list_mine_active, :list_mine_active
       rpc_action :get_mine, :get_mine
       rpc_action :register_game, :register
+      rpc_action :update_game, :update
     end
   end
 

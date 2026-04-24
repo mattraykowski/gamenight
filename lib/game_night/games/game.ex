@@ -49,6 +49,7 @@ defmodule GameNight.Games.Game do
       index :list_mine_active, route: "/active"
       get :get_mine, route: "/:id"
       post :register
+      patch :update
     end
   end
 
@@ -75,6 +76,12 @@ defmodule GameNight.Games.Game do
       description "Register a new game owned by the current actor."
       accept [:title, :description, :status]
       change relate_actor(:owner)
+    end
+
+    update :update do
+      description "Update a game's editable attributes. owner_id is excluded and immutable."
+      accept [:title, :description, :status]
+      require_atomic? true
     end
   end
 

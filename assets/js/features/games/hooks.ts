@@ -9,9 +9,11 @@ import {
   getMine,
   listMineActive,
   registerGame,
+  updateGame,
   type AshRpcError,
   type GameResourceSchema,
   type RegisterGameInput,
+  type UpdateGameInput,
 } from "@/ash_rpc";
 import { getClientOptions } from "@/lib/api/client";
 import { narrowApiError, type ApiError } from "@/lib/api/errors";
@@ -115,6 +117,41 @@ export function useRegisterGame(): UseMutationResult<Game, ApiError, RegisterGam
       );
     },
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: gamesKeys.all });
+    },
+  });
+}
+
+/**
+ * Updates an existing game. Invalidates both the detail cache entry
+ * for the game and all list queries so the dashboard / all-games
+ * table reflect the change (including status transitions like
+ * Active → Paused, which should make the game disappear from
+ * "My Active Games").
+ */
+export type UpdateGameArgs = UpdateGameInput & { id: string };
+
+export function useUpdateGame(): UseMutationResult<Game, ApiError, UpdateGameArgs> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...input }: UpdateGameArgs) => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<Game>(
+        updateGame({
+          identity: id,
+          input,
+          fields: GAME_FIELDS as unknown as Array<"id" | "title" | "description" | "status">,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: Game }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData(gamesKeys.detail(updated.id), updated);
       void queryClient.invalidateQueries({ queryKey: gamesKeys.all });
     },
   });

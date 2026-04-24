@@ -10,7 +10,7 @@ const STATUS_LABELS: Record<string, string> = {
   completed: "Completed",
 };
 
-export const Route = createFileRoute("/games/$id")({
+export const Route = createFileRoute("/games/$id/")({
   beforeLoad: ({ context, location }) => {
     if (!context.auth?.isAuthenticated) {
       throw redirect({
@@ -79,7 +79,9 @@ export function GameDetailRoute() {
         </h1>
         <div className="flex items-center gap-2">
           <Button asChild size="sm" data-testid="game-detail-edit">
-            <a href={`/games/${entry.id}/edit`}>Edit</a>
+            <Link to="/games/$id/edit" params={{ id: entry.id }}>
+              Edit
+            </Link>
           </Button>
           <Button
             type="button"
