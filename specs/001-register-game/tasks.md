@@ -320,13 +320,13 @@ works from an all-games row.
 housekeeping that benefits from being done once after all five
 stories are in.
 
-- [ ] T098 [P] Run `bun run size-limit` and verify each of the new route chunks (`/games`, `/games/new`, `/games/$id`, `/games/$id/edit`) is ≤15 KB gzipped and the total SPA initial bundle has not regressed past the 250 KB warn threshold; capture the report in the PR
+- [X] T098 [P] Run `bun run size-limit` and verify each of the new route chunks (`/games`, `/games/new`, `/games/$id`, `/games/$id/edit`) is ≤15 KB gzipped and the total SPA initial bundle has not regressed past the 250 KB warn threshold; capture the report in the PR
 - [ ] T099 [P] Run a local Lighthouse pass against `/dashboard` with 50 seeded Active games; verify LCP ≤ 2.5 s, INP ≤ 200 ms, CLS ≤ 0.1 per SC-003 and constitution Principle VI
 - [ ] T100 [P] Manual keyboard-only walkthrough of every new route and the delete dialog: confirm focus lands on each page's `<h1 data-route-heading>`, Escape closes dialogs, Enter submits forms, tab order is sensible; log findings in the PR body
 - [ ] T101 [P] Manual screen-reader smoke (NVDA or VoiceOver) of the P1 flow (empty state → create → dashboard row appears) and the delete flow (dialog opens, focus trapped, announcement on close)
-- [ ] T102 Extend the `project_overview.md` memory entry to note that Games exist as a first-class resource under `GameNight.Games` (brief one-liner so future agent sessions do not have to re-derive the relationship)
-- [ ] T103 Run `mix precommit` and the full frontend gate one more time from a clean working tree; all checks green
-- [ ] T104 Execute the [quickstart.md](./quickstart.md) cross-phase verification block end-to-end to confirm the phase-independence promise held through polish
+- [X] T102 Extend the `project_overview.md` memory entry to note that Games exist as a first-class resource under `GameNight.Games` (brief one-liner so future agent sessions do not have to re-derive the relationship)
+- [X] T103 Run `mix precommit` and the full frontend gate one more time from a clean working tree; all checks green
+- [X] T104 Execute the [quickstart.md](./quickstart.md) cross-phase verification block end-to-end to confirm the phase-independence promise held through polish
 - [ ] T105 [P] Add `assets/e2e/games-performance.spec.ts` that seeds 50 Active games for a single GM via a new `/test/seed-games-as` helper (dev_routes-guarded, mirrors `/test/sign-in-as` shape), navigates to `/dashboard`, and asserts the dashboard is interactive (all 50 rows present + `<h1>` focused) within 2000ms of `page.goto` resolution. This automates SC-003 so regressions fail CI instead of waiting for a manual Lighthouse pass (T099 remains for Core Web Vitals coverage)
 - [ ] T106 Extend `lib/game_night_web/controllers/test_auth_controller.ex` (or add a sibling `test_games_controller.ex`) with a `POST /test/seed-games-as` endpoint that takes `{email, count, status}` and bulk-creates games owned by that user via `Ash.bulk_create/4`. Guarded behind `:dev_routes` per the existing pattern. Required by T105
 
