@@ -65,7 +65,6 @@ defmodule GameNight.Telemetry.PageMetric do
     policy action(:record) do
       authorize_if always()
     end
-
   end
 
   attributes do

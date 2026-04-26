@@ -6,10 +6,6 @@ defmodule GameNight.Accounts.User do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshAuthentication, AshTypescript.Resource]
 
-  typescript do
-    type_name "User"
-  end
-
   authentication do
     add_ons do
       log_out_everywhere do
@@ -63,6 +59,10 @@ defmodule GameNight.Accounts.User do
   postgres do
     table "users"
     repo GameNight.Repo
+  end
+
+  typescript do
+    type_name "User"
   end
 
   actions do

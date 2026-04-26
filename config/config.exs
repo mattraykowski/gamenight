@@ -95,7 +95,7 @@ config :spark,
 config :game_night,
   ecto_repos: [GameNight.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [GameNight.Accounts, GameNight.Telemetry],
+  ash_domains: [GameNight.Accounts, GameNight.Games, GameNight.Telemetry],
   ash_authentication: [return_error_on_invalid_magic_link_token?: true]
 
 # Configure the endpoint
