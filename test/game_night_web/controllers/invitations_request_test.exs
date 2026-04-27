@@ -186,6 +186,52 @@ defmodule GameNightWeb.InvitationsRequestTest do
     end
   end
 
+  describe "PATCH /api/invitations/:id/decline (T089)" do
+    setup do
+      {:ok, gm} = create_user()
+      {:ok, invitee} = create_user()
+      {:ok, game} = register_game(gm, %{title: "Decline route", status: :active})
+      {invitation, token} = create_invitation_with_token(gm, game)
+      {:ok, gm: gm, invitee: invitee, invitation: invitation, token: token}
+    end
+
+    test "logged-in user declines via the route; 200 + status :declined", %{
+      conn: conn,
+      invitee: invitee,
+      invitation: invitation,
+      token: token
+    } do
+      conn =
+        conn
+        |> sign_in(invitee)
+        |> put_req_header("accept", @jsonapi)
+        |> put_req_header("content-type", @jsonapi)
+        |> patch(~p"/api/invitations/#{invitation.id}/decline", %{
+          data: %{token: token}
+        })
+
+      assert conn.status == 200
+      body = json_response(conn, 200)
+      assert body["status"] == "declined"
+    end
+
+    test "anonymous caller cannot decline", %{
+      conn: conn,
+      invitation: invitation,
+      token: token
+    } do
+      conn =
+        conn
+        |> put_req_header("accept", @jsonapi)
+        |> put_req_header("content-type", @jsonapi)
+        |> patch(~p"/api/invitations/#{invitation.id}/decline", %{
+          data: %{token: token}
+        })
+
+      assert conn.status >= 400
+    end
+  end
+
   describe "GET /api/invitations/by-game/:game_id/pending (T071)" do
     setup do
       {:ok, gm} = create_user()

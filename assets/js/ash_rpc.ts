@@ -830,6 +830,79 @@ export async function validateCreateInvitation(
 }
 
 
+export type DeclineInvitationInput = {
+  id: UUID;
+  token: string;
+};
+
+export type DeclineInvitationFields = UnifiedFieldSelection<{id: UUID, status: string, __type: "TypedMap", __primitiveFields: "id" | "status"}>[];
+
+export type InferDeclineInvitationResult<
+  Fields extends DeclineInvitationFields | undefined,
+> = InferResult<{id: UUID, status: string, __type: "TypedMap", __primitiveFields: "id" | "status"}, Fields>;
+
+export type DeclineInvitationResult<Fields extends DeclineInvitationFields | undefined = undefined> = | { success: true; data: InferDeclineInvitationResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Execute generic action on Invitation
+ *
+ * @ashActionType :action
+ */
+export async function declineInvitation<Fields extends DeclineInvitationFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  input: DeclineInvitationInput;
+  fields: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<DeclineInvitationResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "decline_invitation",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<DeclineInvitationResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Validate: Execute generic action on Invitation
+ *
+ * @ashActionType :action
+ * @validation true
+ */
+export async function validateDeclineInvitation(
+  config: {
+  tenant?: string;
+  input: DeclineInvitationInput;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ValidationResult> {
+  const payload = {
+    action: "decline_invitation",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    input: config.input
+  };
+
+  return executeValidationRpcRequest<ValidationResult>(
+    payload,
+    config
+  );
+}
+
+
 export type ListMyPendingInvitationsFields = UnifiedFieldSelection<InvitationResourceSchema>[];
 export type InferListMyPendingInvitationsResult<
   Fields extends ListMyPendingInvitationsFields,

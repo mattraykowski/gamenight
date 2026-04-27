@@ -21,6 +21,7 @@ import { InvitationsTokenRoute } from "./invitations.$token";
 interface RpcResponses {
   previewInvitation?: () => Response;
   acceptInvitation?: () => Response;
+  declineInvitation?: () => Response;
 }
 
 let responses: RpcResponses = {};
@@ -35,6 +36,10 @@ const server = setupServer(
 
     if (body.action === "accept_invitation" && responses.acceptInvitation) {
       return responses.acceptInvitation();
+    }
+
+    if (body.action === "decline_invitation" && responses.declineInvitation) {
+      return responses.declineInvitation();
     }
 
     return HttpResponse.json(
@@ -109,6 +114,16 @@ function acceptSuccess() {
       id: VALID_PREVIEW.id,
       status: "accepted",
       acceptedPlayerId: "22222222-2222-2222-2222-222222222222",
+    },
+  });
+}
+
+function declineSuccess() {
+  return HttpResponse.json({
+    success: true,
+    data: {
+      id: VALID_PREVIEW.id,
+      status: "declined",
     },
   });
 }
@@ -248,6 +263,35 @@ describe("/invitations/$token route", () => {
     await waitFor(() => {
       expect(router.state.location.pathname).toBe("/dashboard");
     });
+  });
+
+  it("renders the Decline trigger and declines after confirm (T091/T095)", async () => {
+    responses.previewInvitation = previewSuccess;
+    responses.declineInvitation = declineSuccess;
+
+    const { router } = renderRoute({ isAuthenticated: true });
+
+    const trigger = await screen.findByTestId("invitation-decline-trigger");
+    await userEvent.click(trigger);
+
+    // Modal opens with the confirm button — click it.
+    const confirm = await screen.findByTestId("decline-invitation-confirm");
+    await userEvent.click(confirm);
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe("/dashboard");
+    });
+  });
+
+  it("does not render the Decline trigger for anonymous viewers", async () => {
+    responses.previewInvitation = previewSuccess;
+
+    renderRoute({ isAuthenticated: false });
+
+    // Anonymous viewers see the Register / Sign-in CTAs only — no
+    // decline trigger because the action requires an actor.
+    await screen.findByTestId("invitation-register-cta");
+    expect(screen.queryByTestId("invitation-decline-trigger")).not.toBeInTheDocument();
   });
 
   it("renders the friendly invalid-token state when preview fails", async () => {

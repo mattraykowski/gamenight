@@ -63,6 +63,7 @@ defmodule GameNight.Games.Invitation do
       # avoids a JSON:API load step that would 404 for invitees
       # whose email doesn't match the invitation's invited email.
       route :patch, "/:id/accept", :accept_invitation
+      route :patch, "/:id/decline", :decline_invitation
     end
   end
 
@@ -258,6 +259,45 @@ defmodule GameNight.Games.Invitation do
 
       run GameNight.Games.Invitation.Actions.AcceptInvitation
     end
+
+    update :decline_with_token do
+      description """
+      Decline an invitation using a valid token. Mirrors
+      `:accept_with_token` — flips status to `:declined`, revokes
+      the token JTI, resolves any matching notification — but
+      crucially does NOT create a Player record. The invitation is
+      closed.
+      """
+      accept []
+
+      argument :token, :string do
+        allow_nil? false
+        sensitive? true
+      end
+
+      require_atomic? false
+      change GameNight.Games.Invitation.Changes.Decline
+    end
+
+    action :decline_invitation, :map do
+      description """
+      Generic-action wrapper for the JSON:API `PATCH /:id/decline`
+      route. Same rationale as `:accept_invitation` — the underlying
+      update would 404 for invitees whose email differs from the
+      invitation's email; this wrapper loads internally with
+      `authorize?: false` and dispatches to `:decline_with_token`.
+      The actor-presence requirement is the JSON:API gate.
+      """
+      argument :id, :uuid, allow_nil?: false
+      argument :token, :string, allow_nil?: false, sensitive?: true
+
+      constraints fields: [
+                    id: [type: :uuid, allow_nil?: false],
+                    status: [type: :atom, allow_nil?: false]
+                  ]
+
+      run GameNight.Games.Invitation.Actions.DeclineInvitation
+    end
   end
 
   policies do
@@ -301,7 +341,12 @@ defmodule GameNight.Games.Invitation do
     # the proof-of-invitation; the action's `Changes.Accept` body
     # verifies it. We do NOT require the actor's email to match the
     # invitation's email — see research.md §2 ("token-bearer auth").
-    policy action([:accept_with_token, :accept_invitation]) do
+    policy action([
+            :accept_with_token,
+            :accept_invitation,
+            :decline_with_token,
+            :decline_invitation
+          ]) do
       authorize_if actor_present()
     end
 

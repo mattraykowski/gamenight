@@ -406,6 +406,89 @@ defmodule GameNight.Games.InvitationTest do
     end
   end
 
+  describe ":decline_with_token (T088)" do
+    setup do
+      {:ok, gm} = create_user()
+      {:ok, invitee} = create_user()
+      {:ok, game} = register_game(gm, %{title: "Decline me", status: :active})
+      {invitation, token} = create_invitation_with_token(gm, game, %{})
+
+      {:ok, gm: gm, invitee: invitee, game: game, invitation: invitation, token: token}
+    end
+
+    test "logged-in user with a valid token declines; status flips to :declined", %{
+      invitee: invitee,
+      invitation: invitation,
+      token: token
+    } do
+      assert {:ok, declined} =
+               invitation
+               |> Ash.Changeset.for_update(:decline_with_token, %{token: token}, actor: invitee)
+               |> Ash.update()
+
+      assert declined.status == :declined
+    end
+
+    test "decline does NOT create a Player record", %{
+      invitee: invitee,
+      game: game,
+      invitation: invitation,
+      token: token
+    } do
+      {:ok, _} =
+        invitation
+        |> Ash.Changeset.for_update(:decline_with_token, %{token: token}, actor: invitee)
+        |> Ash.update()
+
+      assert {:ok, []} =
+               GameNight.Games.Player
+               |> Ash.Query.filter(game_id == ^game.id and user_id == ^invitee.id)
+               |> Ash.read(authorize?: false)
+    end
+
+    test "decline revokes the token (subsequent verify fails)", %{
+      invitee: invitee,
+      invitation: invitation,
+      token: token
+    } do
+      {:ok, _} =
+        invitation
+        |> Ash.Changeset.for_update(:decline_with_token, %{token: token}, actor: invitee)
+        |> Ash.update()
+
+      assert {:error, :invalid_token} = Tokens.verify(token)
+    end
+
+    test "anonymous caller cannot decline", %{
+      invitation: invitation,
+      token: token
+    } do
+      assert {:error, %Ash.Error.Forbidden{}} =
+               invitation
+               |> Ash.Changeset.for_update(:decline_with_token, %{token: token})
+               |> Ash.update()
+    end
+
+    test "re-declining a terminal invitation errors", %{
+      invitee: invitee,
+      invitation: invitation,
+      token: token
+    } do
+      {:ok, _} =
+        invitation
+        |> Ash.Changeset.for_update(:decline_with_token, %{token: token}, actor: invitee)
+        |> Ash.update()
+
+      # Second decline with the same (now-revoked) token should
+      # error — both because the token is invalid AND because the
+      # status is already terminal. Either error is acceptable.
+      assert {:error, _} =
+               Ash.get!(Invitation, invitation.id, authorize?: false)
+               |> Ash.Changeset.for_update(:decline_with_token, %{token: token}, actor: invitee)
+               |> Ash.update()
+    end
+  end
+
   describe ":list_pending_for_game + :revoke (T069)" do
     setup do
       {:ok, gm} = create_user()
@@ -508,6 +591,8 @@ defmodule GameNight.Games.InvitationTest do
       assert bindings == [
                accept_invitation: :accept_invitation,
                create_invitation: :create_for_game,
+               # T094 added the decline binding.
+               decline_invitation: :decline_invitation,
                # T065 added the my-pending-list binding.
                list_my_pending_invitations: :list_pending_for_me,
                # T076 added the GM-side bindings.

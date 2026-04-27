@@ -8,6 +8,7 @@ import {
 import {
   acceptInvitation,
   createInvitation,
+  declineInvitation,
   listMyPendingInvitations,
   listPendingInvitationsForGame,
   previewInvitation,
@@ -15,6 +16,7 @@ import {
   type AcceptInvitationInput,
   type AshRpcError,
   type CreateInvitationInput,
+  type DeclineInvitationInput,
   type InvitationResourceSchema,
   type PreviewInvitationInput,
 } from "@/ash_rpc";
@@ -53,6 +55,16 @@ export interface AcceptInvitationResult {
   status: string;
   acceptedPlayerId: string | null;
 }
+
+/**
+ * Result shape of `declineInvitation`.
+ */
+export interface DeclineInvitationResult {
+  id: string;
+  status: string;
+}
+
+const DECLINE_FIELDS = ["id", "status"] as const;
 
 const INVITATION_FIELDS = [
   "id",
@@ -250,6 +262,42 @@ export function useRevokeInvitation(): UseMutationResult<Invitation, ApiError, {
  * On success invalidates game queries so the new game shows up on
  * the dashboard / "My Characters" surfaces in subsequent stories.
  */
+/**
+ * Declines an invitation — backed by the `:decline_invitation`
+ * generic-action wrapper. Same token-bearer auth posture as
+ * `useAcceptInvitation`, but no Player record is created and the
+ * invitation moves to a terminal `:declined` state. Invalidates
+ * invitations and notifications caches so the recipient's bell
+ * stops surfacing the entry.
+ */
+export function useDeclineInvitation(): UseMutationResult<
+  DeclineInvitationResult,
+  ApiError,
+  DeclineInvitationInput
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: DeclineInvitationInput) => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<DeclineInvitationResult>(
+        declineInvitation({
+          input,
+          fields: DECLINE_FIELDS as unknown as Array<"id" | "status">,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: DeclineInvitationResult }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: invitationsKeys.all });
+    },
+  });
+}
+
 export function useAcceptInvitation(): UseMutationResult<
   AcceptInvitationResult,
   ApiError,

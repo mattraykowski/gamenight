@@ -42,7 +42,9 @@ defmodule GameNight.Games.GameRpcTest do
         :update_player,
         # Feature 002 US3 — GM-side Invitation bindings (T076).
         :list_pending_invitations_for_game,
-        :revoke_invitation
+        :revoke_invitation,
+        # Feature 002 US4 — decline binding (T094).
+        :decline_invitation
       ]
 
       assert declared_names == Enum.sort(expected)

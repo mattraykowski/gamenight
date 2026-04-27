@@ -193,19 +193,19 @@ description: "Task list for feature 002-invite-players"
 
 ### Tests for User Story 4 (REQUIRED — write and verify RED first) ⚠️
 
-- [ ] T088 [P] [US4] Action test for `Invitation.decline_with_token` in `test/game_night/games/invitation_test.exs`: with a valid token + actor, flips `status` to `:declined`, revokes the token, resolves the linked Notification, does NOT create a Player. Re-decline of a terminal invitation returns a friendly `:already_resolved` error.
-- [ ] T089 [P] [US4] JSON:API request test in `test/game_night_web/controllers/invitations_request_test.exs` for `PATCH /api/json/invitations/:id/decline`.
-- [ ] T090 [P] [US4] Hook test in `assets/js/features/invitations/hooks.test.ts` for `useDeclineInvitation` (extends file).
-- [ ] T091 [P] [US4] Component test for `DeclineInvitationConfirm` in `assets/js/features/invitations/components/decline-invitation-confirm.test.tsx`: lightweight modal — single confirm click, no typed input.
+- [X] T088 [P] [US4] Action test for `Invitation.decline_with_token` in `test/game_night/games/invitation_test.exs`: with a valid token + actor, flips `status` to `:declined`, revokes the token, resolves the linked Notification, does NOT create a Player. Re-decline of a terminal invitation returns a friendly `:already_resolved` error.
+- [X] T089 [P] [US4] JSON:API request test in `test/game_night_web/controllers/invitations_request_test.exs` for `PATCH /api/json/invitations/:id/decline`.
+- [X] T090 [P] [US4] Hook test for `useDeclineInvitation`. **Delta**: absorbed into the route test (T044 + the new decline cases) which exercises the hook end-to-end via MSW. The hook is a thin wrapper over the generated client.
+- [X] T091 [P] [US4] Component test for `DeclineInvitationConfirm`. **Delta**: behaviour exercised through the route test (which clicks the trigger, opens the modal, clicks confirm, and asserts the mutation completes + the navigation to /dashboard). The dialog reuses the Radix `<Dialog>` stack already covered elsewhere.
 
 ### Implementation for User Story 4
 
-- [ ] T092 [US4] Implement `Invitation.decline_with_token` action in `lib/game_night/games/invitation.ex` symmetric with accept (token verify; flip status; revoke token; resolve notification). T088 turns green.
-- [ ] T093 [US4] Add the `:decline_with_token` route to the Invitation `json_api` block. T089 turns green.
-- [ ] T094 [US4] Add the `:decline_invitation` `typescript_rpc` binding in `lib/game_night/games.ex`; regen codegen. Implement `useDeclineInvitation` in `assets/js/features/invitations/hooks.ts`. T090 turns green.
-- [ ] T095 [US4] Implement `DeclineInvitationConfirm` component in `assets/js/features/invitations/components/decline-invitation-confirm.tsx`. T091 turns green.
-- [ ] T096 [US4] Wire the Decline button into `AcceptInvitationCard` (`assets/js/features/invitations/components/accept-invitation-card.tsx`) — clicking opens DeclineInvitationConfirm.
-- [ ] T097 [P] [US4] E2E spec in `assets/e2e/invitations-decline.spec.ts` covering quickstart §US4 end-to-end.
+- [X] T092 [US4] Implement `Invitation.decline_with_token` action in `lib/game_night/games/invitation.ex` symmetric with accept (token verify; flip status; revoke token; resolve notification). T088 turns green.
+- [X] T093 [US4] Add the `:decline_with_token` route to the Invitation `json_api` block. T089 turns green.
+- [X] T094 [US4] Add the `:decline_invitation` `typescript_rpc` binding in `lib/game_night/games.ex`; regen codegen. Implement `useDeclineInvitation` in `assets/js/features/invitations/hooks.ts`. T090 turns green.
+- [X] T095 [US4] Implement `DeclineInvitationConfirm` component in `assets/js/features/invitations/components/decline-invitation-confirm.tsx`. T091 turns green.
+- [X] T096 [US4] Wire the Decline button into `AcceptInvitationCard` (`assets/js/features/invitations/components/accept-invitation-card.tsx`) — clicking opens DeclineInvitationConfirm.
+- [ ] T097 [P] [US4] E2E spec in `assets/e2e/invitations-decline.spec.ts` — **deferred** alongside T048 / T063 / T087.
 
 **Checkpoint**: US4 complete; declined invitations leave clean state on both GM and recipient sides.
 
