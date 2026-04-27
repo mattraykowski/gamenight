@@ -23,13 +23,29 @@ end
 config :game_night, GameNightWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
-# Feature 002 — Invite Players. Read in every environment so tests
-# don't need env vars set; production should override via the env vars
-# below per `specs/002-invite-players/quickstart.md`.
+# Feature 002 — Invite Players + opportunistic cleanup of the
+# pre-existing TODO from-address in the auth senders. Read in every
+# environment so tests don't need env vars set; production should
+# override via the env vars below per
+# `specs/002-invite-players/quickstart.md`.
+#
+# `:transactional_email_from` is the shared from-address used by
+# every Swoosh sender in `lib/game_night/**/senders/`. The legacy
+# `:invitation_email_from` key remains as an alias of the same env
+# var for backward compatibility — new senders read the shared key.
 config :game_night,
   invitation_token_ttl_days:
     "INVITATION_TOKEN_TTL_DAYS" |> System.get_env("30") |> String.to_integer(),
-  invitation_email_from: System.get_env("INVITATION_EMAIL_FROM", "noreply@example.com")
+  transactional_email_from:
+    System.get_env(
+      "TRANSACTIONAL_EMAIL_FROM",
+      System.get_env("INVITATION_EMAIL_FROM", "noreply@example.com")
+    ),
+  invitation_email_from:
+    System.get_env(
+      "INVITATION_EMAIL_FROM",
+      System.get_env("TRANSACTIONAL_EMAIL_FROM", "noreply@example.com")
+    )
 
 if config_env() == :prod do
   database_url =

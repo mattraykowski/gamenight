@@ -54,6 +54,9 @@ defmodule GameNight.Games.Invitation.Senders.SendInvitationEmail do
   end
 
   defp from_address do
-    Application.fetch_env!(:game_night, :invitation_email_from)
+    # Reads `:transactional_email_from` (the shared key all senders
+    # use after the Phase 9 cleanup); the legacy `:invitation_email_from`
+    # remains as a fallback alias in `config/runtime.exs`.
+    Application.fetch_env!(:game_night, :transactional_email_from)
   end
 end

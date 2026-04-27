@@ -21,8 +21,7 @@ defmodule GameNight.Accounts.User.Senders.SendMagicLinkEmail do
       end
 
     new()
-    # TODO: Replace with your email
-    |> from({"noreply", "noreply@example.com"})
+    |> from({"GameNight", from_address()})
     |> to(to_string(email))
     |> subject("Your login link")
     |> html_body(body(token: token, email: email))
@@ -36,5 +35,9 @@ defmodule GameNight.Accounts.User.Senders.SendMagicLinkEmail do
     <p>Hello, #{params[:email]}! Click this link to sign in:</p>
     <p><a href="#{url(~p"/magic_link/#{params[:token]}")}">#{url(~p"/magic_link/#{params[:token]}")}</a></p>
     """
+  end
+
+  defp from_address do
+    Application.fetch_env!(:game_night, :transactional_email_from)
   end
 end

@@ -13,8 +13,7 @@ defmodule GameNight.Accounts.User.Senders.SendNewUserConfirmationEmail do
   @impl true
   def send(user, token, _) do
     new()
-    # TODO: Replace with your email
-    |> from({"noreply", "noreply@example.com"})
+    |> from({"GameNight", from_address()})
     |> to(to_string(user.email))
     |> subject("Confirm your email address")
     |> html_body(body(token: token))
@@ -28,5 +27,9 @@ defmodule GameNight.Accounts.User.Senders.SendNewUserConfirmationEmail do
     <p>Click this link to confirm your email:</p>
     <p><a href="#{url}">#{url}</a></p>
     """
+  end
+
+  defp from_address do
+    Application.fetch_env!(:game_night, :transactional_email_from)
   end
 end
