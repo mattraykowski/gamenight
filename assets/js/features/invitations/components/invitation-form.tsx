@@ -20,8 +20,9 @@ export interface InvitationFormProps {
 }
 
 /**
- * GM-side form for inviting a new player to a game. Used inline on
- * `/games/:id` (T047 wires it in). Mirrors the field order the spec
+ * GM-side form for inviting a new player to a game. Rendered
+ * inside `<InvitePlayerDialog />` on `/games/:id` (triggered from
+ * the Players section header). Mirrors the field order the spec
  * describes (email, character name, summary, GM notes) and uses the
  * Shadcn primitives + RHF + Zod stack established by the auth and
  * games forms.

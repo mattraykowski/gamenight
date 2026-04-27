@@ -23,6 +23,7 @@ import {
   type PreviewInvitationInput,
 } from "@/ash_rpc";
 import { gamesKeys } from "@/features/games/hooks";
+import { playersKeys } from "@/features/players/hooks";
 import { getClientOptions } from "@/lib/api/client";
 import { narrowApiError, type ApiError } from "@/lib/api/errors";
 
@@ -139,6 +140,7 @@ export function useCreateInvitation(): UseMutationResult<
       // dashboard. Specific notification + my-pending invalidations
       // land with US2 / US6 once those query keys exist.
       void queryClient.invalidateQueries({ queryKey: gamesKeys.all });
+      void queryClient.invalidateQueries({ queryKey: invitationsKeys.all });
     },
   });
 }
@@ -295,6 +297,13 @@ export function useAcceptInvitationForMe(): UseMutationResult<
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: invitationsKeys.all });
+      // Accepting creates a Player and may add a game to the
+      // recipient's "My Games" / "My Characters" surfaces; resolve
+      // the matching Notification too so the bell + dashboard the
+      // recipient is currently looking at refresh in place.
+      void queryClient.invalidateQueries({ queryKey: gamesKeys.all });
+      void queryClient.invalidateQueries({ queryKey: playersKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
 }
@@ -329,6 +338,10 @@ export function useDeclineInvitationForMe(): UseMutationResult<
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: invitationsKeys.all });
+      // Declining resolves the matching Notification server-side;
+      // refresh the bell + the /notifications page so the row
+      // disappears without a manual reload.
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
 }

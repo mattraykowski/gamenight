@@ -182,8 +182,10 @@ assets/
 │   │   │   ├── hooks.ts                            # NEW: useCreateInvitation, useListPendingForGame, useAcceptInvitation, useDeclineInvitation, useRevokeInvitation, useListPendingForMe
 │   │   │   ├── hooks.test.ts
 │   │   │   ├── components/
-│   │   │   │   ├── invitation-form.tsx             # NEW: GM invite form on /games/:id
+│   │   │   │   ├── invitation-form.tsx             # NEW: GM invite form (rendered inside InvitePlayerDialog on /games/:id)
 │   │   │   │   ├── invitation-form.test.tsx
+│   │   │   │   ├── invite-player-dialog.tsx        # NEW: modal wrapper around InvitationForm, triggered from the Players header
+│   │   │   │   ├── invite-player-dialog.test.tsx
 │   │   │   │   ├── pending-invitations-list.tsx    # NEW: GM-only on /games/:id
 │   │   │   │   ├── pending-invitations-list.test.tsx
 │   │   │   │   ├── revoke-invitation-dialog.tsx    # NEW: typed-confirmation modal (mirrors delete-game-dialog pattern)
@@ -219,7 +221,7 @@ assets/
 │       ├── invitations.$token.test.tsx
 │       ├── notifications.tsx                       # NEW: /notifications full list
 │       ├── notifications.test.tsx
-│       ├── games.$id.index.tsx                     # UPDATED: render PlayersTable + (GM-only) PendingInvitationsList + InvitationForm
+│       ├── games.$id.index.tsx                     # UPDATED: render PlayersTable + (GM-only) PendingInvitationsList + Invite-player button (in Players header) opening InvitePlayerDialog
 │       ├── games.$id.index.test.tsx                # UPDATED
 │       └── __root.tsx                              # UPDATED: insert NotificationsBell into the navbar (auth-only render)
 └── e2e/

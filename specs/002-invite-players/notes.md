@@ -45,6 +45,21 @@ update.
 
 ## Frontend
 
+### Shadcn `DialogContent` text-foreground fix (shipped)
+
+The shadcn `DialogContent` primitive (`assets/js/components/ui/dialog.tsx`)
+originally set only `bg-background`. Radix portals dialog content
+out of the SPA's `<div className="…text-foreground">` wrapper into
+`document.body`, where daisyUI's `prefersdark: true` media query
+gives the body a near-white text color when the system prefers
+dark. The portaled content inherited that color, producing
+white-on-white text in the GM invite modal (and latent risk in
+`DeleteGameDialog`, `PlayerEditDialog`, `RevokeInvitationDialog`).
+Fix: add `text-foreground` to the primitive's class list so dialogs
+carry both background and foreground tokens explicitly. No follow-up
+needed — recorded for future readers asking why the token is on the
+primitive.
+
 ### WebSocket push for the bell
 
 The bell currently polls `useUnreadCount` every 60 s

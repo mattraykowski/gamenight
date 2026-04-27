@@ -67,12 +67,14 @@ config :game_night,
 1. Sign in as a user who owns at least one game (or create one via
    `/games/new`).
 2. Open `/games/:id`.
-3. Click "Invite player". Fill in:
+3. Click the "Invite player" button (justified right of the Players section header). The invitation form opens in a modal. Fill in:
    - email: `newperson@example.com`
    - character name: `Mira Stoneheart`
    - character summary: `Half-orc paladin.`
    - GM notes: `First-time player.`
-4. Submit. Toast appears: "Invitation sent."
+4. Submit. Toast appears: "Invitation sent." The modal closes and the
+   page's pending-invitations section refreshes to include the new
+   row.
 5. Open `/dev/mailbox`. The invitation email is at the top.
 6. Copy the URL inside the email; paste into a new browser
    profile / private window (so you're acting as a stranger).

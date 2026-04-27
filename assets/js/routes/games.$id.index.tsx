@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { GameFieldRow } from "@/features/games/components/game-field-row";
 import { DeleteGameDialog } from "@/features/games/components/delete-game-dialog";
 import { useDestroyGame, useGame } from "@/features/games/hooks";
-import { InvitationForm } from "@/features/invitations/components/invitation-form";
+import { InvitePlayerDialog } from "@/features/invitations/components/invite-player-dialog";
 import { PendingInvitationsList } from "@/features/invitations/components/pending-invitations-list";
 import { RevokeInvitationDialog } from "@/features/invitations/components/revoke-invitation-dialog";
 import {
@@ -221,9 +221,21 @@ export function GameDetailRoute() {
         className="mt-12 border-t pt-8"
         aria-labelledby="players-roster-heading"
       >
-        <h2 id="players-roster-heading" className="text-2xl font-semibold tracking-tight">
-          Players
-        </h2>
+        <div className="flex items-center justify-between gap-4">
+          <h2 id="players-roster-heading" className="text-2xl font-semibold tracking-tight">
+            Players
+          </h2>
+          {isOwner ? (
+            <InvitePlayerDialog
+              onSubmit={onInvite}
+              isPending={createInvitation.isPending}
+            >
+              <Button type="button" size="sm" data-testid="invite-player-trigger">
+                Invite player
+              </Button>
+            </InvitePlayerDialog>
+          ) : null}
+        </div>
         <div className="mt-4">
           {isOwner ? (
             gmRoster.isPending ? (
@@ -286,76 +298,58 @@ export function GameDetailRoute() {
       </section>
 
       {isOwner ? (
-        <>
-          <section
-            className="mt-12 border-t pt-8"
-            aria-labelledby="pending-invitations-heading"
+        <section
+          className="mt-12 border-t pt-8"
+          aria-labelledby="pending-invitations-heading"
+        >
+          <h2
+            id="pending-invitations-heading"
+            className="text-2xl font-semibold tracking-tight"
           >
-            <h2
-              id="pending-invitations-heading"
-              className="text-2xl font-semibold tracking-tight"
-            >
-              Pending invitations
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Visible only to you.
-            </p>
-            <div className="mt-4">
-              {pendingInvites.isPending ? (
-                <p className="text-sm text-muted-foreground" aria-live="polite">
-                  Loading invitations…
-                </p>
-              ) : pendingInvites.isError ? (
-                <p
-                  className="rounded-md border border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive"
-                  role="alert"
-                >
-                  We couldn&apos;t load pending invitations. Please refresh.
-                </p>
-              ) : (
-                <PendingInvitationsList
-                  invitations={pendingInvites.data ?? []}
-                  renderActions={(invitation) => (
-                    <RevokeInvitationDialog
-                      invitation={{
-                        id: invitation.id,
-                        email: String(invitation.email),
-                        characterName: invitation.characterName,
-                      }}
-                      isPending={revoke.isPending}
-                      onConfirm={() => onRevoke(invitation)}
+            Pending invitations
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Visible only to you.
+          </p>
+          <div className="mt-4">
+            {pendingInvites.isPending ? (
+              <p className="text-sm text-muted-foreground" aria-live="polite">
+                Loading invitations…
+              </p>
+            ) : pendingInvites.isError ? (
+              <p
+                className="rounded-md border border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                role="alert"
+              >
+                We couldn&apos;t load pending invitations. Please refresh.
+              </p>
+            ) : (
+              <PendingInvitationsList
+                invitations={pendingInvites.data ?? []}
+                renderActions={(invitation) => (
+                  <RevokeInvitationDialog
+                    invitation={{
+                      id: invitation.id,
+                      email: String(invitation.email),
+                      characterName: invitation.characterName,
+                    }}
+                    isPending={revoke.isPending}
+                    onConfirm={() => onRevoke(invitation)}
+                  >
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      data-testid={`revoke-invitation-trigger-${invitation.id}`}
                     >
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        data-testid={`revoke-invitation-trigger-${invitation.id}`}
-                      >
-                        Revoke
-                      </Button>
-                    </RevokeInvitationDialog>
-                  )}
-                />
-              )}
-            </div>
-          </section>
-
-          <section
-            className="mt-12 border-t pt-8"
-            aria-labelledby="invite-player-heading"
-          >
-            <h2 id="invite-player-heading" className="text-2xl font-semibold tracking-tight">
-              Invite a player
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Send an invitation. We&apos;ll email a link the invitee can use to accept and
-              join your roster.
-            </p>
-            <div className="mt-6">
-              <InvitationForm onSubmit={onInvite} isSubmitting={createInvitation.isPending} />
-            </div>
-          </section>
-        </>
+                      Revoke
+                    </Button>
+                  </RevokeInvitationDialog>
+                )}
+              />
+            )}
+          </div>
+        </section>
       ) : null}
     </main>
   );
