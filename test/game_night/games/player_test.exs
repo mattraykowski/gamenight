@@ -131,6 +131,46 @@ defmodule GameNight.Games.PlayerTest do
     end
   end
 
+  describe ":list_mine returns all statuses sorted desc (T098)" do
+    test "returns rows across :active, :inactive, :done — sorted by updated_at DESC" do
+      {:ok, gm} = create_user()
+      {:ok, player_user} = create_user()
+
+      {:ok, game_a} = register_game(gm)
+      {:ok, game_b} = register_game(gm)
+      {:ok, game_c} = register_game(gm)
+
+      _oldest =
+        seed_player_with_status!(game_a, player_user, :active, "Oldest active")
+
+      :timer.sleep(5)
+
+      _middle =
+        seed_player_with_status!(game_b, player_user, :inactive, "Middle inactive")
+
+      :timer.sleep(5)
+
+      _newest =
+        seed_player_with_status!(game_c, player_user, :done, "Newest done")
+
+      assert {:ok, results} =
+               Player
+               |> Ash.Query.for_read(:list_mine, %{}, actor: player_user)
+               |> Ash.read()
+
+      # All three statuses are returned — :done is NOT filtered out
+      # at the action layer. (The dashboard's My Characters column
+      # applies its own client-side filter to hide :done per FR-029.)
+      statuses = Enum.map(results, & &1.status) |> Enum.sort()
+      assert statuses == [:active, :done, :inactive]
+
+      # Newest-touched first.
+      character_names = Enum.map(results, & &1.character_name)
+      assert hd(character_names) == "Newest done"
+      assert List.last(character_names) == "Oldest active"
+    end
+  end
+
   describe ":update (T068)" do
     setup do
       {:ok, gm} = create_user()
@@ -229,6 +269,22 @@ defmodule GameNight.Games.PlayerTest do
         character_summary: nil,
         gm_notes: Keyword.get(opts, :gm_notes, "secret notes"),
         status: :active
+      }
+    )
+    |> Ash.create!(authorize?: false)
+  end
+
+  defp seed_player_with_status!(game, user, status, character_name) do
+    Player
+    |> Ash.Changeset.for_create(
+      :create,
+      %{
+        game_id: game.id,
+        user_id: user.id,
+        character_name: character_name,
+        character_summary: nil,
+        gm_notes: nil,
+        status: status
       }
     )
     |> Ash.create!(authorize?: false)

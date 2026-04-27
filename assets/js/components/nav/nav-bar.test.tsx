@@ -105,8 +105,18 @@ describe("<NavBar>", () => {
     expect(screen.getByTestId("nav-sign-in")).toBeInTheDocument();
     expect(screen.getByTestId("nav-register")).toBeInTheDocument();
     expect(screen.queryByTestId("user-menu-trigger")).not.toBeInTheDocument();
+    // T117 — bell is auth-only and absent for anonymous viewers.
+    expect(screen.queryByTestId("notifications-bell-trigger")).not.toBeInTheDocument();
 
     await expectNoAxeViolations(container);
+  });
+
+  it("renders the notifications bell only when authenticated (T117)", async () => {
+    renderNavAt("/dashboard", { id: "u1", email: "player@example.com" });
+
+    await waitFor(() =>
+      expect(screen.getByTestId("notifications-bell-trigger")).toBeInTheDocument(),
+    );
   });
 
   it("renders the authenticated variant with primary links + user menu", async () => {

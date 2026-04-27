@@ -486,6 +486,50 @@ defmodule GameNight.Games.InvitationTest do
     end
   end
 
+  describe ":list_pending_for_me action (T065)" do
+    test "actor sees only their own pending invitations, matched by email" do
+      {:ok, gm} = create_user()
+      {:ok, recipient} = create_user_with_email("listmine@example.test")
+      {:ok, stranger} = create_user()
+
+      {:ok, game} = register_game(gm, %{title: "List mine", status: :active})
+      {invitation, _token} =
+        create_invitation_with_token(gm, game, %{email: "listmine@example.test"})
+
+      # Different invitation to a different email — should NOT appear
+      # in `recipient`'s pending list.
+      drain_emails()
+      {:ok, _other} =
+        Invitation
+        |> Ash.Changeset.for_create(
+          :create_for_game,
+          %{
+            game_id: game.id,
+            email: "someone-else@example.test",
+            character_name: "Other",
+            character_summary: nil,
+            gm_notes: nil
+          },
+          actor: gm
+        )
+        |> Ash.create()
+
+      # Recipient sees their one pending invitation.
+      assert {:ok, [row]} =
+               Invitation
+               |> Ash.Query.for_read(:list_pending_for_me, %{}, actor: recipient)
+               |> Ash.read()
+
+      assert row.id == invitation.id
+
+      # Stranger (different email) sees nothing.
+      assert {:ok, []} =
+               Invitation
+               |> Ash.Query.for_read(:list_pending_for_me, %{}, actor: stranger)
+               |> Ash.read()
+    end
+  end
+
   describe ":decline_with_token (T088)" do
     setup do
       {:ok, gm} = create_user()
