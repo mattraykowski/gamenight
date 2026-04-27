@@ -34,7 +34,15 @@ defmodule GameNight.Games.GameRpcTest do
         :create_invitation,
         :preview_invitation,
         # Feature 002 US2 — list_pending_for_me added in T065.
-        :list_my_pending_invitations
+        :list_my_pending_invitations,
+        # Feature 002 US3 — Player resource (T076).
+        :list_my_characters,
+        :list_players_for_game,
+        :list_players_for_gm,
+        :update_player,
+        # Feature 002 US3 — GM-side Invitation bindings (T076).
+        :list_pending_invitations_for_game,
+        :revoke_invitation
       ]
 
       assert declared_names == Enum.sort(expected)

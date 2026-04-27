@@ -33,6 +33,10 @@ defmodule GameNight.Games do
     # user-story phases (US1 — Invitation create/preview/accept;
     # US3 — Player and remaining Invitation actions).
     resource GameNight.Games.Player do
+      rpc_action :list_players_for_game, :list_for_game
+      rpc_action :list_players_for_gm, :list_for_gm
+      rpc_action :list_my_characters, :list_mine
+      rpc_action :update_player, :update
     end
 
     resource GameNight.Games.Invitation do
@@ -45,6 +49,8 @@ defmodule GameNight.Games do
       # `lib/game_night/games/invitation/actions/accept_invitation.ex`.
       rpc_action :accept_invitation, :accept_invitation
       rpc_action :list_my_pending_invitations, :list_pending_for_me
+      rpc_action :list_pending_invitations_for_game, :list_pending_for_game
+      rpc_action :revoke_invitation, :revoke
     end
   end
 

@@ -26,9 +26,9 @@ import { narrowApiError, type ApiError } from "@/lib/api/errors";
  * currently asks for — pick this explicitly so adding new columns
  * to the resource doesn't silently widen the SPA type.
  */
-export type Game = Pick<GameResourceSchema, "id" | "title" | "description" | "status">;
+export type Game = Pick<GameResourceSchema, "id" | "title" | "description" | "status" | "isOwner">;
 
-const GAME_FIELDS = ["id", "title", "description", "status"] as const;
+const GAME_FIELDS = ["id", "title", "description", "status", "isOwner"] as const;
 
 export const gamesKeys = {
   all: ["games"] as const,
@@ -58,7 +58,7 @@ export function useListMineActive(): UseQueryResult<Game[], ApiError> {
       const { customFetch, headers } = getClientOptions();
       return runRpc<Game[]>(
         listMineActive({
-          fields: GAME_FIELDS as unknown as Array<"id" | "title" | "description" | "status">,
+          fields: GAME_FIELDS as unknown as Array<"id" | "title" | "description" | "status" | "isOwner">,
           headers,
           ...(customFetch !== undefined ? { customFetch } : {}),
         }) as Promise<
@@ -81,7 +81,7 @@ export function useListMine(): UseQueryResult<Game[], ApiError> {
       const { customFetch, headers } = getClientOptions();
       return runRpc<Game[]>(
         listMine({
-          fields: GAME_FIELDS as unknown as Array<"id" | "title" | "description" | "status">,
+          fields: GAME_FIELDS as unknown as Array<"id" | "title" | "description" | "status" | "isOwner">,
           headers,
           ...(customFetch !== undefined ? { customFetch } : {}),
         }) as Promise<
@@ -106,7 +106,7 @@ export function useGame(id: string): UseQueryResult<Game, ApiError> {
       return runRpc<Game>(
         getMine({
           input: { id },
-          fields: GAME_FIELDS as unknown as Array<"id" | "title" | "description" | "status">,
+          fields: GAME_FIELDS as unknown as Array<"id" | "title" | "description" | "status" | "isOwner">,
           headers,
           ...(customFetch !== undefined ? { customFetch } : {}),
         }) as Promise<
@@ -132,7 +132,7 @@ export function useRegisterGame(): UseMutationResult<Game, ApiError, RegisterGam
       return runRpc<Game>(
         registerGame({
           input,
-          fields: GAME_FIELDS as unknown as Array<"id" | "title" | "description" | "status">,
+          fields: GAME_FIELDS as unknown as Array<"id" | "title" | "description" | "status" | "isOwner">,
           headers,
           ...(customFetch !== undefined ? { customFetch } : {}),
         }) as Promise<
@@ -166,7 +166,7 @@ export function useUpdateGame(): UseMutationResult<Game, ApiError, UpdateGameArg
         updateGame({
           identity: id,
           input,
-          fields: GAME_FIELDS as unknown as Array<"id" | "title" | "description" | "status">,
+          fields: GAME_FIELDS as unknown as Array<"id" | "title" | "description" | "status" | "isOwner">,
           headers,
           ...(customFetch !== undefined ? { customFetch } : {}),
         }) as Promise<

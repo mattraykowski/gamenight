@@ -9,7 +9,9 @@ import {
   acceptInvitation,
   createInvitation,
   listMyPendingInvitations,
+  listPendingInvitationsForGame,
   previewInvitation,
+  revokeInvitation,
   type AcceptInvitationInput,
   type AshRpcError,
   type CreateInvitationInput,
@@ -75,6 +77,8 @@ export const invitationsKeys = {
   all: ["invitations"] as const,
   preview: (token: string) => [...invitationsKeys.all, "preview", token] as const,
   myPending: () => [...invitationsKeys.all, "myPending"] as const,
+  pendingForGame: (gameId: string) =>
+    [...invitationsKeys.all, "pendingForGame", gameId] as const,
 };
 
 async function runRpc<T>(
@@ -176,6 +180,66 @@ export function useInvitationPreview(token: string): UseQueryResult<InvitationPr
           | { success: false; errors: AshRpcError[] }
         >,
       );
+    },
+  });
+}
+
+/**
+ * GM-side — pending invitations on a specific game. Drives the
+ * "Pending invitations" section of the GM's `/games/:id` view.
+ */
+export function useListPendingInvitationsForGame(
+  gameId: string,
+): UseQueryResult<Invitation[], ApiError> {
+  return useQuery({
+    queryKey: invitationsKeys.pendingForGame(gameId),
+    enabled: gameId.length > 0,
+    queryFn: async () => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<Invitation[]>(
+        listPendingInvitationsForGame({
+          input: { gameId },
+          fields: INVITATION_FIELDS as unknown as Array<
+            "id" | "email" | "characterName" | "characterSummary" | "status" | "expiresAt"
+          >,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: Invitation[] }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+  });
+}
+
+/**
+ * GM-only — closes a pending invitation. Invalidates the
+ * pending-list cache for the game and the notifications cache (the
+ * recipient's bell entry resolves alongside).
+ */
+export function useRevokeInvitation(): UseMutationResult<Invitation, ApiError, { id: string }> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<Invitation>(
+        revokeInvitation({
+          identity: id,
+          fields: INVITATION_FIELDS as unknown as Array<
+            "id" | "email" | "characterName" | "characterSummary" | "status" | "expiresAt"
+          >,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: Invitation }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: invitationsKeys.all });
     },
   });
 }

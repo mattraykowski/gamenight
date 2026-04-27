@@ -132,6 +132,16 @@ defmodule GameNight.Games.Game do
     end
   end
 
+  calculations do
+    # Feature 002 — convenience signal for the SPA. The game-detail
+    # route is now reachable by both the GM (full controls) and any
+    # seated player (read-only roster). `is_owner` lets the route
+    # branch UI without exposing `owner_id` directly.
+    calculate :is_owner, :boolean, expr(owner_id == ^actor(:id)) do
+      public? true
+    end
+  end
+
   attributes do
     uuid_primary_key :id
 

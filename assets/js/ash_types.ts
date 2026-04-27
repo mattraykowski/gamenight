@@ -27,11 +27,12 @@ export type UserAttributesOnlySchema = {
 // Game Schema
 export type GameResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "title" | "description" | "status";
+  __primitiveFields: "id" | "title" | "description" | "status" | "isOwner";
   id: UUID;
   title: string;
   description: string | null;
   status: "active" | "paused" | "cancelled" | "completed";
+  isOwner: boolean | null;
 };
 
 
@@ -75,11 +76,12 @@ export type InvitationAttributesOnlySchema = {
 // Player Schema
 export type PlayerResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "characterName" | "characterSummary" | "status";
+  __primitiveFields: "id" | "characterName" | "characterSummary" | "status" | "visibleGmNotes";
   id: UUID;
   characterName: string;
   characterSummary: string | null;
   status: "active" | "inactive" | "done";
+  visibleGmNotes: string | null;
 };
 
 
@@ -174,6 +176,12 @@ export type GameFilterInput = {
     in?: Array<"active" | "paused" | "cancelled" | "completed">;
   };
 
+  isOwner?: {
+    eq?: boolean;
+    notEq?: boolean;
+    isNil?: boolean;
+  };
+
 
 
 };
@@ -254,6 +262,13 @@ export type PlayerFilterInput = {
     eq?: "active" | "inactive" | "done";
     notEq?: "active" | "inactive" | "done";
     in?: Array<"active" | "inactive" | "done">;
+  };
+
+  visibleGmNotes?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+    isNil?: boolean;
   };
 
 
@@ -338,13 +353,13 @@ export type NotificationFilterInput = {
 export const userFilterFields = ["id", "email"] as const;
 export type UserFilterField = (typeof userFilterFields)[number];
 
-export const gameFilterFields = ["id", "title", "description", "status"] as const;
+export const gameFilterFields = ["id", "title", "description", "status", "isOwner"] as const;
 export type GameFilterField = (typeof gameFilterFields)[number];
 
 export const invitationFilterFields = ["id", "email", "characterName", "characterSummary", "status", "expiresAt"] as const;
 export type InvitationFilterField = (typeof invitationFilterFields)[number];
 
-export const playerFilterFields = ["id", "characterName", "characterSummary", "status"] as const;
+export const playerFilterFields = ["id", "characterName", "characterSummary", "status", "visibleGmNotes"] as const;
 export type PlayerFilterField = (typeof playerFilterFields)[number];
 
 export const notificationFilterFields = ["id", "kind", "subjectType", "subjectId", "readAt", "resolvedAt", "insertedAt", "updatedAt"] as const;
@@ -354,13 +369,13 @@ export type NotificationFilterField = (typeof notificationFilterFields)[number];
 export const userSortFields = ["id", "email"] as const;
 export type UserSortField = (typeof userSortFields)[number];
 
-export const gameSortFields = ["id", "title", "description", "status"] as const;
+export const gameSortFields = ["id", "title", "description", "status", "isOwner"] as const;
 export type GameSortField = (typeof gameSortFields)[number];
 
 export const invitationSortFields = ["id", "email", "characterName", "characterSummary", "status", "expiresAt"] as const;
 export type InvitationSortField = (typeof invitationSortFields)[number];
 
-export const playerSortFields = ["id", "characterName", "characterSummary", "status"] as const;
+export const playerSortFields = ["id", "characterName", "characterSummary", "status", "visibleGmNotes"] as const;
 export type PlayerSortField = (typeof playerSortFields)[number];
 
 export const notificationSortFields = ["id", "kind", "subjectType", "subjectId", "readAt", "resolvedAt", "insertedAt", "updatedAt"] as const;

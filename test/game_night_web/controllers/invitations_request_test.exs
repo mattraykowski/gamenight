@@ -186,6 +186,82 @@ defmodule GameNightWeb.InvitationsRequestTest do
     end
   end
 
+  describe "GET /api/invitations/by-game/:game_id/pending (T071)" do
+    setup do
+      {:ok, gm} = create_user()
+      {:ok, other_gm} = create_user()
+      {:ok, game} = register_game(gm, %{title: "Pending list", status: :active})
+      {invitation, _token} = create_invitation_with_token(gm, game)
+      {:ok, gm: gm, other_gm: other_gm, game: game, invitation: invitation}
+    end
+
+    test "GM gets the pending list", %{conn: conn, gm: gm, game: game, invitation: invitation} do
+      conn =
+        conn
+        |> sign_in(gm)
+        |> put_req_header("accept", @jsonapi)
+        |> get(~p"/api/invitations/by-game/#{game.id}/pending")
+
+      assert %{"data" => [entry]} = json_response(conn, 200)
+      assert entry["id"] == invitation.id
+      assert entry["attributes"]["status"] == "pending"
+    end
+
+    test "non-GM gets no rows", %{conn: conn, other_gm: other_gm, game: game} do
+      conn =
+        conn
+        |> sign_in(other_gm)
+        |> put_req_header("accept", @jsonapi)
+        |> get(~p"/api/invitations/by-game/#{game.id}/pending")
+
+      assert %{"data" => []} = json_response(conn, 200)
+    end
+  end
+
+  describe "PATCH /api/invitations/:id/revoke (T071)" do
+    setup do
+      {:ok, gm} = create_user()
+      {:ok, other_gm} = create_user()
+      {:ok, game} = register_game(gm, %{title: "Revoke", status: :active})
+      {invitation, _token} = create_invitation_with_token(gm, game)
+      {:ok, gm: gm, other_gm: other_gm, invitation: invitation}
+    end
+
+    test "GM revokes; status flips to :revoked", %{
+      conn: conn,
+      gm: gm,
+      invitation: invitation
+    } do
+      conn =
+        conn
+        |> sign_in(gm)
+        |> put_req_header("accept", @jsonapi)
+        |> put_req_header("content-type", @jsonapi)
+        |> patch(~p"/api/invitations/#{invitation.id}/revoke", %{
+          data: %{type: "invitation", id: invitation.id, attributes: %{}}
+        })
+
+      assert %{"data" => %{"attributes" => %{"status" => "revoked"}}} = json_response(conn, 200)
+    end
+
+    test "non-GM cannot revoke", %{
+      conn: conn,
+      other_gm: other_gm,
+      invitation: invitation
+    } do
+      conn =
+        conn
+        |> sign_in(other_gm)
+        |> put_req_header("accept", @jsonapi)
+        |> put_req_header("content-type", @jsonapi)
+        |> patch(~p"/api/invitations/#{invitation.id}/revoke", %{
+          data: %{type: "invitation", id: invitation.id, attributes: %{}}
+        })
+
+      assert conn.status >= 400
+    end
+  end
+
   defp create_user do
     email = "invitations-req-#{System.unique_integer([:positive])}@example.test"
     password = "invitations-req-password-1"

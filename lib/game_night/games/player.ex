@@ -45,6 +45,36 @@ defmodule GameNight.Games.Player do
     type_name "Player"
   end
 
+  json_api do
+    type "player"
+
+    routes do
+      base "/players"
+
+      # Roster — admits GM and seated players.
+      index :list_for_game, route: "/by-game/:game_id"
+
+      # GM-only roster + visible_gm_notes. `default_fields` includes
+      # the calculation in the response attributes (default
+      # serialisation only emits attributes; calcs ride along when
+      # explicitly listed).
+      index :list_for_gm,
+        route: "/by-game/:game_id/gm",
+        default_fields: [
+          :character_name,
+          :character_summary,
+          :status,
+          :visible_gm_notes
+        ]
+
+      # The actor's own player rows across every game.
+      index :list_mine, route: "/mine"
+
+      # GM-only edit.
+      patch :update
+    end
+  end
+
   actions do
     defaults [:read]
 
@@ -60,16 +90,102 @@ defmodule GameNight.Games.Player do
       upsert_identity :unique_game_user
       upsert_fields []
     end
+
+    read :list_for_game do
+      description """
+      The roster for a specific game. Admits the GM and any user
+      who is a seated player on the game. Excludes `gm_notes` from
+      the default serialisation; the `visible_gm_notes` calculation
+      is the only path to the field and is itself GM-gated.
+      """
+      argument :game_id, :uuid, allow_nil?: false
+
+      prepare build(filter: expr(game_id == ^arg(:game_id)), sort: [updated_at: :desc])
+    end
+
+    read :list_for_gm do
+      description """
+      GM-only roster read that also loads the `visible_gm_notes`
+      calculation. Identical row set to `:list_for_game` (so GM and
+      players see the same Player records); the difference is the
+      additional GM-private field.
+      """
+      argument :game_id, :uuid, allow_nil?: false
+
+      prepare build(
+               filter: expr(game_id == ^arg(:game_id)),
+               sort: [updated_at: :desc],
+               load: [:visible_gm_notes]
+             )
+    end
+
+    read :list_mine do
+      description """
+      The current actor's own Player records across every game.
+      Drives the dashboard's "My Characters" column and the
+      `/characters` route (US5). Sort newest-touched first.
+      """
+
+      prepare build(filter: expr(user_id == ^actor(:id)), sort: [updated_at: :desc])
+    end
+
+    update :update do
+      description "GM-only edit of a player's character data and status."
+      accept [:character_name, :character_summary, :gm_notes, :status]
+      require_atomic? true
+    end
   end
 
   policies do
-    # Base `:read` policy — admits the GM of the player's game OR the
-    # user the player record belongs to. Story phases add per-action
-    # policies on top of this for `:list_for_game`, `:list_for_gm`,
-    # `:list_mine`, and `:update`.
+    # `:list_for_game` — GM of the game OR a user who is themselves a
+    # seated player on the same game.
+    policy action(:list_for_game) do
+      authorize_if expr(game.owner_id == ^actor(:id))
+      authorize_if expr(exists(game.players, user_id == ^actor(:id)))
+    end
+
+    # `:list_for_gm` — GM only. The action loads `visible_gm_notes`
+    # which is itself field-policy-gated; the action policy is the
+    # outer ring of the defence-in-depth posture.
+    policy action(:list_for_gm) do
+      authorize_if expr(game.owner_id == ^actor(:id))
+    end
+
+    # `:list_mine` — actor reads their own player rows.
+    policy action(:list_mine) do
+      authorize_if expr(user_id == ^actor(:id))
+    end
+
+    # `:update` — GM only.
+    policy action(:update) do
+      authorize_if expr(game.owner_id == ^actor(:id))
+    end
+
+    # Base `:read` policy (and any other read action that doesn't
+    # have its own policy block). Admits the GM of the player's
+    # game OR the user the player record belongs to.
     policy action_type(:read) do
       authorize_if expr(game.owner_id == ^actor(:id))
       authorize_if expr(user_id == ^actor(:id))
+    end
+  end
+
+  field_policies do
+    # `visible_gm_notes` is the only path to `gm_notes`; admit only
+    # the GM. Non-GM callers see `null` even if they explicitly
+    # request the field via sparse fieldsets — that's the SC-005
+    # zero-leak guarantee.
+    field_policy :visible_gm_notes do
+      authorize_if expr(game.owner_id == ^actor(:id))
+    end
+
+    # Once any `field_policy` is declared, Ash requires every public
+    # field to be covered. The action-level policies above already
+    # gate access to the resource as a whole; this catch-all
+    # delegates field-level authorisation to those — anyone who can
+    # read the row can read every other field on it.
+    field_policy :* do
+      authorize_if always()
     end
   end
 
@@ -127,5 +243,16 @@ defmodule GameNight.Games.Player do
     # FR-014 — at most one Player per (game, user). The unique index
     # is the authoritative gate; application-level checks would race.
     identity :unique_game_user, [:game_id, :user_id]
+  end
+
+  calculations do
+    # GM-gated view of `gm_notes`. The expression returns the
+    # underlying value; the matching `field_policy :visible_gm_notes`
+    # above is the access gate — Ash returns `nil` to non-GM
+    # callers for `forbidden_field`, satisfying SC-005's zero-leak
+    # guarantee.
+    calculate :visible_gm_notes, :string, expr(gm_notes) do
+      public? true
+    end
   end
 end

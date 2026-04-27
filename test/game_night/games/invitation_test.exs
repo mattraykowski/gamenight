@@ -406,6 +406,88 @@ defmodule GameNight.Games.InvitationTest do
     end
   end
 
+  describe ":list_pending_for_game + :revoke (T069)" do
+    setup do
+      {:ok, gm} = create_user()
+      {:ok, other_gm} = create_user()
+      {:ok, game} = register_game(gm, %{title: "Revoke me", status: :active})
+      {invitation, token} = create_invitation_with_token(gm, game, %{})
+
+      {:ok, gm: gm, other_gm: other_gm, game: game, invitation: invitation, token: token}
+    end
+
+    test "list_pending_for_game returns the GM's pending invitations", %{
+      gm: gm,
+      game: game,
+      invitation: invitation
+    } do
+      assert {:ok, [row]} =
+               Invitation
+               |> Ash.Query.for_read(:list_pending_for_game, %{game_id: game.id}, actor: gm)
+               |> Ash.read()
+
+      assert row.id == invitation.id
+    end
+
+    test "non-GM cannot list pending invitations on a game", %{
+      other_gm: other_gm,
+      game: game
+    } do
+      assert {:ok, []} =
+               Invitation
+               |> Ash.Query.for_read(:list_pending_for_game, %{game_id: game.id}, actor: other_gm)
+               |> Ash.read()
+    end
+
+    test "GM revokes a pending invitation; status flips to :revoked", %{
+      gm: gm,
+      invitation: invitation
+    } do
+      assert {:ok, revoked} =
+               invitation
+               |> Ash.Changeset.for_update(:revoke, %{}, actor: gm)
+               |> Ash.update()
+
+      assert revoked.status == :revoked
+    end
+
+    test "non-GM cannot revoke", %{other_gm: other_gm, invitation: invitation} do
+      assert {:error, %Ash.Error.Forbidden{}} =
+               invitation
+               |> Ash.Changeset.for_update(:revoke, %{}, actor: other_gm)
+               |> Ash.update()
+    end
+
+    test "after revoke, the original token is rejected by Tokens.verify", %{
+      gm: gm,
+      invitation: invitation,
+      token: token
+    } do
+      {:ok, _revoked} =
+        invitation
+        |> Ash.Changeset.for_update(:revoke, %{}, actor: gm)
+        |> Ash.update()
+
+      assert {:error, :invalid_token} = Tokens.verify(token)
+    end
+
+    test "revoking a non-pending invitation errors", %{
+      gm: gm,
+      invitation: invitation
+    } do
+      {:ok, _} =
+        invitation
+        |> Ash.Changeset.for_update(:revoke, %{}, actor: gm)
+        |> Ash.update()
+
+      assert {:error, _} =
+               invitation
+               |> Map.put(:status, :revoked)
+               |> Ash.Changeset.for_update(:revoke, %{}, actor: gm)
+               |> Ash.update()
+    end
+  end
+
   describe "RPC contract bindings (T028)" do
     test "GameNight.Games typescript_rpc lists exactly the US1 invitation actions" do
       [_game_entry, _player_entry, invitation_entry] =
@@ -428,7 +510,10 @@ defmodule GameNight.Games.InvitationTest do
                create_invitation: :create_for_game,
                # T065 added the my-pending-list binding.
                list_my_pending_invitations: :list_pending_for_me,
-               preview_invitation: :preview_with_token
+               # T076 added the GM-side bindings.
+               list_pending_invitations_for_game: :list_pending_for_game,
+               preview_invitation: :preview_with_token,
+               revoke_invitation: :revoke
              ]
     end
   end

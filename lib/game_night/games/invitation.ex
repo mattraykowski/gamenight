@@ -37,6 +37,15 @@ defmodule GameNight.Games.Invitation do
       # The actor's pending invitations, matched by email.
       index :list_pending_for_me, route: "/mine/pending"
 
+      # GM-only — the pending invitations on a specific game.
+      index :list_pending_for_game, route: "/by-game/:game_id/pending"
+
+      # GM-only — revoke a pending invitation. Custom path keeps
+      # PATCH /:id reserved for future generic invitation updates.
+      patch :revoke do
+        route "/:id/revoke"
+      end
+
       # GM-only — body carries email, character_name, character_summary,
       # gm_notes, plus the game relationship (so game_id is supplied
       # via the JSON:API relationship payload).
@@ -88,6 +97,31 @@ defmodule GameNight.Games.Invitation do
 
   actions do
     defaults [:read]
+
+    read :list_pending_for_game do
+      description """
+      GM-only — pending invitations on a specific game. Drives the
+      "Pending invitations" section on the GM's `/games/:id` view.
+      """
+      argument :game_id, :uuid, allow_nil?: false
+
+      prepare build(
+               filter: expr(game_id == ^arg(:game_id) and status == :pending),
+               sort: [updated_at: :desc]
+             )
+    end
+
+    update :revoke do
+      description """
+      GM-only — closes a pending invitation. Flips status to
+      `:revoked`, revokes the JTI on the AshAuthentication tokens
+      table, and resolves any matching in-app notification so the
+      recipient's bell stops surfacing the entry.
+      """
+      accept []
+      require_atomic? false
+      change GameNight.Games.Invitation.Changes.Revoke
+    end
 
     read :list_pending_for_me do
       description """
@@ -239,6 +273,11 @@ defmodule GameNight.Games.Invitation do
     # actor's email; this policy is the explicit acceptance.
     policy action(:list_pending_for_me) do
       authorize_if actor_present()
+    end
+
+    # GM-only reads / mutations on game-scoped invitation rows.
+    policy action([:list_pending_for_game, :revoke]) do
+      authorize_if expr(game.owner_id == ^actor(:id))
     end
 
 
