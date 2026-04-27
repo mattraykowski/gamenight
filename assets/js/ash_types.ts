@@ -4,6 +4,7 @@
 
 
 export type UUID = string;
+export type UtcDateTimeUsec = string;
 
 // User Schema
 export type UserResourceSchema = {
@@ -42,6 +43,80 @@ export type GameAttributesOnlySchema = {
   title: string;
   description: string | null;
   status: "active" | "paused" | "cancelled" | "completed";
+};
+
+
+// Invitation Schema
+export type InvitationResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "email" | "characterName" | "characterSummary" | "status" | "expiresAt";
+  id: UUID;
+  email: string;
+  characterName: string;
+  characterSummary: string | null;
+  status: "pending" | "accepted" | "declined" | "revoked";
+  expiresAt: UtcDateTimeUsec;
+};
+
+
+
+export type InvitationAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "email" | "characterName" | "characterSummary" | "status" | "expiresAt";
+  id: UUID;
+  email: string;
+  characterName: string;
+  characterSummary: string | null;
+  status: "pending" | "accepted" | "declined" | "revoked";
+  expiresAt: UtcDateTimeUsec;
+};
+
+
+// Player Schema
+export type PlayerResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "characterName" | "characterSummary" | "status";
+  id: UUID;
+  characterName: string;
+  characterSummary: string | null;
+  status: "active" | "inactive" | "done";
+};
+
+
+
+export type PlayerAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "characterName" | "characterSummary" | "status";
+  id: UUID;
+  characterName: string;
+  characterSummary: string | null;
+  status: "active" | "inactive" | "done";
+};
+
+
+// Notification Schema
+export type NotificationResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "kind" | "subjectType" | "subjectId" | "readAt" | "resolvedAt";
+  id: UUID;
+  kind: "game_invitation";
+  subjectType: string;
+  subjectId: UUID;
+  readAt: UtcDateTimeUsec | null;
+  resolvedAt: UtcDateTimeUsec | null;
+};
+
+
+
+export type NotificationAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "kind" | "subjectType" | "subjectId" | "readAt" | "resolvedAt";
+  id: UUID;
+  kind: "game_invitation";
+  subjectType: string;
+  subjectId: UUID;
+  readAt: UtcDateTimeUsec | null;
+  resolvedAt: UtcDateTimeUsec | null;
 };
 
 
@@ -98,6 +173,142 @@ export type GameFilterInput = {
 
 
 };
+export type InvitationFilterInput = {
+  and?: Array<InvitationFilterInput>;
+  or?: Array<InvitationFilterInput>;
+  not?: Array<InvitationFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  email?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  characterName?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  characterSummary?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+    isNil?: boolean;
+  };
+
+  status?: {
+    eq?: "pending" | "accepted" | "declined" | "revoked";
+    notEq?: "pending" | "accepted" | "declined" | "revoked";
+    in?: Array<"pending" | "accepted" | "declined" | "revoked">;
+  };
+
+  expiresAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+
+
+};
+export type PlayerFilterInput = {
+  and?: Array<PlayerFilterInput>;
+  or?: Array<PlayerFilterInput>;
+  not?: Array<PlayerFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  characterName?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  characterSummary?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+    isNil?: boolean;
+  };
+
+  status?: {
+    eq?: "active" | "inactive" | "done";
+    notEq?: "active" | "inactive" | "done";
+    in?: Array<"active" | "inactive" | "done">;
+  };
+
+
+
+};
+export type NotificationFilterInput = {
+  and?: Array<NotificationFilterInput>;
+  or?: Array<NotificationFilterInput>;
+  not?: Array<NotificationFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  kind?: {
+    eq?: "game_invitation";
+    notEq?: "game_invitation";
+    in?: Array<"game_invitation">;
+  };
+
+  subjectType?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  subjectId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  readAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+    isNil?: boolean;
+  };
+
+  resolvedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+    isNil?: boolean;
+  };
+
+
+
+};
 
 
 export const userFilterFields = ["id", "email"] as const;
@@ -106,12 +317,30 @@ export type UserFilterField = (typeof userFilterFields)[number];
 export const gameFilterFields = ["id", "title", "description", "status"] as const;
 export type GameFilterField = (typeof gameFilterFields)[number];
 
+export const invitationFilterFields = ["id", "email", "characterName", "characterSummary", "status", "expiresAt"] as const;
+export type InvitationFilterField = (typeof invitationFilterFields)[number];
+
+export const playerFilterFields = ["id", "characterName", "characterSummary", "status"] as const;
+export type PlayerFilterField = (typeof playerFilterFields)[number];
+
+export const notificationFilterFields = ["id", "kind", "subjectType", "subjectId", "readAt", "resolvedAt"] as const;
+export type NotificationFilterField = (typeof notificationFilterFields)[number];
+
 
 export const userSortFields = ["id", "email"] as const;
 export type UserSortField = (typeof userSortFields)[number];
 
 export const gameSortFields = ["id", "title", "description", "status"] as const;
 export type GameSortField = (typeof gameSortFields)[number];
+
+export const invitationSortFields = ["id", "email", "characterName", "characterSummary", "status", "expiresAt"] as const;
+export type InvitationSortField = (typeof invitationSortFields)[number];
+
+export const playerSortFields = ["id", "characterName", "characterSummary", "status"] as const;
+export type PlayerSortField = (typeof playerSortFields)[number];
+
+export const notificationSortFields = ["id", "kind", "subjectType", "subjectId", "readAt", "resolvedAt"] as const;
+export type NotificationSortField = (typeof notificationSortFields)[number];
 
 
 // Utility Types

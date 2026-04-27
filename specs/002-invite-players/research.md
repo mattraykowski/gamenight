@@ -191,35 +191,53 @@ it).
 - *Notification with concrete `belongs_to :invitation`*. Rejected —
   defeats the polymorphism intent.
 
-## 4. `Game.read` policy expansion: add an `exists/2` clause for players
+## 4. `Game.read` policy expansion: per-action `:get_mine` widening
 
 **Decision**:
 
 ```elixir
-policy action_type(:read) do
-  authorize_if expr(owner_id == ^actor(:id))
-  authorize_if expr(exists(players, user_id == ^actor(:id)))
+policies do
+  policy action([:read, :list_mine_active, :list_mine]) do
+    authorize_if expr(owner_id == ^actor(:id))
+  end
+
+  policy action(:get_mine) do
+    authorize_if expr(owner_id == ^actor(:id) or exists(players, user_id == ^actor(:id)))
+  end
+
+  # … :register / :update / :destroy unchanged …
 end
 ```
 
-The named reads keep their `prepare build(filter: …)`:
-`:list_mine_active` and `:list_mine` still filter on
-`owner_id == ^actor(:id)`, so the dashboard right-column behaviour
-is unchanged. `:get_mine` newly admits an accepted player viewing
-the game they're in.
+The named reads keep both their explicit `prepare build(filter: …)`
+**and** the owner-only policy as defence in depth. Only `:get_mine`
+admits an accepted player viewing the game they're seated at.
+
+**Why per-action, not `action_type(:read)`** — initially we tried a
+single `policy action_type(:read) do authorize_if owner;
+authorize_if player_exists end`. That widening also affected the
+base `:read` action, which is what `ash_json_api`'s PATCH handler
+uses to **load** a row before applying the update policy. With the
+widened base read, a non-owner non-player PATCH request returned
+**403 Forbidden** instead of the expected **404 Not Found** —
+leaking existence and violating SC-005 (no row should be
+distinguishable to an outsider). Scoping the widening to `:get_mine`
+keeps PATCH's load step owner-only, so non-owners get 404 the same
+way they did in feature 001.
 
 **Rationale**:
 
-- The expansion is the smallest change that satisfies FR-018:
-  "the game view screen MUST display the list of accepted Players
-  for that game ... to anyone who is permitted to view the game".
+- The smallest change that satisfies FR-018 ("the game view screen
+  MUST display the list of accepted Players for that game ... to
+  anyone who is permitted to view the game") without leaking
+  existence elsewhere.
 - `exists/2` over the `:players` `has_many` relationship resolves to
   a single `EXISTS (SELECT 1 FROM players ...)` SQL clause —
   `ash_postgres` keeps the read efficient.
-- Keeping the named reads' filters intact means the GM dashboard
-  stays GM-only. We do **not** want a player's accepted games to
-  show up in the GM's "My Active Games" — those are different lists
-  and different routes.
+- Keeping the named reads' filters and policies intact means the GM
+  dashboard stays GM-only. We do **not** want a player's accepted
+  games to show up in the GM's "My Active Games" — those are
+  different lists and different routes.
 
 **Naming caveat**: the action `:get_mine` becomes a slight misnomer
 once players use it ("mine" = "I own it" historically; now also "I

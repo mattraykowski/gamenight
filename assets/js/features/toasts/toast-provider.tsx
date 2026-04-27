@@ -22,6 +22,12 @@ const TOAST_MESSAGES: Record<string, { title: string; variant: ToastVariant }> =
   game_created: { title: "Game registered.", variant: "success" },
   game_updated: { title: "Game updated.", variant: "success" },
   game_deleted: { title: "Game deleted.", variant: "success" },
+  invitation_sent: { title: "Invitation sent.", variant: "success" },
+  invitation_accepted: { title: "Invitation accepted.", variant: "success" },
+  invitation_declined: { title: "Invitation declined.", variant: "info" },
+  invitation_revoked: { title: "Invitation revoked.", variant: "info" },
+  player_updated: { title: "Player updated.", variant: "success" },
+  notification_read: { title: "Notification marked as read.", variant: "info" },
 };
 
 export type ToastVariant = "success" | "info" | "error";

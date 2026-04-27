@@ -20,8 +20,13 @@ defmodule GameNight.Games.GameTest do
       assert Game.__schema__(:source) == "games"
     end
 
-    test "Games domain knows about the Game resource" do
-      assert DomainInfo.resources(GameNight.Games) == [Game]
+    test "Games domain knows about the Game, Player, and Invitation resources" do
+      # Feature 002 added Player and Invitation alongside Game.
+      assert DomainInfo.resources(GameNight.Games) == [
+               GameNight.Games.Game,
+               GameNight.Games.Player,
+               GameNight.Games.Invitation
+             ]
     end
   end
 
@@ -267,6 +272,65 @@ defmodule GameNight.Games.GameTest do
                game
                |> Ash.Changeset.for_destroy(:destroy, %{}, actor: other)
                |> Ash.destroy()
+    end
+  end
+
+  describe "cross-resource :read policy expansion (feature 002 T007 + T013)" do
+    setup do
+      {:ok, owner} = create_user()
+      {:ok, player_user} = create_user()
+      {:ok, stranger} = create_user()
+      {:ok, game} = register_game(owner, %{title: "Roster check", status: :active})
+
+      _player =
+        Ash.Seed.seed!(GameNight.Games.Player, %{
+          game_id: game.id,
+          user_id: player_user.id,
+          character_name: "Tabaxi Bard",
+          character_summary: nil,
+          gm_notes: nil,
+          status: :active
+        })
+
+      {:ok, owner: owner, player_user: player_user, stranger: stranger, game: game}
+    end
+
+    test "an accepted player can :get_mine the game they're seated at", %{
+      player_user: player_user,
+      game: game
+    } do
+      # Before T013 lands the `exists(players, user_id == ^actor(:id))`
+      # clause on Game.read, this assertion FAILS — `get_mine` returns
+      # `nil` for any non-owner. After T013, it returns the game.
+      assert {:ok, loaded} =
+               Game
+               |> Ash.Query.for_read(:get_mine, %{id: game.id}, actor: player_user)
+               |> Ash.read_one()
+
+      refute is_nil(loaded), "expected accepted player to read the game; policy expansion missing?"
+      assert loaded.id == game.id
+    end
+
+    test "a non-owner non-player still gets nil (cross-tenant isolation preserved)", %{
+      stranger: stranger,
+      game: game
+    } do
+      assert {:ok, nil} =
+               Game
+               |> Ash.Query.for_read(:get_mine, %{id: game.id}, actor: stranger)
+               |> Ash.read_one()
+    end
+
+    test "list_mine_active for the player_user does NOT include the GM's game", %{
+      player_user: player_user
+    } do
+      # Named reads keep their owner-scoped `prepare build(filter: …)`
+      # clause; the policy expansion only widens which actors can read,
+      # not which rows the named read returns.
+      assert {:ok, []} =
+               Game
+               |> Ash.Query.for_read(:list_mine_active, %{}, actor: player_user)
+               |> Ash.read()
     end
   end
 

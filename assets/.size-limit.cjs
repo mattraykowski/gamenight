@@ -53,6 +53,59 @@ function initialBundleFiles() {
   );
 }
 
+function maybeRouteChunkFile(routeKey) {
+  // Resolve a route chunk's hashed file from the Vite manifest, if
+  // present. Returns `null` when the chunk is not yet in the manifest
+  // — which lets feature-002 per-route entries land in foundational
+  // work without breaking `bun run size-limit` before the routes
+  // themselves are implemented in later phases. Once the route exists
+  // and is built, the corresponding budget kicks in automatically.
+  if (!fs.existsSync(manifestPath)) {
+    throw new Error(
+      `Vite manifest not found at ${manifestPath}. Run \`bun run build\` first.`,
+    );
+  }
+
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  const entry = manifest[routeKey];
+  if (!entry) {
+    console.warn(
+      `[size-limit] Skipping budget for missing chunk \`${routeKey}\` — expected once the corresponding route lands.`,
+    );
+    return null;
+  }
+
+  return path.resolve(__dirname, "../priv/static", entry.file);
+}
+
+const featureRouteEntries = [
+  {
+    name: "Route chunk: /invitations/$token (gzipped)",
+    routeKey: "js/routes/invitations.$token.tsx",
+    limit: "12 KB",
+  },
+  {
+    name: "Route chunk: /invitations (gzipped)",
+    routeKey: "js/routes/invitations.index.tsx",
+    limit: "8 KB",
+  },
+  {
+    name: "Route chunk: /characters (gzipped)",
+    routeKey: "js/routes/characters.tsx",
+    limit: "8 KB",
+  },
+  {
+    name: "Route chunk: /notifications (gzipped)",
+    routeKey: "js/routes/notifications.tsx",
+    limit: "8 KB",
+  },
+]
+  .map(({ name, routeKey, limit }) => {
+    const filePath = maybeRouteChunkFile(routeKey);
+    return filePath === null ? null : { name, path: filePath, gzip: true, limit };
+  })
+  .filter(Boolean);
+
 module.exports = [
   {
     name: "Initial SPA bundle (gzipped)",
@@ -60,4 +113,5 @@ module.exports = [
     gzip: true,
     limit: "350 KB",
   },
+  ...featureRouteEntries,
 ];

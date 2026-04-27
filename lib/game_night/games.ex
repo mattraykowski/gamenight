@@ -26,9 +26,21 @@ defmodule GameNight.Games do
       rpc_action :update_game, :update
       rpc_action :destroy_game, :destroy
     end
+
+    # Feature 002 — registered here so the typed client picks up the
+    # Player + Invitation types. RPC action bindings are added in
+    # their owning user-story phases (US1 / US3) once the underlying
+    # Ash actions exist.
+    resource GameNight.Games.Player do
+    end
+
+    resource GameNight.Games.Invitation do
+    end
   end
 
   resources do
     resource GameNight.Games.Game
+    resource GameNight.Games.Player
+    resource GameNight.Games.Invitation
   end
 end

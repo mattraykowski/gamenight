@@ -60,12 +60,21 @@ defmodule GameNight.Games.Game do
 
     read :list_mine_active do
       description "Return the actor's games whose status is Active, newest-updated first."
-      prepare build(filter: [status: :active], sort: [updated_at: :desc])
+      # Owner scope is enforced at the *action* level as defence in
+      # depth: the policy on this action also scopes by owner, but
+      # the explicit filter here means a future policy change can't
+      # accidentally widen the dashboard right column to include
+      # games the actor merely plays in.
+      prepare build(
+               filter: expr(owner_id == ^actor(:id) and status == :active),
+               sort: [updated_at: :desc]
+             )
     end
 
     read :list_mine do
       description "Return every one of the actor's games, regardless of status."
-      prepare build(sort: [updated_at: :desc])
+      # See `:list_mine_active` for the defence-in-depth rationale.
+      prepare build(filter: expr(owner_id == ^actor(:id)), sort: [updated_at: :desc])
     end
 
     read :get_mine do
@@ -97,8 +106,21 @@ defmodule GameNight.Games.Game do
   end
 
   policies do
-    policy action_type(:read) do
+    # Owner-only for the base `:read` and the dashboard list reads.
+    # Keeping these tight means JSON:API PATCH's get-by-id load step
+    # uses an owner-scoped filter and a non-owner non-player request
+    # collapses to "no rows" → 404, matching SC-005 (do not leak
+    # existence).
+    policy action([:read, :list_mine_active, :list_mine]) do
       authorize_if expr(owner_id == ^actor(:id))
+    end
+
+    # Feature 002 — `:get_mine` is the action the game-detail screen
+    # uses; it admits the GM **or** any user who is a seated player
+    # on the game. The named-read policy above is unaffected, so the
+    # GM dashboard right column stays GM-only.
+    policy action(:get_mine) do
+      authorize_if expr(owner_id == ^actor(:id) or exists(players, user_id == ^actor(:id)))
     end
 
     policy action(:register) do
@@ -142,5 +164,14 @@ defmodule GameNight.Games.Game do
       public? false
       attribute_writable? true
     end
+
+    # Feature 002 — drives the cross-resource read policy below
+    # (`exists(players, user_id == ^actor(:id))`) and the game-detail
+    # roster surface.
+    has_many :players, GameNight.Games.Player
+
+    # Feature 002 — drives the GM-only pending-invitations section on
+    # the game detail page.
+    has_many :invitations, GameNight.Games.Invitation
   end
 end

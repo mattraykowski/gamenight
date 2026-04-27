@@ -425,9 +425,17 @@ that does not name `bypass actor_attribute_equals(:_internal?, true)`
 
 ```elixir
 policies do
-  policy action_type(:read) do
+  # Owner-only for the base :read and the dashboard list reads.
+  # JSON:API PATCH loads via :read, so keeping it tight ensures
+  # non-owner requests collapse to 404 (no existence leak).
+  policy action([:read, :list_mine_active, :list_mine]) do
     authorize_if expr(owner_id == ^actor(:id))
-    authorize_if expr(exists(players, user_id == ^actor(:id)))
+  end
+
+  # Feature 002 — :get_mine is the action the game-detail screen
+  # uses; it admits the GM OR any user who is a seated player.
+  policy action(:get_mine) do
+    authorize_if expr(owner_id == ^actor(:id) or exists(players, user_id == ^actor(:id)))
   end
 
   policy action(:register) do
@@ -440,9 +448,12 @@ policies do
 end
 ```
 
-The `:list_mine_active` and `:list_mine` actions retain their
-`prepare build(filter: [owner_id: …])` chain unchanged — only
-`:get_mine` newly admits accepted players.
+The `:list_mine_active` and `:list_mine` actions also keep their
+explicit `prepare build(filter: expr(owner_id == ^actor(:id)…))`
+clause — defence in depth on top of the owner-only policy. Only
+`:get_mine` newly admits accepted players. See [research.md §4](./research.md)
+for why the widening lives on a per-action policy rather than
+`action_type(:read)`.
 
 ## Migration order
 

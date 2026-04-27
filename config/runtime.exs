@@ -23,6 +23,14 @@ end
 config :game_night, GameNightWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
+# Feature 002 — Invite Players. Read in every environment so tests
+# don't need env vars set; production should override via the env vars
+# below per `specs/002-invite-players/quickstart.md`.
+config :game_night,
+  invitation_token_ttl_days:
+    "INVITATION_TOKEN_TTL_DAYS" |> System.get_env("30") |> String.to_integer(),
+  invitation_email_from: System.get_env("INVITATION_EMAIL_FROM", "noreply@example.com")
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
