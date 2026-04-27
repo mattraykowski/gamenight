@@ -16,6 +16,7 @@ import { http, HttpResponse } from "msw";
 import { expectNoAxeViolations } from "@/test/a11y";
 import { AuthProvider, type AuthContextValue } from "@/lib/auth/auth-context";
 import type { AuthUser } from "@/lib/auth/auth-state";
+import { ToastProvider } from "@/features/toasts/toast-provider";
 import { NavBar } from "./nav-bar";
 
 const server = setupServer(
@@ -83,8 +84,10 @@ function renderNavAt(
     return (
       <QueryClientProvider client={queryClient}>
         <AuthProvider initialState={{ user: initialAuth }}>
-          {children}
-          <RouterProvider router={router} />
+          <ToastProvider>
+            {children}
+            <RouterProvider router={router} />
+          </ToastProvider>
         </AuthProvider>
       </QueryClientProvider>
     );

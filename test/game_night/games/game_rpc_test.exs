@@ -44,7 +44,10 @@ defmodule GameNight.Games.GameRpcTest do
         :list_pending_invitations_for_game,
         :revoke_invitation,
         # Feature 002 US4 — decline binding (T094).
-        :decline_invitation
+        :decline_invitation,
+        # Feature 002 US6 — in-app accept/decline (no token; email-match).
+        :accept_invitation_for_me,
+        :decline_invitation_for_me
       ]
 
       assert declared_names == Enum.sort(expected)

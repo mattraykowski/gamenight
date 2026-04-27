@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useOptionalAuth } from "@/lib/auth/auth-context";
+import { NotificationsBell } from "@/features/notifications/components/notifications-bell";
 import { UserMenu } from "./user-menu";
 import { MobileNav, type MobileNavLink } from "./mobile-nav";
 
@@ -69,7 +70,10 @@ export function NavBar() {
 
         <div className="ml-auto flex items-center gap-2">
           {isAuthenticated ? (
-            <UserMenu />
+            <>
+              <NotificationsBell />
+              <UserMenu />
+            </>
           ) : (
             <>
               <Button asChild variant="ghost" size="sm" data-testid="nav-sign-in">

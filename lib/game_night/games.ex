@@ -48,7 +48,9 @@ defmodule GameNight.Games do
       # entry point. See research.md §2 and
       # `lib/game_night/games/invitation/actions/accept_invitation.ex`.
       rpc_action :accept_invitation, :accept_invitation
+      rpc_action :accept_invitation_for_me, :accept_for_me
       rpc_action :decline_invitation, :decline_invitation
+      rpc_action :decline_invitation_for_me, :decline_for_me
       rpc_action :list_my_pending_invitations, :list_pending_for_me
       rpc_action :list_pending_invitations_for_game, :list_pending_for_game
       rpc_action :revoke_invitation, :revoke

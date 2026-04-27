@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as ResetRouteImport } from './routes/reset'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MagicLinkRouteImport } from './routes/magic-link'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CharactersRouteImport } from './routes/characters'
@@ -39,6 +40,11 @@ const ResetRoute = ResetRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MagicLinkRoute = MagicLinkRouteImport.update({
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/characters': typeof CharactersRoute
   '/dashboard': typeof DashboardRoute
   '/magic-link': typeof MagicLinkRoute
+  '/notifications': typeof NotificationsRoute
   '/register': typeof RegisterRoute
   '/reset': typeof ResetRoute
   '/sign-in': typeof SignInRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/characters': typeof CharactersRoute
   '/dashboard': typeof DashboardRoute
   '/magic-link': typeof MagicLinkRoute
+  '/notifications': typeof NotificationsRoute
   '/register': typeof RegisterRoute
   '/reset': typeof ResetRoute
   '/sign-in': typeof SignInRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/characters': typeof CharactersRoute
   '/dashboard': typeof DashboardRoute
   '/magic-link': typeof MagicLinkRoute
+  '/notifications': typeof NotificationsRoute
   '/register': typeof RegisterRoute
   '/reset': typeof ResetRoute
   '/sign-in': typeof SignInRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/characters'
     | '/dashboard'
     | '/magic-link'
+    | '/notifications'
     | '/register'
     | '/reset'
     | '/sign-in'
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/characters'
     | '/dashboard'
     | '/magic-link'
+    | '/notifications'
     | '/register'
     | '/reset'
     | '/sign-in'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/characters'
     | '/dashboard'
     | '/magic-link'
+    | '/notifications'
     | '/register'
     | '/reset'
     | '/sign-in'
@@ -224,6 +236,7 @@ export interface RootRouteChildren {
   CharactersRoute: typeof CharactersRoute
   DashboardRoute: typeof DashboardRoute
   MagicLinkRoute: typeof MagicLinkRoute
+  NotificationsRoute: typeof NotificationsRoute
   RegisterRoute: typeof RegisterRoute
   ResetRoute: typeof ResetRoute
   SignInRoute: typeof SignInRoute
@@ -259,6 +272,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/magic-link': {
@@ -360,6 +380,7 @@ const rootRouteChildren: RootRouteChildren = {
   CharactersRoute: CharactersRoute,
   DashboardRoute: DashboardRoute,
   MagicLinkRoute: MagicLinkRoute,
+  NotificationsRoute: NotificationsRoute,
   RegisterRoute: RegisterRoute,
   ResetRoute: ResetRoute,
   SignInRoute: SignInRoute,

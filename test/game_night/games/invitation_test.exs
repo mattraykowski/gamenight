@@ -406,6 +406,86 @@ defmodule GameNight.Games.InvitationTest do
     end
   end
 
+  describe ":accept_for_me + :decline_for_me (US6 — in-app accept/decline)" do
+    setup do
+      {:ok, gm} = create_user()
+      {:ok, recipient} = create_user_with_email("recipient@example.test")
+      {:ok, stranger} = create_user()
+      {:ok, game} = register_game(gm, %{title: "In-app accept", status: :active})
+
+      {invitation, _token} =
+        create_invitation_with_token(gm, game, %{email: "recipient@example.test"})
+
+      {:ok,
+       gm: gm,
+       recipient: recipient,
+       stranger: stranger,
+       game: game,
+       invitation: invitation}
+    end
+
+    test "recipient can accept_for_me; Player created, status :accepted", %{
+      recipient: recipient,
+      game: game,
+      invitation: invitation
+    } do
+      assert {:ok, accepted} =
+               invitation
+               |> Ash.Changeset.for_update(:accept_for_me, %{}, actor: recipient)
+               |> Ash.update()
+
+      assert accepted.status == :accepted
+      assert is_binary(accepted.accepted_player_id)
+
+      assert {:ok, [_player]} =
+               GameNight.Games.Player
+               |> Ash.Query.filter(game_id == ^game.id and user_id == ^recipient.id)
+               |> Ash.read(authorize?: false)
+    end
+
+    test "stranger (different email) cannot accept_for_me", %{
+      stranger: stranger,
+      invitation: invitation
+    } do
+      assert {:error, %Ash.Error.Forbidden{}} =
+               invitation
+               |> Ash.Changeset.for_update(:accept_for_me, %{}, actor: stranger)
+               |> Ash.update()
+    end
+
+    test "anonymous caller cannot accept_for_me", %{invitation: invitation} do
+      assert {:error, %Ash.Error.Forbidden{}} =
+               invitation
+               |> Ash.Changeset.for_update(:accept_for_me, %{})
+               |> Ash.update()
+    end
+
+    test "recipient can decline_for_me; status :declined, no Player created", %{
+      recipient: recipient,
+      game: game,
+      invitation: invitation
+    } do
+      assert {:ok, declined} =
+               invitation
+               |> Ash.Changeset.for_update(:decline_for_me, %{}, actor: recipient)
+               |> Ash.update()
+
+      assert declined.status == :declined
+
+      assert {:ok, []} =
+               GameNight.Games.Player
+               |> Ash.Query.filter(game_id == ^game.id and user_id == ^recipient.id)
+               |> Ash.read(authorize?: false)
+    end
+
+    test "stranger cannot decline_for_me", %{stranger: stranger, invitation: invitation} do
+      assert {:error, %Ash.Error.Forbidden{}} =
+               invitation
+               |> Ash.Changeset.for_update(:decline_for_me, %{}, actor: stranger)
+               |> Ash.update()
+    end
+  end
+
   describe ":decline_with_token (T088)" do
     setup do
       {:ok, gm} = create_user()
@@ -590,9 +670,13 @@ defmodule GameNight.Games.InvitationTest do
       # land in the domain DSL.
       assert bindings == [
                accept_invitation: :accept_invitation,
+               # US6 — in-app accept (no token).
+               accept_invitation_for_me: :accept_for_me,
                create_invitation: :create_for_game,
                # T094 added the decline binding.
                decline_invitation: :decline_invitation,
+               # US6 — in-app decline.
+               decline_invitation_for_me: :decline_for_me,
                # T065 added the my-pending-list binding.
                list_my_pending_invitations: :list_pending_for_me,
                # T076 added the GM-side bindings.

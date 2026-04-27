@@ -260,6 +260,31 @@ defmodule GameNight.Games.Invitation do
       run GameNight.Games.Invitation.Actions.AcceptInvitation
     end
 
+    update :accept_for_me do
+      description """
+      In-app accept for the recipient — used by the notifications
+      bell + the `/invitations` index. Email-match auth, no token
+      required. Same business effect as `:accept_with_token`:
+      creates the Player, marks `:accepted`, revokes the token JTI,
+      resolves the matching notification.
+      """
+      accept []
+
+      require_atomic? false
+      change GameNight.Games.Invitation.Changes.AcceptForMe
+    end
+
+    update :decline_for_me do
+      description """
+      In-app decline for the recipient. Email-match auth, no token
+      required. Mirrors `:decline_with_token` minus the token check.
+      """
+      accept []
+
+      require_atomic? false
+      change GameNight.Games.Invitation.Changes.DeclineForMe
+    end
+
     update :decline_with_token do
       description """
       Decline an invitation using a valid token. Mirrors
@@ -348,6 +373,13 @@ defmodule GameNight.Games.Invitation do
             :decline_invitation
           ]) do
       authorize_if actor_present()
+    end
+
+    # In-app accept/decline — the recipient's session + email-match
+    # is the gate. The action's policy filters at the row level so
+    # only invitations addressed to the actor's email are reachable.
+    policy action([:accept_for_me, :decline_for_me]) do
+      authorize_if expr(email == ^actor(:email))
     end
 
     # `:read_for_accept` is the load step for the (deprecated)

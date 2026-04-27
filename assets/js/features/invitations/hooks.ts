@@ -7,8 +7,10 @@ import {
 } from "@tanstack/react-query";
 import {
   acceptInvitation,
+  acceptInvitationForMe,
   createInvitation,
   declineInvitation,
+  declineInvitationForMe,
   listMyPendingInvitations,
   listPendingInvitationsForGame,
   previewInvitation,
@@ -262,6 +264,75 @@ export function useRevokeInvitation(): UseMutationResult<Invitation, ApiError, {
  * On success invalidates game queries so the new game shows up on
  * the dashboard / "My Characters" surfaces in subsequent stories.
  */
+/**
+ * In-app accept — used by the notifications bell + the
+ * `/invitations` index. Email-match auth, no token. Mirrors
+ * `useAcceptInvitation` but takes only the invitation id.
+ */
+export function useAcceptInvitationForMe(): UseMutationResult<
+  Invitation,
+  ApiError,
+  { id: string }
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<Invitation>(
+        acceptInvitationForMe({
+          identity: id,
+          fields: INVITATION_FIELDS as unknown as Array<
+            "id" | "email" | "characterName" | "characterSummary" | "status" | "expiresAt"
+          >,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: Invitation }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: invitationsKeys.all });
+    },
+  });
+}
+
+/**
+ * In-app decline — used by the notifications bell + the
+ * `/invitations` index. Email-match auth, no token.
+ */
+export function useDeclineInvitationForMe(): UseMutationResult<
+  Invitation,
+  ApiError,
+  { id: string }
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<Invitation>(
+        declineInvitationForMe({
+          identity: id,
+          fields: INVITATION_FIELDS as unknown as Array<
+            "id" | "email" | "characterName" | "characterSummary" | "status" | "expiresAt"
+          >,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: Invitation }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: invitationsKeys.all });
+    },
+  });
+}
+
 /**
  * Declines an invitation — backed by the `:decline_invitation`
  * generic-action wrapper. Same token-bearer auth posture as

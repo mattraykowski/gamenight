@@ -754,6 +754,74 @@ export async function validateAcceptInvitation(
 }
 
 
+export type AcceptInvitationForMeFields = UnifiedFieldSelection<InvitationResourceSchema>[];
+
+export type InferAcceptInvitationForMeResult<
+  Fields extends AcceptInvitationForMeFields | undefined,
+> = InferResult<InvitationResourceSchema, Fields>;
+
+export type AcceptInvitationForMeResult<Fields extends AcceptInvitationForMeFields | undefined = undefined> = | { success: true; data: InferAcceptInvitationForMeResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing Invitation
+ *
+ * @ashActionType :update
+ */
+export async function acceptInvitationForMe<Fields extends AcceptInvitationForMeFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<AcceptInvitationForMeResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "accept_invitation_for_me",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<AcceptInvitationForMeResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Validate: Update an existing Invitation
+ *
+ * @ashActionType :update
+ * @validation true
+ */
+export async function validateAcceptInvitationForMe(
+  config: {
+  tenant?: string;
+  identity: UUID | string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ValidationResult> {
+  const payload = {
+    action: "accept_invitation_for_me",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity
+  };
+
+  return executeValidationRpcRequest<ValidationResult>(
+    payload,
+    config
+  );
+}
+
+
 export type CreateInvitationInput = {
   characterName: string;
   characterSummary?: string | null;
@@ -894,6 +962,74 @@ export async function validateDeclineInvitation(
     action: "decline_invitation",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     input: config.input
+  };
+
+  return executeValidationRpcRequest<ValidationResult>(
+    payload,
+    config
+  );
+}
+
+
+export type DeclineInvitationForMeFields = UnifiedFieldSelection<InvitationResourceSchema>[];
+
+export type InferDeclineInvitationForMeResult<
+  Fields extends DeclineInvitationForMeFields | undefined,
+> = InferResult<InvitationResourceSchema, Fields>;
+
+export type DeclineInvitationForMeResult<Fields extends DeclineInvitationForMeFields | undefined = undefined> = | { success: true; data: InferDeclineInvitationForMeResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing Invitation
+ *
+ * @ashActionType :update
+ */
+export async function declineInvitationForMe<Fields extends DeclineInvitationForMeFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<DeclineInvitationForMeResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "decline_invitation_for_me",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<DeclineInvitationForMeResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Validate: Update an existing Invitation
+ *
+ * @ashActionType :update
+ * @validation true
+ */
+export async function validateDeclineInvitationForMe(
+  config: {
+  tenant?: string;
+  identity: UUID | string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ValidationResult> {
+  const payload = {
+    action: "decline_invitation_for_me",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity
   };
 
   return executeValidationRpcRequest<ValidationResult>(
