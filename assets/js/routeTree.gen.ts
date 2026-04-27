@@ -18,6 +18,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as GamesIndexRouteImport } from './routes/games.index'
 import { Route as PasswordResetTokenRouteImport } from './routes/password-reset.$token'
 import { Route as Magic_linkTokenRouteImport } from './routes/magic_link.$token'
+import { Route as InvitationsTokenRouteImport } from './routes/invitations.$token'
 import { Route as GamesNewRouteImport } from './routes/games.new'
 import { Route as Confirm_new_userTokenRouteImport } from './routes/confirm_new_user.$token'
 import { Route as GamesIdIndexRouteImport } from './routes/games.$id.index'
@@ -68,6 +69,11 @@ const Magic_linkTokenRoute = Magic_linkTokenRouteImport.update({
   path: '/magic_link/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InvitationsTokenRoute = InvitationsTokenRouteImport.update({
+  id: '/invitations/$token',
+  path: '/invitations/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GamesNewRoute = GamesNewRouteImport.update({
   id: '/games/new',
   path: '/games/new',
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/confirm_new_user/$token': typeof Confirm_new_userTokenRoute
   '/games/new': typeof GamesNewRoute
+  '/invitations/$token': typeof InvitationsTokenRoute
   '/magic_link/$token': typeof Magic_linkTokenRoute
   '/password-reset/$token': typeof PasswordResetTokenRoute
   '/games/': typeof GamesIndexRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/confirm_new_user/$token': typeof Confirm_new_userTokenRoute
   '/games/new': typeof GamesNewRoute
+  '/invitations/$token': typeof InvitationsTokenRoute
   '/magic_link/$token': typeof Magic_linkTokenRoute
   '/password-reset/$token': typeof PasswordResetTokenRoute
   '/games': typeof GamesIndexRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/confirm_new_user/$token': typeof Confirm_new_userTokenRoute
   '/games/new': typeof GamesNewRoute
+  '/invitations/$token': typeof InvitationsTokenRoute
   '/magic_link/$token': typeof Magic_linkTokenRoute
   '/password-reset/$token': typeof PasswordResetTokenRoute
   '/games/': typeof GamesIndexRoute
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/confirm_new_user/$token'
     | '/games/new'
+    | '/invitations/$token'
     | '/magic_link/$token'
     | '/password-reset/$token'
     | '/games/'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/confirm_new_user/$token'
     | '/games/new'
+    | '/invitations/$token'
     | '/magic_link/$token'
     | '/password-reset/$token'
     | '/games'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/confirm_new_user/$token'
     | '/games/new'
+    | '/invitations/$token'
     | '/magic_link/$token'
     | '/password-reset/$token'
     | '/games/'
@@ -192,6 +204,7 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   Confirm_new_userTokenRoute: typeof Confirm_new_userTokenRoute
   GamesNewRoute: typeof GamesNewRoute
+  InvitationsTokenRoute: typeof InvitationsTokenRoute
   Magic_linkTokenRoute: typeof Magic_linkTokenRoute
   PasswordResetTokenRoute: typeof PasswordResetTokenRoute
   GamesIndexRoute: typeof GamesIndexRoute
@@ -264,6 +277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Magic_linkTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invitations/$token': {
+      id: '/invitations/$token'
+      path: '/invitations/$token'
+      fullPath: '/invitations/$token'
+      preLoaderRoute: typeof InvitationsTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/games/new': {
       id: '/games/new'
       path: '/games/new'
@@ -304,6 +324,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   Confirm_new_userTokenRoute: Confirm_new_userTokenRoute,
   GamesNewRoute: GamesNewRoute,
+  InvitationsTokenRoute: InvitationsTokenRoute,
   Magic_linkTokenRoute: Magic_linkTokenRoute,
   PasswordResetTokenRoute: PasswordResetTokenRoute,
   GamesIndexRoute: GamesIndexRoute,

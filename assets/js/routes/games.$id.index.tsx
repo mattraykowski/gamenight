@@ -3,6 +3,12 @@ import { Button } from "@/components/ui/button";
 import { GameFieldRow } from "@/features/games/components/game-field-row";
 import { DeleteGameDialog } from "@/features/games/components/delete-game-dialog";
 import { useDestroyGame, useGame } from "@/features/games/hooks";
+import { InvitationForm } from "@/features/invitations/components/invitation-form";
+import { useCreateInvitation } from "@/features/invitations/hooks";
+import {
+  toCreateInvitationInput,
+  type InvitationFormValues,
+} from "@/features/invitations/schemas";
 import { useToasts } from "@/features/toasts/toast-provider";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -28,6 +34,7 @@ export function GameDetailRoute() {
   const { id } = Route.useParams();
   const game = useGame(id);
   const destroy = useDestroyGame();
+  const createInvitation = useCreateInvitation();
   const navigate = useNavigate();
   const { push } = useToasts();
 
@@ -39,6 +46,18 @@ export function GameDetailRoute() {
     } catch {
       push({
         title: "Could not delete the game. Please try again.",
+        variant: "error",
+      });
+    }
+  }
+
+  async function onInvite(values: InvitationFormValues) {
+    try {
+      await createInvitation.mutateAsync(toCreateInvitationInput(values, id));
+      push({ title: "Invitation sent.", variant: "success" });
+    } catch {
+      push({
+        title: "Could not send the invitation. Please try again.",
         variant: "error",
       });
     }
@@ -138,6 +157,23 @@ export function GameDetailRoute() {
           </p>
         </GameFieldRow>
       </div>
+
+      <section
+        className="mt-12 border-t pt-8"
+        aria-labelledby="invite-player-heading"
+      >
+        <h2 id="invite-player-heading" className="text-2xl font-semibold tracking-tight">
+          Invite a player
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Send an invitation to a friend. We&apos;ll email them a link they can use to
+          accept and join your roster. (The accepted-player roster and pending-invitation
+          list arrive in a follow-up phase.)
+        </p>
+        <div className="mt-6">
+          <InvitationForm onSubmit={onInvite} isSubmitting={createInvitation.isPending} />
+        </div>
+      </section>
     </main>
   );
 }
