@@ -28,13 +28,22 @@ defmodule GameNight.Games do
     end
 
     # Feature 002 — registered here so the typed client picks up the
-    # Player + Invitation types. RPC action bindings are added in
-    # their owning user-story phases (US1 / US3) once the underlying
-    # Ash actions exist.
+    # Player + Invitation types. RPC action bindings are added
+    # alongside the underlying Ash actions in their owning
+    # user-story phases (US1 — Invitation create/preview/accept;
+    # US3 — Player and remaining Invitation actions).
     resource GameNight.Games.Player do
     end
 
     resource GameNight.Games.Invitation do
+      rpc_action :create_invitation, :create_for_game
+      rpc_action :preview_invitation, :preview_with_token
+      # Wired to the `:accept_invitation` generic-action wrapper
+      # rather than `:accept_with_token` directly so the JSON:API
+      # PATCH route and the RPC channel share a single token-bearer
+      # entry point. See research.md §2 and
+      # `lib/game_night/games/invitation/actions/accept_invitation.ex`.
+      rpc_action :accept_invitation, :accept_invitation
     end
   end
 

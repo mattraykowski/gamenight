@@ -2,11 +2,12 @@ defmodule GameNight.Games.Invitation.Tokens do
   @moduledoc """
   Mint and verify per-invitation acceptance tokens.
 
-  Tokens are JWTs minted via `AshAuthentication.Jwt` and stored as
-  rows on the existing `GameNight.Accounts.Token` resource (purpose
-  `"invitation_accept"`, subject `"invitation:<uuid>"`). Reusing the
-  AshAuthentication token table gives us revocation, expiration, and
-  the `expunge_expired` cron for free — see
+  Tokens are JWTs minted via Joken using the AshAuthentication
+  resource's signer + default-claims config (`GameNight.Accounts.User`)
+  and persisted as rows on the existing `GameNight.Accounts.Token`
+  table (purpose `"invitation_accept"`). Reusing the AshAuthentication
+  token table gives us revocation, expiration, and the
+  `expunge_expired` cron for free — see
   `specs/002-invite-players/research.md` §2 for the full rationale.
 
   ### What this token authorises
@@ -24,25 +25,23 @@ defmodule GameNight.Games.Invitation.Tokens do
   `actor_present()`), but the token's role is independent of the
   actor's identity.
 
-  ### Token lifecycle
+  ### Why a custom `inv` claim instead of the JWT subject
 
-  * `mint/1` — call from `Invitation.create_for_game`'s after-action.
-    Generates the JWT, stores the row, returns `{token, jti}` so the
-    caller can persist `token_jti` on the invitation row for later
-    revocation.
-  * `verify/1` — call from `:preview_with_token`,
-    `:accept_with_token`, `:decline_with_token`. Returns
-    `{:ok, invitation_id}` for valid tokens, `{:error, reason}`
-    otherwise.
-  * Revocation happens elsewhere (in the action that transitions the
-    invitation to a terminal state) via
-    `GameNight.Accounts.Token.revoke_jti/1` keyed on the persisted
-    `token_jti`.
-
-  **Bodies land in US1 T029.** The signatures exist now so the
-  Invitation actions and the SPA's `/invitations/:token` route can be
-  wired in dependency order during US1 work.
+  `AshAuthentication.Jwt.token_for_user/4` and
+  `AshAuthentication.Jwt.token_for_resource/4` both overwrite the
+  `"sub"` claim with their own user/resource subject string.
+  Invitation IDs therefore cannot ride in `"sub"` via those helpers
+  without forking AshAuthentication. Putting the invitation id in a
+  custom `"inv"` claim sidesteps that and keeps the token's other
+  claims (`iss`, `aud`, `exp`, `jti`) honestly emitted by
+  `AshAuthentication.Jwt.Config`.
   """
+
+  alias AshAuthentication.Jwt.Config, as: JwtConfig
+  alias GameNight.Accounts.Token
+
+  @auth_resource GameNight.Accounts.User
+  @purpose "invitation_accept"
 
   @typedoc "Opaque JWT string carried in the email URL."
   @type token :: String.t()
@@ -56,21 +55,28 @@ defmodule GameNight.Games.Invitation.Tokens do
   Returns `{:ok, token, jti}` on success. The caller persists `jti`
   on the invitation row (`token_jti` attribute) so revocation has a
   stable handle.
-
-  **Body lands in US1 T029.**
   """
-  @spec mint(GameNight.Games.Invitation.t() | map()) :: {:ok, token(), jti()} | {:error, term()}
-  def mint(_invitation) do
-    # Stub — real implementation in US1 T029:
-    #   1. Build a JWT via AshAuthentication.Jwt.token_for_user/4 with
-    #      purpose: :invitation_accept, subject: "invitation:#{id}",
-    #      token_lifetime: configured TTL (`:invitation_token_ttl_days`).
-    #   2. Persist the row on GameNight.Accounts.Token via the
-    #      `:store_token` action under `authorize?: false` (system
-    #      call, comment in code justifies the bypass per
-    #      Constitution Principle II).
-    #   3. Return {:ok, token, jti}.
-    {:error, :not_implemented}
+  @spec mint(GameNight.Games.Invitation.t() | %{id: Ecto.UUID.t()}) ::
+          {:ok, token(), jti()} | {:error, term()}
+  def mint(%{id: invitation_id}) do
+    ttl_days = Application.fetch_env!(:game_night, :invitation_token_ttl_days)
+
+    signer = JwtConfig.token_signer(@auth_resource, [], %{})
+    default_claims = JwtConfig.default_claims(@auth_resource, token_lifetime: {ttl_days, :days})
+
+    extra_claims = %{
+      "inv" => invitation_id,
+      "purpose" => @purpose,
+      # Replace the AshAuthentication-default sub of "user?id=…" with
+      # an invitation-scoped sub so any future code that reads `sub`
+      # cannot mistake an invitation token for a user-auth token.
+      "sub" => "invitation:#{invitation_id}"
+    }
+
+    with {:ok, token, claims} <- Joken.generate_and_sign(default_claims, extra_claims, signer),
+         {:ok, _row} <- store_token_row(token) do
+      {:ok, token, claims["jti"]}
+    end
   end
 
   @doc """
@@ -79,17 +85,42 @@ defmodule GameNight.Games.Invitation.Tokens do
   Returns `{:ok, invitation_id}` if the token is well-formed,
   unexpired, unrevoked, and carries `purpose == "invitation_accept"`;
   `{:error, :invalid_token}` otherwise.
-
-  **Body lands in US1 T029.**
   """
   @spec verify(token()) :: {:ok, Ecto.UUID.t()} | {:error, :invalid_token}
-  def verify(_token) do
-    # Stub — real implementation in US1 T029:
-    #   1. AshAuthentication.Jwt.verify/2 against GameNight.Accounts.User.
-    #   2. Reject when claims["purpose"] != "invitation_accept".
-    #   3. Check Token.revoked?/1 by JTI; reject if revoked.
-    #   4. Parse claims["sub"] -> "invitation:<uuid>"; reject mismatched.
-    #   5. Return {:ok, uuid}.
-    {:error, :invalid_token}
+  def verify(token) when is_binary(token) do
+    with {:ok, claims, _resource} <- AshAuthentication.Jwt.verify(token, @auth_resource),
+         %{"purpose" => @purpose, "inv" => invitation_id, "jti" => jti} <- claims,
+         false <- token_revoked?(jti) do
+      {:ok, invitation_id}
+    else
+      _ -> {:error, :invalid_token}
+    end
+  end
+
+  def verify(_), do: {:error, :invalid_token}
+
+  # System-call: persist the freshly-minted JWT into
+  # `GameNight.Accounts.Token` via the AshAuthentication-supplied
+  # `:store_token` action. `authorize?: false` is justified per
+  # Constitution Principle II — invitation token storage is an
+  # internal-only path with no actor; the action's StoreTokenChange
+  # is itself a privileged AshAuthentication-interaction.
+  defp store_token_row(token) do
+    Token
+    |> Ash.Changeset.for_create(:store_token, %{
+      token: token,
+      purpose: @purpose
+    })
+    |> Ash.create(authorize?: false)
+  end
+
+  defp token_revoked?(jti) do
+    case Token
+         |> Ash.ActionInput.for_action(:revoked?, %{jti: jti, token: ""})
+         |> Ash.run_action(authorize?: false) do
+      {:ok, revoked?} when is_boolean(revoked?) -> revoked?
+      # Any error from the revocation check fails closed.
+      _ -> true
+    end
   end
 end

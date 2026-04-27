@@ -12,7 +12,7 @@ defmodule GameNight.Games.GameRpcTest do
   alias AshTypescript.Rpc.Info, as: RpcInfo
 
   describe "typescript_rpc declarations (T015)" do
-    test "Games domain exposes exactly the six expected RPC bindings" do
+    test "Games domain exposes exactly the expected RPC bindings (T015 + feature 002 US1 additions)" do
       declared_names =
         GameNight.Games
         |> RpcInfo.typescript_rpc()
@@ -22,15 +22,20 @@ defmodule GameNight.Games.GameRpcTest do
         |> Enum.sort()
 
       expected = [
+        # Feature 001 — Game resource.
         :destroy_game,
         :get_mine,
         :list_mine,
         :list_mine_active,
         :register_game,
-        :update_game
+        :update_game,
+        # Feature 002 US1 — Invitation backend.
+        :accept_invitation,
+        :create_invitation,
+        :preview_invitation
       ]
 
-      assert declared_names == expected
+      assert declared_names == Enum.sort(expected)
     end
 
     test "listMineActive and registerGame RPC bindings are exposed (T022 — US1)" do

@@ -47,6 +47,19 @@ defmodule GameNight.Games.Player do
 
   actions do
     defaults [:read]
+
+    # Internal create — invoked from `Invitation.accept_with_token`
+    # via `authorize?: false`. Not exposed to JSON:API or RPC. The
+    # `upsert?` semantics make double-accept idempotent: if a Player
+    # already exists for `(game_id, user_id)`, the existing row is
+    # returned unchanged (we deliberately do NOT overwrite the GM's
+    # current character data on a re-accept of a stale token).
+    create :create do
+      accept [:game_id, :user_id, :character_name, :character_summary, :gm_notes, :status]
+      upsert? true
+      upsert_identity :unique_game_user
+      upsert_fields []
+    end
   end
 
   policies do
