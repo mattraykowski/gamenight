@@ -17,6 +17,14 @@ import { AuthProvider, type AuthContextValue } from "@/lib/auth/auth-context";
 import { ToastProvider } from "@/features/toasts/toast-provider";
 import { DashboardRoute } from "./dashboard";
 
+interface DashboardRpcResponses {
+  listMyCharacters?: () => Response;
+  listMineActive?: () => Response;
+  listMine?: () => Response;
+}
+
+let dashboardResponses: DashboardRpcResponses = {};
+
 const server = setupServer(
   http.post("*/rpc/run", async ({ request }) => {
     const body = (await request.json()) as { action: string };
@@ -25,6 +33,24 @@ const server = setupServer(
         success: true,
         data: { id: "u1", email: "player@example.com" },
       });
+    }
+    if (body.action === "list_my_characters" && dashboardResponses.listMyCharacters) {
+      return dashboardResponses.listMyCharacters();
+    }
+    if (body.action === "list_mine_active" && dashboardResponses.listMineActive) {
+      return dashboardResponses.listMineActive();
+    }
+    if (body.action === "list_mine" && dashboardResponses.listMine) {
+      return dashboardResponses.listMine();
+    }
+    // Default fallthrough — empty success so the dashboard's column
+    // sections render their empty states without an error banner.
+    if (
+      body.action === "list_my_characters" ||
+      body.action === "list_mine_active" ||
+      body.action === "list_mine"
+    ) {
+      return HttpResponse.json({ success: true, data: [] });
     }
     return HttpResponse.json({
       success: false,
@@ -49,6 +75,7 @@ beforeAll(() => {
 
 afterEach(() => {
   server.resetHandlers();
+  dashboardResponses = {};
 });
 
 afterAll(() => {
@@ -154,6 +181,71 @@ describe("/dashboard route", () => {
       expect(screen.getByTestId("toast-success")).toHaveTextContent(
         /email address has been confirmed/i,
       ),
+    );
+  });
+
+  it("renders the two-column layout with My Characters and My Games (T102)", async () => {
+    renderDashboardAt();
+
+    await waitFor(() =>
+      expect(screen.getByTestId("dashboard-columns")).toBeInTheDocument(),
+    );
+
+    // Both column headings render alongside each other.
+    expect(
+      screen.getByRole("heading", { level: 2, name: /my characters/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: /my games/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("filters out :done characters from the dashboard list (FR-029)", async () => {
+    dashboardResponses.listMyCharacters = () =>
+      HttpResponse.json({
+        success: true,
+        data: [
+          {
+            id: "p1",
+            characterName: "Active Mira",
+            characterSummary: null,
+            status: "active",
+          },
+          {
+            id: "p2",
+            characterName: "Inactive Garrick",
+            characterSummary: null,
+            status: "inactive",
+          },
+          {
+            id: "p3",
+            characterName: "Retired Jaela",
+            characterSummary: null,
+            status: "done",
+          },
+        ],
+      });
+
+    renderDashboardAt();
+
+    await waitFor(() =>
+      expect(screen.getByTestId("my-characters-list")).toBeInTheDocument(),
+    );
+
+    expect(screen.getByText("Active Mira")).toBeInTheDocument();
+    expect(screen.getByText("Inactive Garrick")).toBeInTheDocument();
+    // :done is hidden from the dashboard but reachable via /characters.
+    expect(screen.queryByText("Retired Jaela")).not.toBeInTheDocument();
+  });
+
+  it("renders the My Characters empty state when the actor has no Player rows", async () => {
+    dashboardResponses.listMyCharacters = () =>
+      HttpResponse.json({ success: true, data: [] });
+
+    renderDashboardAt();
+
+    await waitFor(() =>
+      expect(screen.getByTestId("characters-empty-state")).toBeInTheDocument(),
     );
   });
 
