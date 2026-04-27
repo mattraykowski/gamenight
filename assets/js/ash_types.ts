@@ -97,26 +97,30 @@ export type PlayerAttributesOnlySchema = {
 // Notification Schema
 export type NotificationResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "kind" | "subjectType" | "subjectId" | "readAt" | "resolvedAt";
+  __primitiveFields: "id" | "kind" | "subjectType" | "subjectId" | "readAt" | "resolvedAt" | "insertedAt" | "updatedAt";
   id: UUID;
   kind: "game_invitation";
   subjectType: string;
   subjectId: UUID;
   readAt: UtcDateTimeUsec | null;
   resolvedAt: UtcDateTimeUsec | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
 };
 
 
 
 export type NotificationAttributesOnlySchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "kind" | "subjectType" | "subjectId" | "readAt" | "resolvedAt";
+  __primitiveFields: "id" | "kind" | "subjectType" | "subjectId" | "readAt" | "resolvedAt" | "insertedAt" | "updatedAt";
   id: UUID;
   kind: "game_invitation";
   subjectType: string;
   subjectId: UUID;
   readAt: UtcDateTimeUsec | null;
   resolvedAt: UtcDateTimeUsec | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
 };
 
 
@@ -306,6 +310,26 @@ export type NotificationFilterInput = {
     isNil?: boolean;
   };
 
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  updatedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
 
 
 };
@@ -323,7 +347,7 @@ export type InvitationFilterField = (typeof invitationFilterFields)[number];
 export const playerFilterFields = ["id", "characterName", "characterSummary", "status"] as const;
 export type PlayerFilterField = (typeof playerFilterFields)[number];
 
-export const notificationFilterFields = ["id", "kind", "subjectType", "subjectId", "readAt", "resolvedAt"] as const;
+export const notificationFilterFields = ["id", "kind", "subjectType", "subjectId", "readAt", "resolvedAt", "insertedAt", "updatedAt"] as const;
 export type NotificationFilterField = (typeof notificationFilterFields)[number];
 
 
@@ -339,7 +363,7 @@ export type InvitationSortField = (typeof invitationSortFields)[number];
 export const playerSortFields = ["id", "characterName", "characterSummary", "status"] as const;
 export type PlayerSortField = (typeof playerSortFields)[number];
 
-export const notificationSortFields = ["id", "kind", "subjectType", "subjectId", "readAt", "resolvedAt"] as const;
+export const notificationSortFields = ["id", "kind", "subjectType", "subjectId", "readAt", "resolvedAt", "insertedAt", "updatedAt"] as const;
 export type NotificationSortField = (typeof notificationSortFields)[number];
 
 

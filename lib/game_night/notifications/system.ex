@@ -16,26 +16,25 @@ defmodule GameNight.Notifications.System do
 
   ### Policy posture
 
-  - The Notification resource declares `bypass actor_attribute_equals(:_internal?, true)`
-    on the actions called from this module (`:create_for_invitation`,
-    `:resolve_for_subject` — added in US2 T056/T057).
+  - `Notification` declares
+    `bypass action([:create_for_invitation, :resolve_for_subject])`
+    that only triggers for the marker actor on those two actions.
   - Every other action (read, count_unread, mark_read) keeps its
-    `expr(user_id == ^actor(:id))` clause, so an external caller who
-    constructs the marker actor and tries to call those non-bypassed
-    actions is still rejected (defence in depth, tested in T051).
+    `expr(user_id == ^actor(:id))` clause, so an external caller
+    who constructs the marker actor and tries to call those
+    non-bypassed actions is still rejected (the marker has no
+    `:id`, so `user_id == ^actor(:id)` fails closed). Tested in
+    `test/game_night/notifications/system_test.exs`.
 
   This module is **not** routed; it has no JSON:API or RPC surface.
   Callers are other internal modules (e.g.
   `GameNight.Games.Invitation`) and tests.
-
-  Function bodies are intentionally stubs — they land in US2
-  (T056/T057). The signatures exist now so that
-  `GameNight.Games.Invitation` (US1 T036) can wire the callback
-  point in its `after_action` and have notifications materialise the
-  moment the US2 work merges.
   """
 
+  alias GameNight.Accounts.User
   alias GameNight.Notifications.Notification
+
+  require Ash.Query
 
   defmodule Actor do
     @moduledoc """
@@ -45,10 +44,10 @@ defmodule GameNight.Notifications.System do
     Construction is intentionally exposed (Elixir doesn't enforce
     module-private structs), but **no non-bypassed action ever
     admits this actor** — see `Notification`'s policies for the
-    matching `bypass actor_attribute_equals(:_internal?, true)`
-    clauses, and `test/game_night/notifications/system_test.exs`
-    for the negative test that asserts external callers can't use
-    the marker to read other users' rows.
+    matching `bypass action([…])` clause and
+    `test/game_night/notifications/system_test.exs` for the negative
+    test that asserts external callers can't use the marker to read
+    other users' rows.
     """
     defstruct _internal?: true
 
@@ -65,28 +64,38 @@ defmodule GameNight.Notifications.System do
 
   @doc """
   Materialise an in-app notification for an invitation when the
-  invited email matches an existing user account.
+  invited email matches an existing user account. No-op when no
+  matching user exists — the email link is the recipient's only
+  path in until they register.
 
   Idempotent: re-calling for the same `(user_id, subject_type,
   subject_id, kind)` returns the existing row (upsert via the
   resource's `:unique_user_subject_kind` identity).
-
-  No-op when no user exists with the invited email — the email link
-  is the recipient's only path in until they register.
-
-  **Body lands in US2 T057**. For US1, this function is wired into
-  `Invitation.create_for_game`'s `after_action` and is allowed to
-  no-op. Callers should not rely on its return value beyond
-  `:ok | {:error, term()}`.
   """
-  @spec create_for_invitation(map()) :: :ok | {:error, term()}
-  def create_for_invitation(_invitation) do
-    # Stub — real implementation in US2 T057 looks up a user by email,
-    # upserts a Notification with kind: :game_invitation, subject_type:
-    # "invitation", subject_id: invitation.id under this module's
-    # marker actor.
-    _ = Notification
-    :ok
+  @spec create_for_invitation(GameNight.Games.Invitation.t() | map()) :: :ok | {:error, term()}
+  def create_for_invitation(invitation) do
+    case find_user_by_email(invitation.email) do
+      {:ok, user} ->
+        Notification
+        |> Ash.Changeset.for_create(
+          :create_for_invitation,
+          %{
+            user_id: user.id,
+            kind: :game_invitation,
+            subject_type: "invitation",
+            subject_id: invitation.id
+          },
+          actor: actor()
+        )
+        |> Ash.create()
+        |> case do
+          {:ok, _row} -> :ok
+          {:error, reason} -> {:error, reason}
+        end
+
+      :no_match ->
+        :ok
+    end
   end
 
   @doc """
@@ -95,14 +104,42 @@ defmodule GameNight.Notifications.System do
   `Invitation.accept_with_token`, `Invitation.decline_with_token`,
   and `Invitation.revoke` so the bell stops surfacing entries whose
   underlying subject has reached a terminal state.
-
-  **Body lands in US2 T057**.
   """
   @spec resolve_for_subject(String.t(), Ecto.UUID.t()) :: :ok | {:error, term()}
-  def resolve_for_subject(_subject_type, _subject_id) do
-    # Stub — real implementation in US2 T057 runs an Ash bulk update
-    # under this module's marker actor, filtering by subject_type and
-    # subject_id and setting resolved_at: now().
-    :ok
+  def resolve_for_subject(subject_type, subject_id)
+      when is_binary(subject_type) and is_binary(subject_id) do
+    now = DateTime.utc_now()
+
+    Notification
+    |> Ash.Query.filter(
+      subject_type == ^subject_type and subject_id == ^subject_id and is_nil(resolved_at)
+    )
+    # `authorize?: false` because this module IS the authorization
+    # gate (Constitution Principle II — the bypass is documented at
+    # the resource level and the system context is the only sanctioned
+    # caller). Running the bulk_update under the marker actor would
+    # also apply the implicit `:read` policy which scopes by
+    # `user_id == ^actor(:id)` — but the marker has no `:id`, so the
+    # read filter would collapse to `user_id = NULL` and match
+    # nothing.
+    |> Ash.bulk_update(:resolve_for_subject, %{resolved_at: now},
+      authorize?: false,
+      return_errors?: true
+    )
+    |> case do
+      %Ash.BulkResult{status: :success} -> :ok
+      %Ash.BulkResult{status: :empty} -> :ok
+      %Ash.BulkResult{status: status, errors: errors} -> {:error, {status, errors}}
+    end
+  end
+
+  defp find_user_by_email(email) do
+    case User
+         |> Ash.Query.for_read(:get_by_email, %{email: email})
+         |> Ash.read_one(authorize?: false) do
+      {:ok, %User{} = user} -> {:ok, user}
+      {:ok, nil} -> :no_match
+      {:error, _} -> :no_match
+    end
   end
 end

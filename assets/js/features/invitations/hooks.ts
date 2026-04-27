@@ -8,6 +8,7 @@ import {
 import {
   acceptInvitation,
   createInvitation,
+  listMyPendingInvitations,
   previewInvitation,
   type AcceptInvitationInput,
   type AshRpcError,
@@ -73,6 +74,7 @@ const ACCEPT_FIELDS = ["id", "status", "acceptedPlayerId"] as const;
 export const invitationsKeys = {
   all: ["invitations"] as const,
   preview: (token: string) => [...invitationsKeys.all, "preview", token] as const,
+  myPending: () => [...invitationsKeys.all, "myPending"] as const,
 };
 
 async function runRpc<T>(
@@ -119,6 +121,32 @@ export function useCreateInvitation(): UseMutationResult<
       // dashboard. Specific notification + my-pending invalidations
       // land with US2 / US6 once those query keys exist.
       void queryClient.invalidateQueries({ queryKey: gamesKeys.all });
+    },
+  });
+}
+
+/**
+ * Lists the current actor's pending invitations (matched by their
+ * primary email). Drives the `/invitations` index route — the
+ * recipient-facing view of "what's waiting for me".
+ */
+export function useListMyPendingInvitations(): UseQueryResult<Invitation[], ApiError> {
+  return useQuery({
+    queryKey: invitationsKeys.myPending(),
+    queryFn: async () => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<Invitation[]>(
+        listMyPendingInvitations({
+          fields: INVITATION_FIELDS as unknown as Array<
+            "id" | "email" | "characterName" | "characterSummary" | "status" | "expiresAt"
+          >,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: Invitation[] }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
     },
   });
 }

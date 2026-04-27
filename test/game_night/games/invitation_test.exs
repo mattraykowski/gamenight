@@ -306,6 +306,106 @@ defmodule GameNight.Games.InvitationTest do
     end
   end
 
+  describe "Notification side effects (T052 + T053)" do
+    setup do
+      {:ok, owner} = create_user()
+      {:ok, game} = register_game(owner, %{title: "Notif game", status: :active})
+      {:ok, owner: owner, game: game}
+    end
+
+    test "creates a Notification when the invited email matches an existing user", %{
+      owner: owner,
+      game: game
+    } do
+      # Pre-create a user with the email we're going to invite — that
+      # makes the system context's lookup match.
+      {:ok, recipient} = create_user_with_email("recipient@example.test")
+
+      drain_emails()
+
+      {:ok, invitation} =
+        Invitation
+        |> Ash.Changeset.for_create(
+          :create_for_game,
+          %{
+            game_id: game.id,
+            email: "recipient@example.test",
+            character_name: "Recipient Hero",
+            character_summary: nil,
+            gm_notes: nil
+          },
+          actor: owner
+        )
+        |> Ash.create()
+
+      [notification] =
+        GameNight.Notifications.Notification
+        |> Ash.Query.for_read(:list_mine, %{}, actor: recipient)
+        |> Ash.read!()
+
+      assert notification.kind == :game_invitation
+      assert notification.subject_type == "invitation"
+      assert notification.subject_id == invitation.id
+      assert is_nil(notification.resolved_at)
+    end
+
+    test "creates no Notification when no user matches the invited email", %{
+      owner: owner,
+      game: game
+    } do
+      drain_emails()
+
+      {:ok, _invitation} =
+        Invitation
+        |> Ash.Changeset.for_create(
+          :create_for_game,
+          %{
+            game_id: game.id,
+            email: "no-such-user@example.test",
+            character_name: "Ghost",
+            character_summary: nil,
+            gm_notes: nil
+          },
+          actor: owner
+        )
+        |> Ash.create()
+
+      assert {:ok, []} =
+               GameNight.Notifications.Notification
+               |> Ash.Query.for_read(:read, %{})
+               |> Ash.read(authorize?: false)
+    end
+
+    test "accepting an invitation resolves the linked Notification", %{
+      owner: owner,
+      game: game
+    } do
+      # Recipient who already exists, so a notification materialises.
+      {:ok, recipient} = create_user_with_email("accepting@example.test")
+
+      {invitation, token} =
+        create_invitation_with_token(owner, game, %{email: "accepting@example.test"})
+
+      [pending_notification] =
+        GameNight.Notifications.Notification
+        |> Ash.Query.for_read(:list_mine, %{}, actor: recipient)
+        |> Ash.read!()
+
+      assert is_nil(pending_notification.resolved_at)
+
+      {:ok, _accepted} =
+        invitation
+        |> Ash.Changeset.for_update(:accept_with_token, %{token: token}, actor: recipient)
+        |> Ash.update()
+
+      resolved =
+        GameNight.Notifications.Notification
+        |> Ash.get!(pending_notification.id, authorize?: false)
+
+      assert %DateTime{} = resolved.resolved_at
+    end
+  end
+
   describe "RPC contract bindings (T028)" do
     test "GameNight.Games typescript_rpc lists exactly the US1 invitation actions" do
       [_game_entry, _player_entry, invitation_entry] =
@@ -326,6 +426,8 @@ defmodule GameNight.Games.InvitationTest do
       assert bindings == [
                accept_invitation: :accept_invitation,
                create_invitation: :create_for_game,
+               # T065 added the my-pending-list binding.
+               list_my_pending_invitations: :list_pending_for_me,
                preview_invitation: :preview_with_token
              ]
     end
@@ -514,6 +616,10 @@ defmodule GameNight.Games.InvitationTest do
 
   defp create_user do
     email = "invitation-test-#{System.unique_integer([:positive])}@example.test"
+    create_user_with_email(email)
+  end
+
+  defp create_user_with_email(email) do
     password = "invitation-test-password-1"
 
     User

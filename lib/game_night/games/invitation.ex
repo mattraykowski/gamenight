@@ -34,6 +34,9 @@ defmodule GameNight.Games.Invitation do
     routes do
       base "/invitations"
 
+      # The actor's pending invitations, matched by email.
+      index :list_pending_for_me, route: "/mine/pending"
+
       # GM-only — body carries email, character_name, character_summary,
       # gm_notes, plus the game relationship (so game_id is supplied
       # via the JSON:API relationship payload).
@@ -85,6 +88,19 @@ defmodule GameNight.Games.Invitation do
 
   actions do
     defaults [:read]
+
+    read :list_pending_for_me do
+      description """
+      The current actor's pending invitations, matched by email.
+      Drives the `/invitations` index page (T064) and is the
+      underlying read for the bell's invitation entries.
+      """
+
+      prepare build(
+               filter: expr(email == ^actor(:email) and status == :pending),
+               sort: [updated_at: :desc]
+             )
+    end
 
     read :read_for_accept do
       description """
@@ -216,6 +232,13 @@ defmodule GameNight.Games.Invitation do
     policy action_type(:read) do
       authorize_if expr(game.owner_id == ^actor(:id))
       authorize_if expr(email == ^actor(:email))
+    end
+
+    # `:list_pending_for_me` — actor reads their own pending invites
+    # by email. The `prepare build(filter: …)` already scopes by the
+    # actor's email; this policy is the explicit acceptance.
+    policy action(:list_pending_for_me) do
+      authorize_if actor_present()
     end
 
 

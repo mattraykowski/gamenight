@@ -15,6 +15,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as MagicLinkRouteImport } from './routes/magic-link'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as InvitationsIndexRouteImport } from './routes/invitations.index'
 import { Route as GamesIndexRouteImport } from './routes/games.index'
 import { Route as PasswordResetTokenRouteImport } from './routes/password-reset.$token'
 import { Route as Magic_linkTokenRouteImport } from './routes/magic_link.$token'
@@ -52,6 +53,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvitationsIndexRoute = InvitationsIndexRouteImport.update({
+  id: '/invitations/',
+  path: '/invitations/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GamesIndexRoute = GamesIndexRouteImport.update({
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/magic_link/$token': typeof Magic_linkTokenRoute
   '/password-reset/$token': typeof PasswordResetTokenRoute
   '/games/': typeof GamesIndexRoute
+  '/invitations/': typeof InvitationsIndexRoute
   '/games/$id/edit': typeof GamesIdEditRoute
   '/games/$id/': typeof GamesIdIndexRoute
 }
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/magic_link/$token': typeof Magic_linkTokenRoute
   '/password-reset/$token': typeof PasswordResetTokenRoute
   '/games': typeof GamesIndexRoute
+  '/invitations': typeof InvitationsIndexRoute
   '/games/$id/edit': typeof GamesIdEditRoute
   '/games/$id': typeof GamesIdIndexRoute
 }
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/magic_link/$token': typeof Magic_linkTokenRoute
   '/password-reset/$token': typeof PasswordResetTokenRoute
   '/games/': typeof GamesIndexRoute
+  '/invitations/': typeof InvitationsIndexRoute
   '/games/$id/edit': typeof GamesIdEditRoute
   '/games/$id/': typeof GamesIdIndexRoute
 }
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/magic_link/$token'
     | '/password-reset/$token'
     | '/games/'
+    | '/invitations/'
     | '/games/$id/edit'
     | '/games/$id/'
   fileRoutesByTo: FileRoutesByTo
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
     | '/magic_link/$token'
     | '/password-reset/$token'
     | '/games'
+    | '/invitations'
     | '/games/$id/edit'
     | '/games/$id'
   id:
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
     | '/magic_link/$token'
     | '/password-reset/$token'
     | '/games/'
+    | '/invitations/'
     | '/games/$id/edit'
     | '/games/$id/'
   fileRoutesById: FileRoutesById
@@ -208,6 +220,7 @@ export interface RootRouteChildren {
   Magic_linkTokenRoute: typeof Magic_linkTokenRoute
   PasswordResetTokenRoute: typeof PasswordResetTokenRoute
   GamesIndexRoute: typeof GamesIndexRoute
+  InvitationsIndexRoute: typeof InvitationsIndexRoute
   GamesIdEditRoute: typeof GamesIdEditRoute
   GamesIdIndexRoute: typeof GamesIdIndexRoute
 }
@@ -254,6 +267,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invitations/': {
+      id: '/invitations/'
+      path: '/invitations'
+      fullPath: '/invitations/'
+      preLoaderRoute: typeof InvitationsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/games/': {
@@ -328,6 +348,7 @@ const rootRouteChildren: RootRouteChildren = {
   Magic_linkTokenRoute: Magic_linkTokenRoute,
   PasswordResetTokenRoute: PasswordResetTokenRoute,
   GamesIndexRoute: GamesIndexRoute,
+  InvitationsIndexRoute: InvitationsIndexRoute,
   GamesIdEditRoute: GamesIdEditRoute,
   GamesIdIndexRoute: GamesIdIndexRoute,
 }

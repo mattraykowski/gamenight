@@ -19,11 +19,12 @@ defmodule GameNight.Notifications do
     otp_app: :game_night,
     extensions: [AshJsonApi.Domain, AshTypescript.Rpc]
 
-  # RPC bindings the SPA calls via `/rpc/run`. Empty for now —
-  # bindings are added in US2 (T060) alongside the Notification
-  # resource's actions.
+  # RPC bindings the SPA calls via `/rpc/run`.
   typescript_rpc do
     resource GameNight.Notifications.Notification do
+      rpc_action :list_my_notifications, :list_mine
+      rpc_action :count_my_unread, :count_unread
+      rpc_action :mark_notification_read, :mark_read
     end
   end
 

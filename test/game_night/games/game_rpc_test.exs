@@ -32,7 +32,9 @@ defmodule GameNight.Games.GameRpcTest do
         # Feature 002 US1 — Invitation backend.
         :accept_invitation,
         :create_invitation,
-        :preview_invitation
+        :preview_invitation,
+        # Feature 002 US2 — list_pending_for_me added in T065.
+        :list_my_pending_invitations
       ]
 
       assert declared_names == Enum.sort(expected)
