@@ -25,7 +25,15 @@ defmodule GameNight.Notifications.Notification do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshJsonApi.Resource, AshTypescript.Resource]
 
-  @kinds [:game_invitation]
+  @kinds [
+    # Feature 002.
+    :game_invitation,
+    # Feature 003 — schedule lifecycle notifications.
+    :schedule_ready_for_availability,
+    :schedule_posted,
+    :schedule_updated,
+    :schedule_reminder
+  ]
 
   def kinds, do: @kinds
 

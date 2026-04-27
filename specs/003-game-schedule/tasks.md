@@ -29,14 +29,14 @@ description: "Task list for feature 003 — Game Schedule"
 
 **Purpose**: Project plumbing required by every subsequent phase.
 
-- [ ] T001 Create the `GameNight.Schedules` Ash domain stub in [lib/game_night/schedules.ex](lib/game_night/schedules.ex) with `use Ash.Domain` and an empty `resources do ... end` block; declare `extensions: [AshJsonApi.Domain, AshTypescript.Rpc]` and an empty `typescript_rpc do ... end` block ready for action registrations.
-- [ ] T002 Register the new domain in [lib/game_night_web/ash_json_api_router.ex](lib/game_night_web/ash_json_api_router.ex) by appending `GameNight.Schedules` to the `domains:` list.
-- [ ] T003 [P] Add `has_many :schedules, GameNight.Schedules.Schedule` to [lib/game_night/games/game.ex](lib/game_night/games/game.ex).
-- [ ] T004 [P] Extend the `kind` attribute constraint on [lib/game_night/notifications/notification.ex](lib/game_night/notifications/notification.ex) with `:schedule_ready_for_availability`, `:schedule_posted`, `:schedule_updated`, `:schedule_reminder`.
-- [ ] T005 [P] Create the frontend feature folder scaffold at [assets/js/features/schedules/](assets/js/features/schedules/) with empty `hooks.ts`, `kinds.ts`, `final-note.ts`, `schemas.ts`, `components/` directory, plus a placeholder `index.ts` re-exporting nothing (so subsequent tasks have a stable path).
-- [ ] T006 [P] Add an empty test-support module [test/support/schedules_fixtures.ex](test/support/schedules_fixtures.ex) (`defmodule GameNight.SchedulesFixtures do; end`) ready for fixture helpers; add `import GameNight.SchedulesFixtures` to [test/support/data_case.ex](test/support/data_case.ex)'s `using` block.
+- [X] T001 Create the `GameNight.Schedules` Ash domain stub in [lib/game_night/schedules.ex](lib/game_night/schedules.ex) with `use Ash.Domain` and an empty `resources do ... end` block; declare `extensions: [AshJsonApi.Domain, AshTypescript.Rpc]` and an empty `typescript_rpc do ... end` block ready for action registrations. Also register the domain in [config/config.exs](config/config.exs) `:ash_domains` (required for codegen to discover resources — codebase convention).
+- [X] T002 Register the new domain in [lib/game_night_web/ash_json_api_router.ex](lib/game_night_web/ash_json_api_router.ex) by appending `GameNight.Schedules` to the `domains:` list.
+- [ ] T003 ~~[P]~~ Add `has_many :schedules, GameNight.Schedules.Schedule` to [lib/game_night/games/game.ex](lib/game_night/games/game.ex). **DEFERRED to Phase 2 alongside T008** — adding a `has_many` to a not-yet-defined module breaks compilation. Will land in the same commit as T008.
+- [X] T004 [P] Extend the `kind` attribute constraint on [lib/game_night/notifications/notification.ex](lib/game_night/notifications/notification.ex) with `:schedule_ready_for_availability`, `:schedule_posted`, `:schedule_updated`, `:schedule_reminder`.
+- [X] T005 [P] Create the frontend feature folder scaffold at [assets/js/features/schedules/](assets/js/features/schedules/) with empty `hooks.ts`, `kinds.ts`, `final-note.ts`, `schemas.ts`, `components/` directory, plus a placeholder `index.ts` re-exporting nothing (so subsequent tasks have a stable path). Also created the `__fixtures__/` subdir for the truth-table JSON fixture from T018.
+- [X] T006 [P] Add an empty test-support module [test/support/fixtures/schedules_fixtures.ex](test/support/fixtures/schedules_fixtures.ex) (`defmodule GameNight.SchedulesFixtures do; end`) ready for fixture helpers. **Path corrected**: codebase convention places fixtures at `test/support/fixtures/`, not `test/support/`. Tests alias this module explicitly — no auto-import via `data_case.ex` (matches existing `AccountsFixtures` pattern from feature 001).
 
-**Checkpoint**: Domain registered, relations wired, frontend folder exists. Codebase still compiles and tests still pass (no behavior added).
+**Checkpoint**: Domain registered (in both the JSON:API router and `config :ash_domains`), notification kind enum extended, frontend folder + fixtures stub exist. T003 deferred to Phase 2 because Schedule resource doesn't exist yet. Codebase compiles cleanly with `--warnings-as-errors` and frontend typechecks.
 
 ---
 
