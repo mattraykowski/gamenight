@@ -62,6 +62,12 @@ defmodule GameNight.Notifications.Notification do
       reference :user, on_delete: :delete
     end
 
+    # Tells ash_postgres how to render the partial-index `where`
+    # clause from `identity :unique_user_subject_kind`. Reminders
+    # are repeatable (FR-038), so they're excluded from the unique
+    # constraint at the DB level.
+    identity_wheres_to_sql unique_user_subject_kind: "kind <> 'schedule_reminder'"
+
     custom_indexes do
       index [:user_id, :resolved_at, :inserted_at],
         name: "notifications_user_resolved_inserted_index"
@@ -119,6 +125,17 @@ defmodule GameNight.Notifications.Notification do
       upsert_fields []
     end
 
+    create :create_unique do
+      description """
+      System-only — bypasses the `:unique_user_subject_kind` upsert
+      and inserts a fresh row every call. Used for kinds where each
+      call should materialise its own notification (e.g.
+      `:schedule_reminder` per FR-038 — no rate limit, every
+      reminder produces a new bell entry).
+      """
+      accept [:user_id, :kind, :subject_type, :subject_id]
+    end
+
     update :resolve_for_subject do
       description """
       System-only — sets `resolved_at` to a caller-supplied
@@ -145,7 +162,7 @@ defmodule GameNight.Notifications.Notification do
     # `user_id == ^actor(:id)`. That stack — narrow bypass + per-user
     # filter on every other action — is the defence-in-depth posture
     # required by Constitution Principle II.
-    bypass action([:create_for_invitation, :resolve_for_subject]) do
+    bypass action([:create_for_invitation, :create_unique, :resolve_for_subject]) do
       authorize_if actor_attribute_equals(:_internal?, true)
     end
 
@@ -218,9 +235,14 @@ defmodule GameNight.Notifications.Notification do
   end
 
   identities do
-    # One notification per (user, subject_type, subject_id, kind).
-    # Lets `:create_for_invitation` use `upsert? true` semantics so
-    # re-calls during retry / reconciliation are idempotent.
-    identity :unique_user_subject_kind, [:user_id, :subject_type, :subject_id, :kind]
+    # One notification per (user, subject_type, subject_id, kind),
+    # EXCEPT for `:schedule_reminder` — reminders are explicitly
+    # repeatable per FR-038 ("no rate limit; every click of Send
+    # Reminder produces another bell entry"). The `where` clause
+    # makes the unique index partial at the DB level so reminder
+    # duplicates aren't blocked by Postgres.
+    identity :unique_user_subject_kind, [:user_id, :subject_type, :subject_id, :kind] do
+      where expr(kind != :schedule_reminder)
+    end
   end
 end

@@ -13,6 +13,7 @@ import {
   listSchedulesForGame,
   listSchedulesForGameTopSix,
   postSchedule,
+  sendScheduleReminder,
   setParticipantDayStatus,
   setScheduleGmDay,
   setScheduleParticipantSubmission,
@@ -639,6 +640,58 @@ export function usePostSchedule(): UseMutationResult<
       });
       void queryClient.invalidateQueries({
         queryKey: schedulesKeys.topSixForGame(vars.gameId),
+      });
+    },
+  });
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// US6 hooks (Reminders)
+// ──────────────────────────────────────────────────────────────────────
+
+export interface SendReminderArgs {
+  participantId: string;
+  scheduleId: string;
+  gameId: string;
+}
+
+/**
+ * GM-only — fan out a `:schedule_reminder` notification + email
+ * to a single non-submitted participant. No rate limit (FR-038);
+ * every click materialises another bell entry.
+ */
+export function useSendReminder(): UseMutationResult<
+  ScheduleParticipant,
+  ApiError,
+  SendReminderArgs
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ participantId }: SendReminderArgs) => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<ScheduleParticipant>(
+        sendScheduleReminder({
+          identity: participantId,
+          fields: SCHEDULE_PARTICIPANT_FIELDS as unknown as Array<
+            ScheduleParticipantResourceSchema["__primitiveFields"]
+          >,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: ScheduleParticipant }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    onSuccess: (_data, vars) => {
+      // Invalidate the detail key so the roster re-renders the
+      // updated submitted_at / button state.
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.detail(vars.scheduleId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.byGame(vars.gameId),
       });
     },
   });

@@ -67,6 +67,7 @@ defmodule GameNight.Schedules.ScheduleParticipant do
       base "/schedule_participants"
 
       patch :set_submission, route: "/:id/set-submission"
+      patch :send_reminder, route: "/:id/send-reminder"
     end
   end
 
@@ -95,6 +96,35 @@ defmodule GameNight.Schedules.ScheduleParticipant do
         end
       end
     end
+
+    update :send_reminder do
+      description """
+      GM-only — fan out a `:schedule_reminder` notification + email
+      to the participant. Excluded for already-submitted
+      participants (`submitted_at` set) and for `np_only`
+      participants. No rate limit (FR-038) — every call materialises
+      another row.
+      """
+      accept []
+      require_atomic? false
+
+      change after_action(fn _changeset, participant, _ctx ->
+               loaded =
+                 Ash.load!(participant,
+                   [player: [:user], schedule: [game: [:owner]]],
+                   authorize?: false
+                 )
+
+               case GameNight.Schedules.System.fan_out_notification(
+                      loaded.schedule,
+                      :schedule_reminder,
+                      [loaded]
+                    ) do
+                 :ok -> {:ok, loaded}
+                 {:error, reason} -> {:error, reason}
+               end
+             end)
+    end
   end
 
   policies do
@@ -106,6 +136,16 @@ defmodule GameNight.Schedules.ScheduleParticipant do
       authorize_if expr(player.user_id == ^actor(:id))
       forbid_if expr(np_only == true)
       forbid_if expr(schedule.status != :ready_for_availability)
+    end
+
+    # FR-037 / FR-038 — GM-only reminders. Excluded for
+    # already-submitted (submitted_at not nil) and np_only
+    # participants. The action body itself doesn't gate; the
+    # policy does.
+    policy action(:send_reminder) do
+      forbid_if expr(np_only == true)
+      forbid_if expr(not is_nil(submitted_at))
+      authorize_if expr(schedule.game.owner_id == ^actor(:id))
     end
 
     # Reads admit the GM (for the roster) and the linked player

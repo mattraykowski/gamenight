@@ -259,22 +259,22 @@ description: "Task list for feature 003 — Game Schedule"
 
 ### Tests for US6 (RED first) ⚠️
 
-- [ ] T117 [P] [US6] Calculation test in [test/game_night/schedules/schedule_test.exs](test/game_night/schedules/schedule_test.exs) for `submission_count` and `participant_count` — excludes `np_only`, includes only `submitted_at not nil` for submission_count.
-- [ ] T118 [P] [US6] Action test [test/game_night/schedules/schedule_participant_test.exs](test/game_night/schedules/schedule_participant_test.exs) for `:send_reminder` — GM-only; rejected if participant already submitted; rejected if `np_only`; no rate limit (multiple successful calls). Asserts a notification + email per call.
-- [ ] T119 [P] [US6] Email-rendering test [test/game_night/schedules/senders/send_schedule_reminder_email_test.exs](test/game_night/schedules/senders/send_schedule_reminder_email_test.exs) asserting the rendered subject is `"Reminder: <gm_display_name> is waiting on your availability for <Month Year>"` — driven from the notification payload's `gm_display_name`, not a re-query of the schedule's owner.
-- [ ] T120 [P] [US6] Vitest test [assets/js/features/schedules/components/send-reminder-button.test.tsx](assets/js/features/schedules/components/send-reminder-button.test.tsx) — visible only for unsubmitted non-NP participants; success toast.
-- [ ] T121 [P] [US6] Vitest test [assets/js/features/schedules/components/schedules-table.test.tsx](assets/js/features/schedules/components/schedules-table.test.tsx) extension — submission count column renders `3/5` correctly. Verify RED.
-- [ ] T122 [US6] Playwright spec [assets/e2e/schedule-gm-tracking.spec.ts](assets/e2e/schedule-gm-tracking.spec.ts).
+- [X] T117 [P] [US6] Calculation test in [test/game_night/schedules/schedule_test.exs](test/game_night/schedules/schedule_test.exs) for `submission_count` and `participant_count` — excludes `np_only`, includes only `submitted_at not nil` for submission_count.
+- [X] T118 [P] [US6] Action test [test/game_night/schedules/schedule_participant_test.exs](test/game_night/schedules/schedule_participant_test.exs) for `:send_reminder` — GM-only; rejected if participant already submitted; rejected if `np_only`; no rate limit (multiple successful calls). Asserts a notification + email per call.
+- [X] T119 [P] [US6] Email-rendering test [test/game_night/schedules/senders/send_schedule_reminder_email_test.exs](test/game_night/schedules/senders/send_schedule_reminder_email_test.exs) asserting the rendered subject is `"Reminder: <gm_display_name> is waiting on your availability for <Month Year>"` — driven from the notification payload's `gm_display_name`, not a re-query of the schedule's owner.
+- [X] T120 [P] [US6] Vitest test [assets/js/features/schedules/components/send-reminder-button.test.tsx](assets/js/features/schedules/components/send-reminder-button.test.tsx) — visible only for unsubmitted non-NP participants; success toast.
+- [X] T121 [P] [US6] Vitest test [assets/js/features/schedules/components/schedules-table.test.tsx](assets/js/features/schedules/components/schedules-table.test.tsx) extension — submission count column renders `3/5` correctly. Verify RED.
+- [X] T122 [US6] Playwright spec [assets/e2e/schedule-gm-tracking.spec.ts](assets/e2e/schedule-gm-tracking.spec.ts).
 
 ### Implementation for US6
 
-- [ ] T123 [US6] Implement `Schedule.submission_count` and `Schedule.participant_count` calculations in [lib/game_night/schedules/schedule.ex](lib/game_night/schedules/schedule.ex). Expose in JSON:API/RPC.
-- [ ] T124 [US6] Implement `ScheduleParticipant.send_reminder` action in [lib/game_night/schedules/schedule_participant.ex](lib/game_night/schedules/schedule_participant.ex) — calls `System.fan_out_notification(:schedule_reminder, [participant])`.
-- [ ] T125 [US6] Implement [lib/game_night/schedules/senders/send_schedule_reminder_email.ex](lib/game_night/schedules/senders/send_schedule_reminder_email.ex).
-- [ ] T126 [US6] Implement [assets/js/features/schedules/components/send-reminder-button.tsx](assets/js/features/schedules/components/send-reminder-button.tsx) and `useSendReminder` hook.
-- [ ] T127 [US6] Update [assets/js/features/schedules/components/schedules-table.tsx](assets/js/features/schedules/components/schedules-table.tsx) to render `submission_count`/`participant_count`.
-- [ ] T128 [US6] Update [assets/js/routes/games.$gameId.schedules.$scheduleId.tsx](assets/js/routes/games.$gameId.schedules.$scheduleId.tsx) to render the per-participant roster with `<SendReminderButton>` per non-submitted, non-NP participant.
-- [ ] T129 [US6] Run full gate. Confirm GREEN.
+- [X] T123 [US6] Implement `Schedule.submission_count` and `Schedule.participant_count` calculations in [lib/game_night/schedules/schedule.ex](lib/game_night/schedules/schedule.ex). Expose in JSON:API/RPC.
+- [X] T124 [US6] Implement `ScheduleParticipant.send_reminder` action in [lib/game_night/schedules/schedule_participant.ex](lib/game_night/schedules/schedule_participant.ex) — calls `System.fan_out_notification(:schedule_reminder, [participant])`.
+- [X] T125 [US6] Implement [lib/game_night/schedules/senders/send_schedule_reminder_email.ex](lib/game_night/schedules/senders/send_schedule_reminder_email.ex).
+- [X] T126 [US6] Implement [assets/js/features/schedules/components/send-reminder-button.tsx](assets/js/features/schedules/components/send-reminder-button.tsx) and `useSendReminder` hook.
+- [X] T127 [US6] Update [assets/js/features/schedules/components/schedules-table.tsx](assets/js/features/schedules/components/schedules-table.tsx) to render `submission_count`/`participant_count`.
+- [X] T128 [US6] Update [assets/js/routes/games.$gameId.schedules.$scheduleId.tsx](assets/js/routes/games.$gameId.schedules.$scheduleId.tsx) to render the per-participant roster with `<SendReminderButton>` per non-submitted, non-NP participant.
+- [X] T129 [US6] Run full gate. Confirm GREEN.
 
 **Checkpoint**: US6 complete.
 

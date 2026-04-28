@@ -2621,6 +2621,74 @@ export async function validateUpdateScheduleFinalDays(
 }
 
 
+export type SendScheduleReminderFields = UnifiedFieldSelection<ScheduleParticipantResourceSchema>[];
+
+export type InferSendScheduleReminderResult<
+  Fields extends SendScheduleReminderFields | undefined,
+> = InferResult<ScheduleParticipantResourceSchema, Fields>;
+
+export type SendScheduleReminderResult<Fields extends SendScheduleReminderFields | undefined = undefined> = | { success: true; data: InferSendScheduleReminderResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing ScheduleParticipant
+ *
+ * @ashActionType :update
+ */
+export async function sendScheduleReminder<Fields extends SendScheduleReminderFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<SendScheduleReminderResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "send_schedule_reminder",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<SendScheduleReminderResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Validate: Update an existing ScheduleParticipant
+ *
+ * @ashActionType :update
+ * @validation true
+ */
+export async function validateSendScheduleReminder(
+  config: {
+  tenant?: string;
+  identity: UUID | string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ValidationResult> {
+  const payload = {
+    action: "send_schedule_reminder",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity
+  };
+
+  return executeValidationRpcRequest<ValidationResult>(
+    payload,
+    config
+  );
+}
+
+
 export type SetScheduleParticipantSubmissionFields = UnifiedFieldSelection<ScheduleParticipantResourceSchema>[];
 
 export type InferSetScheduleParticipantSubmissionResult<

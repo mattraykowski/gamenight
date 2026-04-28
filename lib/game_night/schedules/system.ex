@@ -309,9 +309,15 @@ defmodule GameNight.Schedules.System do
   defp user_id_for_participant(_), do: {:error, :missing_player_user}
 
   defp create_notification(user_id, schedule, kind, _payload) do
+    # Reminders bypass the `unique_user_subject_kind` upsert so
+    # every call produces a fresh bell entry (FR-038 — no rate
+    # limit). Other schedule kinds keep the upsert so a player
+    # doesn't see the same "ready" or "posted" notice twice.
+    action = if kind == :schedule_reminder, do: :create_unique, else: :create_for_invitation
+
     GameNight.Notifications.Notification
     |> Ash.Changeset.for_create(
-      :create_for_invitation,
+      action,
       %{
         user_id: user_id,
         kind: kind,
@@ -346,6 +352,9 @@ defmodule GameNight.Schedules.System do
 
   defp sender_for_kind(:schedule_posted),
     do: GameNight.Schedules.Senders.SendSchedulePostedEmail
+
+  defp sender_for_kind(:schedule_reminder),
+    do: GameNight.Schedules.Senders.SendScheduleReminderEmail
 
   defp sender_for_kind(_), do: nil
 

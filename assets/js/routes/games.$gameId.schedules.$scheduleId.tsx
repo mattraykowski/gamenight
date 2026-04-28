@@ -4,9 +4,11 @@ import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { MonthCalendar, type DayCell } from "@/features/schedules/components/month-calendar";
 import { ScheduleStatusBadge } from "@/features/schedules/components/schedule-status-badge";
+import { SendReminderButton } from "@/features/schedules/components/send-reminder-button";
 import { TransitionToReadyButton } from "@/features/schedules/components/transition-to-ready-button";
 import {
-  useGetScheduleForGame,
+  useGetScheduleForScheduling,
+  useSendReminder,
   useSetScheduleGmDay,
   useTransitionScheduleToReady,
   type ScheduleDay,
@@ -25,11 +27,24 @@ export const Route = createFileRoute("/games/$gameId/schedules/$scheduleId")({
 
 function ScheduleDetailRoute() {
   const { gameId, scheduleId } = Route.useParams();
-  const schedule = useGetScheduleForGame({ id: scheduleId, gameId });
+  const schedule = useGetScheduleForScheduling({ id: scheduleId, gameId });
   const setGmDay = useSetScheduleGmDay();
   const transitionToReady = useTransitionScheduleToReady();
+  const sendReminder = useSendReminder();
   const { push } = useToasts();
   const navigate = useNavigate();
+
+  async function onSendReminder(participantId: string) {
+    try {
+      await sendReminder.mutateAsync({ participantId, scheduleId, gameId });
+      push({ title: "Reminder sent.", variant: "success" });
+    } catch {
+      push({
+        title: "Could not send the reminder. Please try again.",
+        variant: "error",
+      });
+    }
+  }
 
   async function onTransitionToReady() {
     try {
@@ -145,6 +160,60 @@ function ScheduleDetailRoute() {
         ariaLabel={`${data.name} calendar`}
       />
 
+      {data.status !== "preparing" ? (
+        <section className="mt-10" aria-labelledby="schedule-roster-heading">
+          <h2
+            id="schedule-roster-heading"
+            className="text-xl font-semibold tracking-tight"
+          >
+            Roster
+          </h2>
+          {(data.participants ?? []).length === 0 ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              No players linked to this schedule yet.
+            </p>
+          ) : (
+            <ul
+              className="mt-4 divide-y rounded-md border"
+              data-testid="schedule-roster"
+            >
+              {(data.participants ?? [])
+                .filter((p) => !p.npOnly)
+                .map((participant) => {
+                  const submitted =
+                    participant.submittedAt != null &&
+                    participant.submittedAt !== "";
+                  return (
+                    <li
+                      key={participant.id}
+                      className="flex items-center justify-between gap-3 p-4"
+                      data-testid={`schedule-roster-row-${participant.id}`}
+                    >
+                      <div>
+                        <p className="font-medium">
+                          {participant.player?.characterName ?? "Player"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {submitted
+                            ? `Submitted ${formatDate(participant.submittedAt)}`
+                            : "Awaiting availability"}
+                        </p>
+                      </div>
+                      {!submitted &&
+                      data.status === "ready_for_availability" ? (
+                        <SendReminderButton
+                          onSend={() => onSendReminder(participant.id)}
+                          isPending={sendReminder.isPending}
+                        />
+                      ) : null}
+                    </li>
+                  );
+                })}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
       <div className="mt-6 flex flex-wrap gap-3">
         {data.status === "preparing" ? (
           <TransitionToReadyButton
@@ -174,4 +243,9 @@ function ScheduleDetailRoute() {
       </div>
     </main>
   );
+}
+
+function formatDate(iso: string | null | undefined): string {
+  if (!iso) return "";
+  return new Date(iso).toLocaleDateString();
 }

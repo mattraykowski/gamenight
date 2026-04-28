@@ -62,6 +62,8 @@ defmodule GameNight.Schedules do
     resource GameNight.Schedules.ScheduleParticipant do
       # US3 (T084).
       rpc_action :set_schedule_participant_submission, :set_submission
+      # US6 (T124).
+      rpc_action :send_schedule_reminder, :send_reminder
     end
 
     resource GameNight.Schedules.ParticipantDay do
