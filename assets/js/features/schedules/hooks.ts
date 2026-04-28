@@ -49,6 +49,8 @@ export type Schedule = Pick<
   | "status"
   | "postedAt"
   | "name"
+  | "submissionCount"
+  | "participantCount"
 > & {
   gameId: string;
 };
@@ -64,6 +66,8 @@ const SCHEDULE_FIELDS = [
   "status",
   "postedAt",
   "name",
+  "submissionCount",
+  "participantCount",
 ] as const;
 
 export type ScheduleDay = Pick<

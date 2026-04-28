@@ -41,6 +41,7 @@ export function SchedulesTable({ schedules, gameId }: SchedulesTableProps) {
         <TableRow>
           <TableHead>Schedule</TableHead>
           <TableHead className="w-[180px]">Status</TableHead>
+          <TableHead className="w-[140px]">Players ready</TableHead>
           <TableHead className="w-[100px] text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -52,6 +53,11 @@ export function SchedulesTable({ schedules, gameId }: SchedulesTableProps) {
             </TableCell>
             <TableCell>
               <ScheduleStatusBadge status={schedule.status} />
+            </TableCell>
+            <TableCell data-testid={`schedule-row-players-ready-${schedule.id}`}>
+              {schedule.submissionCount ?? 0}
+              {" / "}
+              {schedule.participantCount ?? 0}
             </TableCell>
             <TableCell className="text-right">
               <Button

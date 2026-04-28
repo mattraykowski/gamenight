@@ -50,6 +50,8 @@ function buildSchedule(overrides: Partial<Schedule> = {}): Schedule {
     status: "preparing",
     postedAt: null,
     name: "October 2099 7:00 PM – 11:00 PM",
+    submissionCount: 0,
+    participantCount: 0,
     ...overrides,
   };
 }
@@ -92,5 +94,20 @@ describe("<SchedulesTable> (T030)", () => {
     expect(
       await screen.findByTestId(`schedule-row-view-${schedule.id}`),
     ).toBeInTheDocument();
+  });
+
+  it("renders the players-ready X/Y column", async () => {
+    const schedule = buildSchedule({
+      submissionCount: 2,
+      participantCount: 5,
+    });
+    renderInRouter(
+      <SchedulesTable schedules={[schedule]} gameId={schedule.gameId} />,
+    );
+
+    const cell = await screen.findByTestId(
+      `schedule-row-players-ready-${schedule.id}`,
+    );
+    expect(cell).toHaveTextContent(/^2\s*\/\s*5$/);
   });
 });

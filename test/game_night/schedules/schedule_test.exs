@@ -439,6 +439,84 @@ defmodule GameNight.Schedules.ScheduleTest do
     end
   end
 
+  describe "submission_count + participant_count calculations (T123 / players-ready column)" do
+    setup do
+      {:ok, gm} = create_user()
+      {:ok, game} = register_game(gm)
+      {:ok, m1} = create_user()
+      {:ok, m2} = create_user()
+      {:ok, m3} = create_user()
+      _p1 = seed_player!(game, m1)
+      _p2 = seed_player!(game, m2)
+      _p3 = seed_player!(game, m3)
+
+      {:ok, schedule} = initiate(gm, game, %{month: 10, year: 2099})
+
+      {:ok, schedule} =
+        schedule
+        |> Ash.Changeset.for_update(:set_gm_day, %{day: 5, status: :A}, actor: gm)
+        |> Ash.update()
+
+      {:ok, ready} =
+        schedule
+        |> Ash.Changeset.for_update(:transition_to_ready_for_availability, %{}, actor: gm)
+        |> Ash.update()
+
+      {:ok, gm: gm, game: game, schedule: ready, m1: m1, m2: m2, m3: m3}
+    end
+
+    test "participant_count is the number of non-NP participants", %{
+      gm: gm,
+      schedule: schedule
+    } do
+      {:ok, loaded} =
+        Schedule
+        |> Ash.Query.for_read(:get_for_game, %{id: schedule.id, game_id: schedule.game_id},
+          actor: gm
+        )
+        |> Ash.Query.load(:participant_count)
+        |> Ash.read_one()
+
+      assert loaded.participant_count == 3
+    end
+
+    test "submission_count starts at 0 and increments per :set_submission", %{
+      gm: gm,
+      schedule: schedule,
+      m1: m1
+    } do
+      {:ok, loaded} =
+        Schedule
+        |> Ash.Query.for_read(:get_for_game, %{id: schedule.id, game_id: schedule.game_id},
+          actor: gm
+        )
+        |> Ash.Query.load(:submission_count)
+        |> Ash.read_one()
+
+      assert loaded.submission_count == 0
+
+      [m1_participant] =
+        GameNight.Schedules.ScheduleParticipant
+        |> Ash.Query.filter(schedule_id == ^schedule.id and player.user_id == ^m1.id)
+        |> Ash.read!(authorize?: false)
+
+      {:ok, _} =
+        m1_participant
+        |> Ash.Changeset.for_update(:set_submission, %{}, actor: m1)
+        |> Ash.update()
+
+      {:ok, after_one} =
+        Schedule
+        |> Ash.Query.for_read(:get_for_game, %{id: schedule.id, game_id: schedule.game_id},
+          actor: gm
+        )
+        |> Ash.Query.load(:submission_count)
+        |> Ash.read_one()
+
+      assert after_one.submission_count == 1
+    end
+  end
+
   describe "GM-NA cascade (T070)" do
     setup do
       {:ok, gm} = create_user()

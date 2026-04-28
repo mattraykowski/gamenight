@@ -269,6 +269,29 @@ defmodule GameNight.Schedules.Schedule do
       description "Display name composed from month/year/time slot. See Calculations.Name."
       public? true
     end
+
+    # FR-036 — denominator excludes NP-only participants
+    # (late-joiners on a posted schedule who didn't get to submit).
+    calculate :participant_count,
+              :integer,
+              expr(count(participants, query: [filter: np_only == false])) do
+      description "Number of non-NP participants linked to this schedule."
+      public? true
+    end
+
+    # Numerator counts non-NP participants who have called
+    # `:set_submission` (i.e. submitted_at is set). All-NA
+    # submissions still count per FR-022.
+    calculate :submission_count,
+              :integer,
+              expr(
+                count(participants,
+                  query: [filter: np_only == false and not is_nil(submitted_at)]
+                )
+              ) do
+      description "Number of participants who have submitted their availability."
+      public? true
+    end
   end
 
   policies do
