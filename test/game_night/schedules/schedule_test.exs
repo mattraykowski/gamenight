@@ -335,6 +335,110 @@ defmodule GameNight.Schedules.ScheduleTest do
     end
   end
 
+  describe "player-side reads (US3)" do
+    setup do
+      {:ok, gm} = create_user()
+      {:ok, game} = register_game(gm)
+      {:ok, member} = create_user()
+      player = seed_player!(game, member)
+      {:ok, schedule} = initiate(gm, game, %{month: 10, year: 2099})
+
+      # Flip a day to A so the schedule has visible content + transition.
+      {:ok, schedule} =
+        schedule
+        |> Ash.Changeset.for_update(:set_gm_day, %{day: 5, status: :A}, actor: gm)
+        |> Ash.update()
+
+      {:ok, schedule} =
+        schedule
+        |> Ash.Changeset.for_update(:transition_to_ready_for_availability, %{}, actor: gm)
+        |> Ash.update()
+
+      {:ok, gm: gm, game: game, schedule: schedule, member: member, player: player}
+    end
+
+    test ":list_for_player_character returns the schedule for a linked player", %{
+      member: member,
+      player: player,
+      schedule: schedule
+    } do
+      {:ok, results} =
+        Schedule
+        |> Ash.Query.for_read(:list_for_player_character, %{player_id: player.id},
+          actor: member
+        )
+        |> Ash.read()
+
+      assert Enum.map(results, & &1.id) == [schedule.id]
+    end
+
+    test ":get_for_player_character returns the schedule for a linked player", %{
+      member: member,
+      player: player,
+      schedule: schedule
+    } do
+      {:ok, loaded} =
+        Schedule
+        |> Ash.Query.for_read(
+          :get_for_player_character,
+          %{id: schedule.id, player_id: player.id},
+          actor: member
+        )
+        |> Ash.read_one()
+
+      assert loaded.id == schedule.id
+    end
+
+    test ":get_for_player_character with the SPA's nested fields load works", %{
+      member: member,
+      player: player,
+      schedule: schedule
+    } do
+      # Mirrors the load shape `useGetScheduleForCharacter` issues.
+      result =
+        Schedule
+        |> Ash.Query.for_read(
+          :get_for_player_character,
+          %{id: schedule.id, player_id: player.id},
+          actor: member
+        )
+        |> Ash.Query.load([
+          :schedule_days,
+          :name,
+          participants: [:player, participant_days: []]
+        ])
+        |> Ash.read_one()
+
+      assert {:ok, %Schedule{} = loaded} = result
+      assert loaded.id == schedule.id
+      assert is_list(loaded.schedule_days)
+      assert is_list(loaded.participants)
+      [participant] = loaded.participants
+      assert participant.player_id == player.id
+      assert is_list(participant.participant_days)
+    end
+
+    test ":get_for_player_character returns nil for a non-linked player", %{
+      schedule: schedule
+    } do
+      # Different game, different player — should not see the schedule.
+      {:ok, intruder} = create_user()
+      {:ok, intruder_game} = register_game(intruder)
+      intruder_player = seed_player!(intruder_game, intruder)
+
+      result =
+        Schedule
+        |> Ash.Query.for_read(
+          :get_for_player_character,
+          %{id: schedule.id, player_id: intruder_player.id},
+          actor: intruder
+        )
+        |> Ash.read_one()
+
+      assert match?({:ok, nil}, result) or match?({:error, _}, result)
+    end
+  end
+
   describe "GM-NA cascade (T070)" do
     setup do
       {:ok, gm} = create_user()

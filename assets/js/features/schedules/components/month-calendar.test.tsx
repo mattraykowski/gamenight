@@ -81,6 +81,35 @@ describe("<MonthCalendar> (T027)", () => {
     expect(onCycle).toHaveBeenCalledWith(5);
   });
 
+  it("locked NA cells render the 'Host Unavailable' label instead of 'Not Available'", () => {
+    const cells = buildCells(2026, 10);
+    cells[4] = {
+      day: 5,
+      status: "NA",
+      gmLockedNa: true,
+    } as DayCell;
+
+    render(
+      <MonthCalendar
+        year={2026}
+        month={10}
+        cells={cells}
+        mode="player-edit"
+        ariaLabel="October 2026 calendar"
+      />,
+    );
+
+    const day5 = screen.getByRole("gridcell", {
+      name: /^october 5,.*host unavailable/i,
+    });
+    expect(day5).toBeInTheDocument();
+    // The on-screen label inside the cell also reads "Host Unavailable".
+    expect(day5).toHaveTextContent(/host unavailable/i);
+    // It is NOT labeled "Not Available" — that's the participant-NA
+    // self-marked state, not the GM-locked one.
+    expect(day5).not.toHaveTextContent(/not available/i);
+  });
+
   it("locked NA cells are not clickable in player-edit mode", async () => {
     const onCycle = vi.fn();
     const user = userEvent.setup();

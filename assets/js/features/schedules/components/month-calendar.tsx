@@ -205,9 +205,17 @@ export function MonthCalendar({
               );
             }
 
-            const label = `${monthName} ${cell.day}, ${STATUS_LABEL[cell.status]}`;
             const interactiveCell = isInteractive(cell);
-            const lockedNa = mode === "player-edit" && cell.gmLockedNa === true;
+            const lockedNa = cell.gmLockedNa === true && mode !== "gm-edit";
+            // GM-locked NA reads as "Host Unavailable" so the player
+            // sees that the day is blocked by the GM, not by their
+            // own choice. (The cell's underlying status is :NA via
+            // the GM-NA cascade, but the cause is the GM, not the
+            // player.)
+            const statusLabel = lockedNa
+              ? "Host Unavailable"
+              : STATUS_LABEL[cell.status];
+            const label = `${monthName} ${cell.day}, ${statusLabel}`;
 
             return (
               <button
@@ -238,7 +246,7 @@ export function MonthCalendar({
                 <span className="text-sm font-semibold">{cell.day}</span>
                 <span className="flex items-center gap-1 text-xs">
                   <span aria-hidden="true">{STATUS_ICON[cell.status]}</span>
-                  <span>{STATUS_LABEL[cell.status]}</span>
+                  <span>{statusLabel}</span>
                 </span>
               </button>
             );

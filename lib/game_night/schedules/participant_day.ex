@@ -103,6 +103,14 @@ defmodule GameNight.Schedules.ParticipantDay do
       authorize_if always()
     end
 
+    # Reads admit the schedule's GM (for the Scheduling View) and
+    # the participant's own user (for their per-character schedule
+    # view). Status-write is gated separately by :set_status.
+    policy action_type(:read) do
+      authorize_if expr(participant.schedule.game.owner_id == ^actor(:id))
+      authorize_if expr(participant.player.user_id == ^actor(:id))
+    end
+
     policy action(:set_status) do
       authorize_if expr(participant.player.user_id == ^actor(:id))
     end

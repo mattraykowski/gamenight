@@ -144,6 +144,7 @@ defmodule GameNight.Schedules.ScheduleParticipant do
     end
 
     has_many :participant_days, GameNight.Schedules.ParticipantDay do
+      public? true
       destination_attribute :participant_id
     end
   end

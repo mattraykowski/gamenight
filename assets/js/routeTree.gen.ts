@@ -29,7 +29,7 @@ import { Route as CharactersIdIndexRouteImport } from './routes/characters.$id.i
 import { Route as GamesIdEditRouteImport } from './routes/games.$id.edit'
 import { Route as GamesGameIdSchedulesIndexRouteImport } from './routes/games.$gameId.schedules.index'
 import { Route as GamesGameIdSchedulesScheduleIdRouteImport } from './routes/games.$gameId.schedules.$scheduleId'
-import { Route as CharactersIdSchedulesScheduleIdRouteImport } from './routes/characters.$id.schedules.$scheduleId'
+import { Route as CharactersCharacterIdSchedulesScheduleIdRouteImport } from './routes/characters.$characterId.schedules.$scheduleId'
 
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
@@ -133,11 +133,11 @@ const GamesGameIdSchedulesScheduleIdRoute =
     path: '/games/$gameId/schedules/$scheduleId',
     getParentRoute: () => rootRouteImport,
   } as any)
-const CharactersIdSchedulesScheduleIdRoute =
-  CharactersIdSchedulesScheduleIdRouteImport.update({
-    id: '/schedules/$scheduleId',
-    path: '/schedules/$scheduleId',
-    getParentRoute: () => CharactersIdRoute,
+const CharactersCharacterIdSchedulesScheduleIdRoute =
+  CharactersCharacterIdSchedulesScheduleIdRouteImport.update({
+    id: '/characters/$characterId/schedules/$scheduleId',
+    path: '/characters/$characterId/schedules/$scheduleId',
+    getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -159,7 +159,7 @@ export interface FileRoutesByFullPath {
   '/games/$id/edit': typeof GamesIdEditRoute
   '/characters/$id/': typeof CharactersIdIndexRoute
   '/games/$id/': typeof GamesIdIndexRoute
-  '/characters/$id/schedules/$scheduleId': typeof CharactersIdSchedulesScheduleIdRoute
+  '/characters/$characterId/schedules/$scheduleId': typeof CharactersCharacterIdSchedulesScheduleIdRoute
   '/games/$gameId/schedules/$scheduleId': typeof GamesGameIdSchedulesScheduleIdRoute
   '/games/$gameId/schedules/': typeof GamesGameIdSchedulesIndexRoute
 }
@@ -182,7 +182,7 @@ export interface FileRoutesByTo {
   '/games/$id/edit': typeof GamesIdEditRoute
   '/characters/$id': typeof CharactersIdIndexRoute
   '/games/$id': typeof GamesIdIndexRoute
-  '/characters/$id/schedules/$scheduleId': typeof CharactersIdSchedulesScheduleIdRoute
+  '/characters/$characterId/schedules/$scheduleId': typeof CharactersCharacterIdSchedulesScheduleIdRoute
   '/games/$gameId/schedules/$scheduleId': typeof GamesGameIdSchedulesScheduleIdRoute
   '/games/$gameId/schedules': typeof GamesGameIdSchedulesIndexRoute
 }
@@ -206,7 +206,7 @@ export interface FileRoutesById {
   '/games/$id/edit': typeof GamesIdEditRoute
   '/characters/$id/': typeof CharactersIdIndexRoute
   '/games/$id/': typeof GamesIdIndexRoute
-  '/characters/$id/schedules/$scheduleId': typeof CharactersIdSchedulesScheduleIdRoute
+  '/characters/$characterId/schedules/$scheduleId': typeof CharactersCharacterIdSchedulesScheduleIdRoute
   '/games/$gameId/schedules/$scheduleId': typeof GamesGameIdSchedulesScheduleIdRoute
   '/games/$gameId/schedules/': typeof GamesGameIdSchedulesIndexRoute
 }
@@ -231,7 +231,7 @@ export interface FileRouteTypes {
     | '/games/$id/edit'
     | '/characters/$id/'
     | '/games/$id/'
-    | '/characters/$id/schedules/$scheduleId'
+    | '/characters/$characterId/schedules/$scheduleId'
     | '/games/$gameId/schedules/$scheduleId'
     | '/games/$gameId/schedules/'
   fileRoutesByTo: FileRoutesByTo
@@ -254,7 +254,7 @@ export interface FileRouteTypes {
     | '/games/$id/edit'
     | '/characters/$id'
     | '/games/$id'
-    | '/characters/$id/schedules/$scheduleId'
+    | '/characters/$characterId/schedules/$scheduleId'
     | '/games/$gameId/schedules/$scheduleId'
     | '/games/$gameId/schedules'
   id:
@@ -277,7 +277,7 @@ export interface FileRouteTypes {
     | '/games/$id/edit'
     | '/characters/$id/'
     | '/games/$id/'
-    | '/characters/$id/schedules/$scheduleId'
+    | '/characters/$characterId/schedules/$scheduleId'
     | '/games/$gameId/schedules/$scheduleId'
     | '/games/$gameId/schedules/'
   fileRoutesById: FileRoutesById
@@ -301,6 +301,7 @@ export interface RootRouteChildren {
   GamesIdEditRoute: typeof GamesIdEditRoute
   CharactersIdIndexRoute: typeof CharactersIdIndexRoute
   GamesIdIndexRoute: typeof GamesIdIndexRoute
+  CharactersCharacterIdSchedulesScheduleIdRoute: typeof CharactersCharacterIdSchedulesScheduleIdRoute
   GamesGameIdSchedulesScheduleIdRoute: typeof GamesGameIdSchedulesScheduleIdRoute
   GamesGameIdSchedulesIndexRoute: typeof GamesGameIdSchedulesIndexRoute
 }
@@ -447,12 +448,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GamesGameIdSchedulesScheduleIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/characters/$id/schedules/$scheduleId': {
-      id: '/characters/$id/schedules/$scheduleId'
-      path: '/schedules/$scheduleId'
-      fullPath: '/characters/$id/schedules/$scheduleId'
-      preLoaderRoute: typeof CharactersIdSchedulesScheduleIdRouteImport
-      parentRoute: typeof CharactersIdRoute
+    '/characters/$characterId/schedules/$scheduleId': {
+      id: '/characters/$characterId/schedules/$scheduleId'
+      path: '/characters/$characterId/schedules/$scheduleId'
+      fullPath: '/characters/$characterId/schedules/$scheduleId'
+      preLoaderRoute: typeof CharactersCharacterIdSchedulesScheduleIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -476,6 +477,8 @@ const rootRouteChildren: RootRouteChildren = {
   GamesIdEditRoute: GamesIdEditRoute,
   CharactersIdIndexRoute: CharactersIdIndexRoute,
   GamesIdIndexRoute: GamesIdIndexRoute,
+  CharactersCharacterIdSchedulesScheduleIdRoute:
+    CharactersCharacterIdSchedulesScheduleIdRoute,
   GamesGameIdSchedulesScheduleIdRoute: GamesGameIdSchedulesScheduleIdRoute,
   GamesGameIdSchedulesIndexRoute: GamesGameIdSchedulesIndexRoute,
 }

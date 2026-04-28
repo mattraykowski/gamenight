@@ -106,8 +106,11 @@ function CharacterDetailRoute() {
                     <ScheduleStatusBadge status={schedule.status} />
                     <Button asChild variant="outline" size="sm">
                       <Link
-                        to="/characters/$id/schedules/$scheduleId"
-                        params={{ id: character.id, scheduleId: schedule.id }}
+                        to="/characters/$characterId/schedules/$scheduleId"
+                        params={{
+                          characterId: character.id,
+                          scheduleId: schedule.id,
+                        }}
                       >
                         Open
                       </Link>

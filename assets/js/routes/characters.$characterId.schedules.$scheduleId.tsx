@@ -20,7 +20,7 @@ import {
 } from "@/features/schedules/kinds";
 import { useToasts } from "@/features/toasts/toast-provider";
 
-export const Route = createFileRoute("/characters/$id/schedules/$scheduleId")({
+export const Route = createFileRoute("/characters/$characterId/schedules/$scheduleId")({
   beforeLoad: ({ context, location }) => {
     if (!context.auth?.isAuthenticated) {
       throw redirect({ to: "/sign-in", search: { redirect: location.href } });
@@ -35,16 +35,24 @@ function nextStatus(current: AvailabilityStatus): AvailabilityStatus {
 }
 
 function CharacterScheduleRoute() {
-  const { id, scheduleId } = Route.useParams();
-  const schedule = useGetScheduleForCharacter({ id: scheduleId, playerId: id });
+  // The file's URL pattern uses `$characterId` (rather than `$id`)
+  // to avoid TanStack Router's file-based router treating
+  // `characters.$id.*` as a shared layout namespace alongside
+  // `characters.$id.index.tsx`. See the `games.$id.*` /
+  // `games.$gameId.*` split for the same pattern.
+  const { characterId, scheduleId } = Route.useParams();
+  const schedule = useGetScheduleForCharacter({
+    id: scheduleId,
+    playerId: characterId,
+  });
   const setStatus = useSetParticipantDayStatus();
   const setSubmission = useSetScheduleParticipantSubmission();
   const { push } = useToasts();
   const [editing, setEditing] = useState(false);
 
   const myParticipant = useMemo(() => {
-    return schedule.data?.participants?.find((p) => p.playerId === id);
-  }, [schedule.data, id]);
+    return schedule.data?.participants?.find((p) => p.playerId === characterId);
+  }, [schedule.data, characterId]);
 
   const cells = useMemo<DayCell[]>(() => {
     if (!schedule.data) return [];
@@ -88,7 +96,7 @@ function CharacterScheduleRoute() {
       await setStatus.mutateAsync({
         participantDayId: pd.id,
         scheduleId,
-        playerId: id,
+        playerId: characterId,
         status: target,
       });
     } catch {
@@ -105,7 +113,7 @@ function CharacterScheduleRoute() {
       await setSubmission.mutateAsync({
         participantId: myParticipant.id,
         scheduleId,
-        playerId: id,
+        playerId: characterId,
       });
       setEditing(false);
       push({
@@ -135,7 +143,7 @@ function CharacterScheduleRoute() {
           Schedule not found
         </h1>
         <Button asChild variant="outline" className="mt-4">
-          <Link to="/characters/$id" params={{ id }}>
+          <Link to="/characters/$id" params={{ id: characterId }}>
             Back to character
           </Link>
         </Button>
@@ -170,7 +178,7 @@ function CharacterScheduleRoute() {
           </div>
         </div>
         <Button asChild variant="outline">
-          <Link to="/characters/$id" params={{ id }}>
+          <Link to="/characters/$id" params={{ id: characterId }}>
             Back to character
           </Link>
         </Button>
