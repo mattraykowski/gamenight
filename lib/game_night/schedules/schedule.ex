@@ -54,15 +54,132 @@ defmodule GameNight.Schedules.Schedule do
 
   actions do
     # Foundational stubs — story phases REPLACE these with the
-    # constrained named actions from the data model.
+    # constrained named actions from the data model. Kept around
+    # so `:create` / `:update` / `:destroy` work for fixtures and
+    # tests that bypass policy via the internal actor.
     defaults [:read, :destroy, create: :*, update: :*]
+
+    # US1 named actions.
+    create :initiate do
+      description """
+      GM-only action to initiate a new monthly schedule. Validates
+      the timezone, the not-in-past rule, and the unique-per-game
+      identity. After insert, materialises one ScheduleDay row per
+      day in the month with `gm_status: :NA`.
+      """
+
+      accept [:month, :year, :start_time, :end_time, :time_zone, :game_id]
+
+      validate {GameNight.Schedules.Validations.TimezoneKnown, []}
+      validate {GameNight.Schedules.Validations.MonthNotInPast, []}
+
+      change after_action(fn _changeset, schedule, _context ->
+               case create_schedule_days(schedule) do
+                 :ok -> {:ok, schedule}
+                 {:error, reason} -> {:error, reason}
+               end
+             end)
+    end
+
+    read :list_for_game do
+      description "GM-only list of every schedule for a game, year/month DESC."
+      argument :game_id, :uuid, allow_nil?: false
+
+      prepare build(
+               filter: expr(game_id == ^arg(:game_id)),
+               sort: [year: :desc, month: :desc]
+             )
+    end
+
+    read :list_for_game_top_six do
+      description "GM-only top-6 most recent schedules for a game (View Game widget)."
+      argument :game_id, :uuid, allow_nil?: false
+
+      prepare build(
+               filter: expr(game_id == ^arg(:game_id)),
+               sort: [year: :desc, month: :desc],
+               limit: 6
+             )
+    end
+
+    read :get_for_game do
+      description "GM-only fetch of one schedule by id, scoped to a game. Loads schedule_days."
+      get? true
+
+      argument :id, :uuid, allow_nil?: false
+      argument :game_id, :uuid, allow_nil?: false
+
+      prepare build(
+               filter: expr(id == ^arg(:id) and game_id == ^arg(:game_id)),
+               load: [:schedule_days, :name]
+             )
+    end
+
+    update :set_gm_day do
+      description """
+      GM-only — toggle one ScheduleDay's `gm_status`. Rejects when
+      schedule is `:posted` (FR-010 state guard).
+
+      Cascade behavior on `:NA` while schedule is
+      `:ready_for_availability` lands in T080 (US3); for `:preparing`
+      this is a no-op fan-out.
+      """
+      accept []
+      require_atomic? false
+
+      argument :day, :integer, allow_nil?: false, constraints: [min: 1, max: 31]
+      argument :status, :atom, allow_nil?: false, constraints: [one_of: [:NA, :I, :A, :IF]]
+
+      validate fn changeset, _ctx ->
+        case Ash.Changeset.get_data(changeset, :status) do
+          :posted ->
+            {:error,
+             field: :status,
+             message: "GM availability is locked once a schedule is posted."}
+
+          _ ->
+            :ok
+        end
+      end
+
+      change after_action(fn changeset, schedule, _context ->
+               day = Ash.Changeset.get_argument(changeset, :day)
+               new_status = Ash.Changeset.get_argument(changeset, :status)
+
+               case set_schedule_day_status(schedule, day, new_status) do
+                 :ok -> {:ok, schedule}
+                 {:error, reason} -> {:error, reason}
+               end
+             end)
+    end
+  end
+
+  calculations do
+    calculate :name, :string, GameNight.Schedules.Calculations.Name do
+      description "Display name composed from month/year/time slot. See Calculations.Name."
+      public? true
+    end
   end
 
   policies do
-    # Foundational stub — story phases add per-action policies.
-    # Until then, allow internal actor for fixture/test setup only.
+    # Internal-actor bypass for fixtures and the foundational
+    # default actions. Story phases add per-action policies BELOW
+    # this block.
     bypass actor_attribute_equals(:_internal?, true) do
       authorize_if always()
+    end
+
+    # US1 — GM-only reads and updates use the relationship-walk
+    # filter (works for read/update because the row exists).
+    policy action([:list_for_game, :list_for_game_top_six, :get_for_game, :set_gm_day]) do
+      authorize_if expr(game.owner_id == ^actor(:id))
+    end
+
+    # `:initiate` is a create — Ash can't evaluate relationship
+    # expressions on creates, so we use a custom check that loads
+    # the game and asserts ownership before the row is materialised.
+    policy action(:initiate) do
+      authorize_if {GameNight.Schedules.Schedule.Checks.GameOwner, []}
     end
   end
 
@@ -127,5 +244,54 @@ defmodule GameNight.Schedules.Schedule do
   identities do
     # FR-002: at most one schedule per game per month/year.
     identity :unique_per_game_month, [:game_id, :year, :month]
+  end
+
+  # ---------------------------------------------------------------
+  # Helpers used by after_action callbacks.
+  # ---------------------------------------------------------------
+
+  @doc false
+  def create_schedule_days(schedule) do
+    days_in_month = Date.days_in_month(Date.new!(schedule.year, schedule.month, 1))
+
+    Enum.reduce_while(1..days_in_month, :ok, fn day, _acc ->
+      case GameNight.Schedules.ScheduleDay
+           |> Ash.Changeset.for_create(
+             :create,
+             %{day: day, gm_status: :NA},
+             actor: GameNight.Schedules.System.actor()
+           )
+           |> Ash.Changeset.manage_relationship(:schedule, schedule, type: :append)
+           |> Ash.create() do
+        {:ok, _} -> {:cont, :ok}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  @doc false
+  def set_schedule_day_status(schedule, day, status) do
+    require Ash.Query
+
+    case GameNight.Schedules.ScheduleDay
+         |> Ash.Query.filter(schedule_id == ^schedule.id and day == ^day)
+         |> Ash.read_one(authorize?: false) do
+      {:ok, nil} ->
+        {:error, "ScheduleDay for day #{day} not found"}
+
+      {:ok, schedule_day} ->
+        schedule_day
+        |> Ash.Changeset.for_update(:update, %{gm_status: status},
+          actor: GameNight.Schedules.System.actor()
+        )
+        |> Ash.update()
+        |> case do
+          {:ok, _} -> :ok
+          {:error, reason} -> {:error, reason}
+        end
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 end

@@ -7,6 +7,11 @@
 # General application configuration
 import Config
 
+# Feature 003 — IANA time-zone database for the Schedules domain
+# (capture GM tz, validate, and compute current-month-in-tz for the
+# past-month rejection on `Schedule.initiate`).
+config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+
 config :bun,
   version: "1.2.16",
   assets: [args: [], cd: Path.expand("../assets", __DIR__)],

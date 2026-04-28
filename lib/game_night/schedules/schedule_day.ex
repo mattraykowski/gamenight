@@ -57,6 +57,13 @@ defmodule GameNight.Schedules.ScheduleDay do
     bypass actor_attribute_equals(:_internal?, true) do
       authorize_if always()
     end
+
+    # US1 — read admits the schedule's GM. Story phases (US3) extend
+    # this to admit linked players too, with a field policy that
+    # strips `gm_status` for non-GMs.
+    policy action_type(:read) do
+      authorize_if expr(schedule.game.owner_id == ^actor(:id))
+    end
   end
 
   attributes do
