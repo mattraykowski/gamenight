@@ -5,7 +5,7 @@ import { ScheduleStatusBadge } from "@/features/schedules/components/schedule-st
 import { useListSchedulesForCharacter } from "@/features/schedules/hooks";
 import { useListMyCharacters } from "@/features/players/hooks";
 
-export const Route = createFileRoute("/characters/$id")({
+export const Route = createFileRoute("/characters/$id/")({
   beforeLoad: ({ context, location }) => {
     if (!context.auth?.isAuthenticated) {
       throw redirect({ to: "/sign-in", search: { redirect: location.href } });

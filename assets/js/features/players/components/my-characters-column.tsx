@@ -1,19 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { useListMyCharacters, type Player } from "../hooks";
-import type { PlayerStatus } from "../schemas";
+import { useListMyCharacters } from "../hooks";
+import { CharacterCard } from "./character-card";
 import { CharactersEmptyState } from "./characters-empty-state";
-
-const STATUS_LABELS: Record<PlayerStatus, string> = {
-  active: "Active",
-  inactive: "Inactive",
-  done: "Done",
-};
 
 /**
  * Dashboard left-column "My Characters" section. Filters the
  * actor's Player rows to `active` + `inactive` per FR-029 — `done`
  * characters are hidden from the dashboard but remain reachable via
  * the "View all" link to `/characters` (which lists every status).
+ *
+ * Card rendering is delegated to <CharacterCard /> so the dashboard
+ * and the View All page stay visually consistent.
  */
 export function MyCharactersColumn() {
   const characters = useListMyCharacters();
@@ -53,40 +50,15 @@ export function MyCharactersColumn() {
             data-testid="my-characters-list"
           >
             {dashboardRoster.map((player) => (
-              <CharacterRow key={player.id} player={player} />
+              <CharacterCard
+                key={player.id}
+                player={player}
+                testIdPrefix="my-characters-row"
+              />
             ))}
           </ul>
         )}
       </div>
     </section>
-  );
-}
-
-function CharacterRow({ player }: { player: Player }) {
-  return (
-    <li
-      className="flex items-start justify-between gap-3 p-4"
-      data-testid={`my-characters-row-${player.id}`}
-    >
-      <div className="min-w-0">
-        <p className="font-medium text-foreground" data-testid="my-characters-name">
-          {player.characterName}
-        </p>
-        {player.characterSummary ? (
-          <p
-            className="mt-1 truncate text-sm text-muted-foreground"
-            data-testid="my-characters-summary"
-          >
-            {player.characterSummary}
-          </p>
-        ) : null}
-      </div>
-      <span
-        className="shrink-0 text-xs uppercase tracking-wide text-muted-foreground"
-        data-testid="my-characters-status"
-      >
-        {STATUS_LABELS[player.status as PlayerStatus] ?? player.status}
-      </span>
-    </li>
   );
 }

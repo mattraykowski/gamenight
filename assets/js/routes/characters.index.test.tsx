@@ -14,7 +14,7 @@ import { setupServer } from "msw/node";
 import { http, HttpResponse } from "msw";
 import { expectNoAxeViolations } from "@/test/a11y";
 import { AuthProvider, type AuthContextValue } from "@/lib/auth/auth-context";
-import { CharactersRoute } from "./characters";
+import { CharactersRoute } from "./characters.index";
 
 interface RpcResponses {
   listMyCharacters?: () => Response;
