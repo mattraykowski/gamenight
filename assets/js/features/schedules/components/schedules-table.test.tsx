@@ -79,15 +79,18 @@ describe("<SchedulesTable> (T030)", () => {
     expect(await screen.findByText(/no schedules yet/i)).toBeInTheDocument();
   });
 
-  it("renders a View link for each row", async () => {
+  it("renders a View button for each row", async () => {
     const schedule = buildSchedule();
     renderInRouter(
       <SchedulesTable schedules={[schedule]} gameId={schedule.gameId} />,
     );
 
-    const link = await screen.findByRole("link", { name: /view/i });
-    // The href is computed from TanStack Router; assert the element
-    // exists and has the schedule id in its href.
-    expect(link).toHaveAttribute("href", expect.stringContaining(schedule.id));
+    // The View affordance navigates programmatically rather than
+    // rendering as an anchor — see the "schedules-table click-to-
+    // scroll fix" commit. Just assert the button is present + has
+    // the right test id.
+    expect(
+      await screen.findByTestId(`schedule-row-view-${schedule.id}`),
+    ).toBeInTheDocument();
   });
 });

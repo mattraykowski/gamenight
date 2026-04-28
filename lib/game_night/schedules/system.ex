@@ -118,11 +118,15 @@ defmodule GameNight.Schedules.System do
     GameNight.Schedules.ScheduleParticipant
     |> Ash.Changeset.for_create(
       :create,
-      %{is_late_join: true, np_only: false, joined_at: DateTime.utc_now()},
+      %{
+        schedule_id: schedule.id,
+        player_id: player.id,
+        is_late_join: true,
+        np_only: false,
+        joined_at: DateTime.utc_now()
+      },
       actor: actor
     )
-    |> Ash.Changeset.manage_relationship(:schedule, schedule, type: :append)
-    |> Ash.Changeset.manage_relationship(:player, player, type: :append)
     |> Ash.create()
   end
 
@@ -130,9 +134,16 @@ defmodule GameNight.Schedules.System do
     Enum.reduce_while(1..days_in_month, :ok, fn day, _acc ->
       result =
         GameNight.Schedules.ParticipantDay
-        |> Ash.Changeset.for_create(:create, %{day: day, status: :NA}, actor: actor)
-        |> Ash.Changeset.manage_relationship(:participant, participant, type: :append)
-        |> Ash.Changeset.manage_relationship(:schedule, schedule, type: :append)
+        |> Ash.Changeset.for_create(
+          :create,
+          %{
+            participant_id: participant.id,
+            schedule_id: schedule.id,
+            day: day,
+            status: :NA
+          },
+          actor: actor
+        )
         |> Ash.create()
 
       case result do

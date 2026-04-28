@@ -55,6 +55,7 @@ export type Schedule = Pick<
 
 const SCHEDULE_FIELDS = [
   "id",
+  "gameId",
   "month",
   "year",
   "startTime",
@@ -74,6 +75,7 @@ export type ScheduleDay = Pick<
 
 const SCHEDULE_DAY_FIELDS = [
   "id",
+  "scheduleId",
   "day",
   "gmStatus",
   "finalStatus",
@@ -84,6 +86,7 @@ const SCHEDULE_DAY_FIELDS = [
 // for non-GMs, so the SPA reads `gmLockedNa` instead.
 const PLAYER_SCHEDULE_DAY_FIELDS = [
   "id",
+  "scheduleId",
   "day",
   "finalStatus",
   "gmLockedNa",
@@ -99,6 +102,8 @@ export type ScheduleParticipant = Pick<
 
 const SCHEDULE_PARTICIPANT_FIELDS = [
   "id",
+  "scheduleId",
+  "playerId",
   "isLateJoin",
   "npOnly",
   "submittedAt",
@@ -347,7 +352,13 @@ export type ParticipantDay = {
   status: "NA" | "I" | "A" | "IF" | "NP";
 };
 
-const PARTICIPANT_DAY_FIELDS = ["id", "day", "status"] as const;
+const PARTICIPANT_DAY_FIELDS = [
+  "id",
+  "participantId",
+  "scheduleId",
+  "day",
+  "status",
+] as const;
 
 /** List every non-:preparing schedule the character is linked to. */
 export function useListSchedulesForCharacter(
@@ -430,7 +441,9 @@ export function useSetParticipantDayStatus(): UseMutationResult<
         setParticipantDayStatus({
           identity: participantDayId,
           input: { status },
-          fields: PARTICIPANT_DAY_FIELDS as unknown as Array<"id" | "day" | "status">,
+          fields: PARTICIPANT_DAY_FIELDS as unknown as Array<
+            "id" | "participantId" | "scheduleId" | "day" | "status"
+          >,
           headers,
           ...(customFetch !== undefined ? { customFetch } : {}),
         }) as Promise<

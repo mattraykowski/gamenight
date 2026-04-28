@@ -47,6 +47,22 @@ defmodule GameNight.Schedules.ScheduleParticipant do
   json_api do
     type "schedule_participant"
 
+    # Include the FK columns in the default response so the SPA can
+    # identify "my participant" by player_id without having to load
+    # the (private) belongs_to :player relationship. Mirrors the
+    # `default_fields` pattern Schedule uses for game_id.
+    default_fields [
+      :id,
+      :schedule_id,
+      :player_id,
+      :is_late_join,
+      :np_only,
+      :submitted_at,
+      :joined_at,
+      :inserted_at,
+      :updated_at
+    ]
+
     routes do
       base "/schedule_participants"
 
@@ -133,13 +149,21 @@ defmodule GameNight.Schedules.ScheduleParticipant do
   relationships do
     belongs_to :schedule, GameNight.Schedules.Schedule do
       allow_nil? false
-      public? false
+      # public? true so the FK column `schedule_id` appears in the
+      # generated ash_typescript schema and the SPA can request it
+      # in `fields`. The related Schedule resource still loads only
+      # when explicitly requested as a nested field.
+      public? true
       attribute_writable? true
     end
 
     belongs_to :player, GameNight.Games.Player do
       allow_nil? false
-      public? false
+      # See note on :schedule above. ScheduleParticipant's read
+      # policy already gates who can read the row at all; making the
+      # belongs_to public only exposes the player_id FK column, not
+      # the Player resource.
+      public? true
       attribute_writable? true
     end
 

@@ -59,6 +59,8 @@ defmodule GameNight.Schedules.Changes.LinkActivePlayers do
 
   defp create_participant(schedule, player, actor) do
     attrs = %{
+      schedule_id: schedule.id,
+      player_id: player.id,
       is_late_join: false,
       np_only: false,
       joined_at: DateTime.utc_now()
@@ -66,20 +68,21 @@ defmodule GameNight.Schedules.Changes.LinkActivePlayers do
 
     ScheduleParticipant
     |> Ash.Changeset.for_create(:create, attrs, actor: actor)
-    |> Ash.Changeset.manage_relationship(:schedule, schedule, type: :append)
-    |> Ash.Changeset.manage_relationship(:player, player, type: :append)
     |> Ash.create()
   end
 
   defp create_participant_days(schedule, participant, days_in_month, actor) do
     Enum.reduce_while(1..days_in_month, :ok, fn day, _acc ->
-      attrs = %{day: day, status: :NA}
+      attrs = %{
+        participant_id: participant.id,
+        schedule_id: schedule.id,
+        day: day,
+        status: :NA
+      }
 
       result =
         ParticipantDay
         |> Ash.Changeset.for_create(:create, attrs, actor: actor)
-        |> Ash.Changeset.manage_relationship(:participant, participant, type: :append)
-        |> Ash.Changeset.manage_relationship(:schedule, schedule, type: :append)
         |> Ash.create()
 
       case result do

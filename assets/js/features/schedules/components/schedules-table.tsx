@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +25,8 @@ export interface SchedulesTableProps {
  * the GM toward the Initiate Schedule button.
  */
 export function SchedulesTable({ schedules, gameId }: SchedulesTableProps) {
+  const navigate = useNavigate();
+
   if (schedules.length === 0) {
     return (
       <p className="rounded-md border border-dashed border-muted-foreground/30 bg-muted/20 p-6 text-center text-sm text-muted-foreground">
@@ -53,17 +55,18 @@ export function SchedulesTable({ schedules, gameId }: SchedulesTableProps) {
             </TableCell>
             <TableCell className="text-right">
               <Button
-                asChild
+                type="button"
                 variant="outline"
                 size="sm"
                 data-testid={`schedule-row-view-${schedule.id}`}
+                onClick={() =>
+                  void navigate({
+                    to: "/games/$gameId/schedules/$scheduleId",
+                    params: { gameId, scheduleId: schedule.id },
+                  })
+                }
               >
-                <Link
-                  to="/games/$gameId/schedules/$scheduleId"
-                  params={{ gameId, scheduleId: schedule.id }}
-                >
-                  View
-                </Link>
+                View
               </Button>
             </TableCell>
           </TableRow>

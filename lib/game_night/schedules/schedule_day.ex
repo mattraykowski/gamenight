@@ -40,6 +40,16 @@ defmodule GameNight.Schedules.ScheduleDay do
   json_api do
     type "schedule_day"
 
+    default_fields [
+      :id,
+      :schedule_id,
+      :day,
+      :gm_status,
+      :final_status,
+      :inserted_at,
+      :updated_at
+    ]
+
     routes do
       base "/schedule_days"
     end
@@ -122,7 +132,7 @@ defmodule GameNight.Schedules.ScheduleDay do
   relationships do
     belongs_to :schedule, GameNight.Schedules.Schedule do
       allow_nil? false
-      public? false
+      public? true
       attribute_writable? true
     end
   end

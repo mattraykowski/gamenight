@@ -44,6 +44,16 @@ defmodule GameNight.Schedules.ParticipantDay do
   json_api do
     type "participant_day"
 
+    default_fields [
+      :id,
+      :participant_id,
+      :schedule_id,
+      :day,
+      :status,
+      :inserted_at,
+      :updated_at
+    ]
+
     routes do
       base "/participant_days"
 
@@ -139,13 +149,16 @@ defmodule GameNight.Schedules.ParticipantDay do
   relationships do
     belongs_to :participant, GameNight.Schedules.ScheduleParticipant do
       allow_nil? false
-      public? false
+      # public? true so the participant_id FK is selectable via
+      # `fields`. The participant row itself is still gated by
+      # ScheduleParticipant's policies.
+      public? true
       attribute_writable? true
     end
 
     belongs_to :schedule, GameNight.Schedules.Schedule do
       allow_nil? false
-      public? false
+      public? true
       attribute_writable? true
     end
   end

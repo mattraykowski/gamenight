@@ -401,14 +401,19 @@ export function GameDetailRoute() {
                   Initiate schedule
                 </Button>
               </InitiateScheduleDialog>
-              <Button asChild variant="outline" size="sm">
-                <Link
-                  to="/games/$gameId/schedules"
-                  params={{ gameId: id }}
-                  data-testid="view-all-schedules"
-                >
-                  View all schedules
-                </Link>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                data-testid="view-all-schedules"
+                onClick={() =>
+                  void navigate({
+                    to: "/games/$gameId/schedules",
+                    params: { gameId: id },
+                  })
+                }
+              >
+                View all schedules
               </Button>
             </div>
           </div>

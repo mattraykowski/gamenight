@@ -371,7 +371,11 @@ defmodule GameNight.Schedules.Schedule do
   relationships do
     belongs_to :game, GameNight.Games.Game do
       allow_nil? false
-      public? false
+      # public? true so `game_id` is selectable via `fields` on the
+      # SPA. Schedule's policies still gate the row itself, and the
+      # related Game resource is loaded only when explicitly
+      # requested.
+      public? true
       attribute_writable? true
     end
 
@@ -401,10 +405,13 @@ defmodule GameNight.Schedules.Schedule do
       case GameNight.Schedules.ScheduleDay
            |> Ash.Changeset.for_create(
              :create,
-             %{day: day, gm_status: :NA},
+             %{
+               schedule_id: schedule.id,
+               day: day,
+               gm_status: :NA
+             },
              actor: GameNight.Schedules.System.actor()
            )
-           |> Ash.Changeset.manage_relationship(:schedule, schedule, type: :append)
            |> Ash.create() do
         {:ok, _} -> {:cont, :ok}
         {:error, reason} -> {:halt, {:error, reason}}
