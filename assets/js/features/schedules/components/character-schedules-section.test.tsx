@@ -56,6 +56,7 @@ function buildSchedule(overrides: Partial<CharacterSchedule>): CharacterSchedule
     name: "Test schedule",
     submissionCount: 0,
     participantCount: 0,
+    scheduleDays: [],
     ...overrides,
   };
 }
@@ -135,6 +136,75 @@ describe("<CharacterSchedulesSection> (T111)", () => {
     expect(
       await screen.findByTestId("character-schedules-view-all"),
     ).toBeInTheDocument();
+  });
+
+  it("renders 'Next Game:' with the closest upcoming game day on the This month card", async () => {
+    const todayDay = TODAY.getDate();
+    const nextDay = Math.min(todayDay + 2, 28);
+    const current = buildSchedule({
+      id: "next-game-current",
+      name: "This month with games",
+      month: CURRENT_MONTH,
+      year: CURRENT_YEAR,
+      scheduleDays: [
+        { day: Math.max(todayDay - 5, 1), finalStatus: "A" },
+        { day: nextDay, finalStatus: "A" },
+        { day: 28, finalStatus: "NA" },
+      ],
+    });
+    renderInRouter(
+      <CharacterSchedulesSection characterId="char-1" schedules={[current]} />,
+    );
+
+    const line = await screen.findByTestId(
+      `character-schedule-next-game-${current.id}`,
+    );
+    expect(line).toHaveTextContent("Next Game:");
+    const expected = new Date(
+      CURRENT_YEAR,
+      CURRENT_MONTH - 1,
+      nextDay,
+    ).toLocaleDateString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+    expect(line).toHaveTextContent(expected);
+  });
+
+  it("renders 'None remaining this month' when no upcoming Final A days exist", async () => {
+    const current = buildSchedule({
+      id: "next-game-empty",
+      name: "Already-played month",
+      month: CURRENT_MONTH,
+      year: CURRENT_YEAR,
+      scheduleDays: [{ day: 1, finalStatus: "NA" }],
+    });
+    renderInRouter(
+      <CharacterSchedulesSection characterId="char-1" schedules={[current]} />,
+    );
+
+    const line = await screen.findByTestId(
+      `character-schedule-next-game-${current.id}`,
+    );
+    expect(line).toHaveTextContent(/none remaining this month/i);
+  });
+
+  it("does not render 'Next Game:' on the Next month card", async () => {
+    const upcoming = buildSchedule({
+      id: "next-game-not-shown",
+      month: NEXT_MONTH,
+      year: NEXT_YEAR,
+      scheduleDays: [{ day: 5, finalStatus: "A" }],
+    });
+    renderInRouter(
+      <CharacterSchedulesSection characterId="char-1" schedules={[upcoming]} />,
+    );
+
+    await screen.findByText("Test schedule");
+    expect(
+      screen.queryByTestId(`character-schedule-next-game-${upcoming.id}`),
+    ).not.toBeInTheDocument();
   });
 
   it("does not render View all when all posted schedules are in current+upcoming", async () => {

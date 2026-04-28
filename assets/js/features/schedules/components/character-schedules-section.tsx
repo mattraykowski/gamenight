@@ -28,6 +28,31 @@ function isInMonthYear(schedule: CharacterSchedule, target: MonthYear): boolean 
   return schedule.year === target.year && schedule.month === target.month;
 }
 
+function nextGameDate(
+  schedule: CharacterSchedule,
+  now: Date = new Date(),
+): Date | null {
+  const todayDay =
+    now.getFullYear() === schedule.year &&
+    now.getMonth() + 1 === schedule.month
+      ? now.getDate()
+      : 1;
+  const upcoming = (schedule.scheduleDays ?? [])
+    .filter((sd) => sd.finalStatus === "A" && sd.day >= todayDay)
+    .map((sd) => sd.day)
+    .sort((a, b) => a - b);
+  if (upcoming.length === 0) return null;
+  return new Date(schedule.year, schedule.month - 1, upcoming[0] as number);
+}
+
+function formatNextGame(date: Date): string {
+  return date.toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 /**
  * US5 — splits the player's posted schedules into "current month",
  * "upcoming month", and "everything else" buckets and renders the
@@ -85,6 +110,7 @@ export function CharacterSchedulesSection({
           characterId={characterId}
           schedules={currentSchedules}
           emptyText="No posted schedule for the current month."
+          showNextGame
         />
         <ScheduleBucket
           headingId="character-schedules-upcoming"
@@ -104,6 +130,7 @@ interface ScheduleBucketProps {
   characterId: string;
   schedules: CharacterSchedule[];
   emptyText: string;
+  showNextGame?: boolean;
 }
 
 function ScheduleBucket({
@@ -112,6 +139,7 @@ function ScheduleBucket({
   characterId,
   schedules,
   emptyText,
+  showNextGame = false,
 }: ScheduleBucketProps) {
   const navigate = useNavigate();
 
@@ -127,31 +155,49 @@ function ScheduleBucket({
         <p className="mt-2 text-sm text-muted-foreground">{emptyText}</p>
       ) : (
         <ul className="mt-3 space-y-3">
-          {schedules.map((schedule) => (
-            <li
-              key={schedule.id}
-              className="flex items-center justify-between gap-3"
-              data-testid={`character-schedule-${schedule.id}`}
-            >
-              <div>
-                <p className="font-medium">{schedule.name}</p>
-                <ScheduleStatusBadge status={schedule.status} />
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  void navigate({
-                    to: "/characters/$characterId/schedules/$scheduleId",
-                    params: { characterId, scheduleId: schedule.id },
-                  })
-                }
+          {schedules.map((schedule) => {
+            const next = showNextGame ? nextGameDate(schedule) : null;
+            return (
+              <li
+                key={schedule.id}
+                className="flex items-center justify-between gap-3"
+                data-testid={`character-schedule-${schedule.id}`}
               >
-                Open
-              </Button>
-            </li>
-          ))}
+                <div>
+                  <p className="font-medium">{schedule.name}</p>
+                  <ScheduleStatusBadge status={schedule.status} />
+                  {showNextGame ? (
+                    <p
+                      className="mt-1 text-xs text-muted-foreground"
+                      data-testid={`character-schedule-next-game-${schedule.id}`}
+                    >
+                      Next Game:{" "}
+                      {next ? (
+                        <span className="font-medium text-foreground">
+                          {formatNextGame(next)}
+                        </span>
+                      ) : (
+                        <span>None remaining this month</span>
+                      )}
+                    </p>
+                  ) : null}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    void navigate({
+                      to: "/characters/$characterId/schedules/$scheduleId",
+                      params: { characterId, scheduleId: schedule.id },
+                    })
+                  }
+                >
+                  Open
+                </Button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

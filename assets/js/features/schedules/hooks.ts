@@ -397,7 +397,14 @@ export function useSetScheduleGmDay(): UseMutationResult<
 // Player-side hooks (US3)
 // ──────────────────────────────────────────────────────────────────────
 
-export type CharacterSchedule = Schedule;
+export type CharacterScheduleDay = {
+  day: number;
+  finalStatus: "NA" | "A" | null;
+};
+
+export type CharacterSchedule = Schedule & {
+  scheduleDays: CharacterScheduleDay[];
+};
 
 export type CharacterScheduleDetail = Schedule & {
   scheduleDays: Array<Pick<ScheduleDayResourceSchema, "id" | "day" | "finalStatus" | "gmLockedNa"> & { scheduleId: string }>;
@@ -431,7 +438,10 @@ export function useListSchedulesForCharacter(
       return runRpc<CharacterSchedule[]>(
         listSchedulesForCharacter({
           input: { playerId },
-          fields: SCHEDULE_FIELDS as unknown as Array<
+          fields: [
+            ...SCHEDULE_FIELDS,
+            { scheduleDays: ["day", "finalStatus"] },
+          ] as unknown as Array<
             ScheduleResourceSchema["__primitiveFields"]
           >,
           headers,
