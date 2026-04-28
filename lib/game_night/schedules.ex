@@ -42,5 +42,9 @@ defmodule GameNight.Schedules do
   end
 
   resources do
+    resource GameNight.Schedules.Schedule
+    resource GameNight.Schedules.ScheduleDay
+    resource GameNight.Schedules.ScheduleParticipant
+    resource GameNight.Schedules.ParticipantDay
   end
 end

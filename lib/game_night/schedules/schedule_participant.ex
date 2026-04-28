@@ -1,0 +1,120 @@
+defmodule GameNight.Schedules.ScheduleParticipant do
+  @moduledoc """
+  Links a player's character (`GameNight.Games.Player`) to a
+  `Schedule`. One row per (Schedule, Player).
+
+  `np_only?` is `true` when the participant joined a schedule that
+  was already `:posted` — every `participant_day` is `:NP` and the
+  calendar is read-only/grayed for that participant.
+  `is_late_join?` is `true` for any participant linked after the
+  schedule transitioned to `:ready_for_availability` (for telemetry).
+
+  The `player_id` FK is `ON DELETE RESTRICT` — Player removal is
+  intercepted by `GameNight.Schedules.System.handle_player_destroy/1`
+  so non-posted schedules' participants cascade-delete while posted
+  schedules' participants are preserved with `np_only?: true`.
+  See `specs/003-game-schedule/data-model.md` §ScheduleParticipant
+  Player-removal handling.
+
+  Skeleton for Phase 2 (Foundational). Story phases add the named
+  actions.
+  """
+  use Ash.Resource,
+    otp_app: :game_night,
+    domain: GameNight.Schedules,
+    data_layer: AshPostgres.DataLayer,
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshJsonApi.Resource, AshTypescript.Resource]
+
+  postgres do
+    table "schedule_participants"
+    repo GameNight.Repo
+
+    references do
+      reference :schedule, on_delete: :delete
+      reference :player, on_delete: :restrict
+    end
+
+    custom_indexes do
+      index [:schedule_id, :np_only, :submitted_at, :joined_at],
+        name: "schedule_participants_roster_index"
+
+      index [:player_id, :schedule_id],
+        name: "schedule_participants_player_schedule_index"
+    end
+  end
+
+  json_api do
+    type "schedule_participant"
+
+    routes do
+      base "/schedule_participants"
+    end
+  end
+
+  typescript do
+    type_name "ScheduleParticipant"
+  end
+
+  actions do
+    defaults [:read, :destroy, create: :*, update: :*]
+  end
+
+  policies do
+    bypass actor_attribute_equals(:_internal?, true) do
+      authorize_if always()
+    end
+  end
+
+  attributes do
+    uuid_primary_key :id
+
+    attribute :is_late_join, :boolean do
+      allow_nil? false
+      public? true
+      default false
+    end
+
+    attribute :np_only, :boolean do
+      allow_nil? false
+      public? true
+      default false
+    end
+
+    attribute :submitted_at, :utc_datetime_usec do
+      allow_nil? true
+      public? true
+    end
+
+    attribute :joined_at, :utc_datetime_usec do
+      allow_nil? false
+      public? true
+      default &DateTime.utc_now/0
+    end
+
+    create_timestamp :inserted_at, public?: true
+    update_timestamp :updated_at, public?: true
+  end
+
+  relationships do
+    belongs_to :schedule, GameNight.Schedules.Schedule do
+      allow_nil? false
+      public? false
+      attribute_writable? true
+    end
+
+    belongs_to :player, GameNight.Games.Player do
+      allow_nil? false
+      public? false
+      attribute_writable? true
+    end
+
+    has_many :participant_days, GameNight.Schedules.ParticipantDay do
+      destination_attribute :participant_id
+    end
+  end
+
+  identities do
+    identity :unique_per_schedule_player, [:schedule_id, :player_id]
+  end
+end

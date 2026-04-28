@@ -101,7 +101,7 @@ export type NotificationResourceSchema = {
   __type: "Resource";
   __primitiveFields: "id" | "kind" | "subjectType" | "subjectId" | "readAt" | "resolvedAt" | "insertedAt" | "updatedAt";
   id: UUID;
-  kind: "game_invitation";
+  kind: "game_invitation" | "schedule_ready_for_availability" | "schedule_posted" | "schedule_updated" | "schedule_reminder";
   subjectType: string;
   subjectId: UUID;
   readAt: UtcDateTimeUsec | null;
@@ -116,7 +116,7 @@ export type NotificationAttributesOnlySchema = {
   __type: "Resource";
   __primitiveFields: "id" | "kind" | "subjectType" | "subjectId" | "readAt" | "resolvedAt" | "insertedAt" | "updatedAt";
   id: UUID;
-  kind: "game_invitation";
+  kind: "game_invitation" | "schedule_ready_for_availability" | "schedule_posted" | "schedule_updated" | "schedule_reminder";
   subjectType: string;
   subjectId: UUID;
   readAt: UtcDateTimeUsec | null;
@@ -286,9 +286,9 @@ export type NotificationFilterInput = {
   };
 
   kind?: {
-    eq?: "game_invitation";
-    notEq?: "game_invitation";
-    in?: Array<"game_invitation">;
+    eq?: "game_invitation" | "schedule_ready_for_availability" | "schedule_posted" | "schedule_updated" | "schedule_reminder";
+    notEq?: "game_invitation" | "schedule_ready_for_availability" | "schedule_posted" | "schedule_updated" | "schedule_reminder";
+    in?: Array<"game_invitation" | "schedule_ready_for_availability" | "schedule_posted" | "schedule_updated" | "schedule_reminder">;
   };
 
   subjectType?: {

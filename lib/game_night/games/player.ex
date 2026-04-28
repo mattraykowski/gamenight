@@ -91,6 +91,27 @@ defmodule GameNight.Games.Player do
       upsert_fields []
     end
 
+    # Feature 003 (T020.5) — Player removal cascades into the
+    # Schedules domain via a before_action. The FK on
+    # `schedule_participants.player_id` is `ON DELETE RESTRICT` so
+    # the schedule cascade MUST run before the row is destroyed —
+    # otherwise the DB rejects the destroy.
+    #
+    # Phase 2 stub: `handle_player_destroy/1` is a no-op; the
+    # three-branch behavior (destroy participants for non-posted
+    # schedules / preserve with NP for posted) lands in T151.5
+    # (US9). Until then, destroying a player who is linked to any
+    # schedule will fail at the DB level with an FK violation —
+    # which is the documented intermediate state.
+    destroy :destroy do
+      change before_action(fn changeset, _ctx ->
+               case GameNight.Schedules.System.handle_player_destroy(changeset.data) do
+                 :ok -> changeset
+                 {:error, reason} -> Ash.Changeset.add_error(changeset, reason)
+               end
+             end)
+    end
+
     read :list_for_game do
       description """
       The roster for a specific game. Admits the GM and any user

@@ -183,5 +183,9 @@ defmodule GameNight.Games.Game do
     # Feature 002 — drives the GM-only pending-invitations section on
     # the game detail page.
     has_many :invitations, GameNight.Games.Invitation
+
+    # Feature 003 — drives the schedules table on the game detail page
+    # and the player-side per-character schedule list.
+    has_many :schedules, GameNight.Schedules.Schedule
   end
 end
