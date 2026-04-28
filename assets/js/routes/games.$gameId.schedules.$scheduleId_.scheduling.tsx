@@ -2,10 +2,14 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
-import { DayMatrixTable, type DayMatrixDay } from "@/features/schedules/components/day-matrix-table";
+import {
+  DayMatrixTable,
+  type DayMatrixDay,
+  type DayMatrixParticipant,
+} from "@/features/schedules/components/day-matrix-table";
 import { PostScheduleDialog } from "@/features/schedules/components/post-schedule-dialog";
 import {
-  useGetScheduleForGame,
+  useGetScheduleForScheduling,
   usePostSchedule,
   useUpdateScheduleFinalDay,
 } from "@/features/schedules/hooks";
@@ -29,7 +33,7 @@ export const Route = createFileRoute(
 
 function SchedulingViewRoute() {
   const { gameId, scheduleId } = Route.useParams();
-  const schedule = useGetScheduleForGame({ id: scheduleId, gameId });
+  const schedule = useGetScheduleForScheduling({ id: scheduleId, gameId });
   const updateFinalDay = useUpdateScheduleFinalDay();
   const post = usePostSchedule();
   const { push } = useToasts();
@@ -38,22 +42,44 @@ function SchedulingViewRoute() {
   const matrix = useMemo(() => {
     if (!schedule.data) return null;
 
-    // The GET payload doesn't load participants/participantDays
-    // for the GM Scheduling View by default — story phases will
-    // wire that. For now we present whatever schedule_days we
-    // have plus an empty participant list (computes the Final Note
-    // from gm_status alone).
+    const allParticipants = schedule.data.participants ?? [];
+
+    const participants: DayMatrixParticipant[] = allParticipants.map((p) => ({
+      id: p.id,
+      characterName: p.player?.characterName ?? "Player",
+      npOnly: p.npOnly === true,
+    }));
+
+    // Build a (participantId × day) → status map up front so the
+    // per-row lookups stay O(1).
+    const statusByParticipantDay = new Map<string, ParticipantDayStatus>();
+    for (const participant of allParticipants) {
+      for (const pd of participant.participantDays ?? []) {
+        statusByParticipantDay.set(
+          `${participant.id}:${pd.day}`,
+          pd.status as ParticipantDayStatus,
+        );
+      }
+    }
+
     const days: DayMatrixDay[] = (schedule.data.scheduleDays ?? [])
       .slice()
       .sort((a, b) => a.day - b.day)
-      .map((sd) => ({
-        day: sd.day,
-        gmStatus: (sd.gmStatus ?? "NA") as AvailabilityStatus,
-        finalStatus: sd.finalStatus as FinalStatus | null,
-        participantStatuses: {} as Record<string, ParticipantDayStatus>,
-      }));
+      .map((sd) => {
+        const participantStatuses: Record<string, ParticipantDayStatus> = {};
+        for (const p of allParticipants) {
+          participantStatuses[p.id] =
+            statusByParticipantDay.get(`${p.id}:${sd.day}`) ?? "NA";
+        }
+        return {
+          day: sd.day,
+          gmStatus: (sd.gmStatus ?? "NA") as AvailabilityStatus,
+          finalStatus: sd.finalStatus as FinalStatus | null,
+          participantStatuses,
+        };
+      });
 
-    return { days, participants: [] };
+    return { days, participants };
   }, [schedule.data]);
 
   async function onCycleFinal(day: number, next: FinalStatus) {

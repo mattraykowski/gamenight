@@ -19,7 +19,7 @@ const FINAL_KIND_CLASS: Record<FinalNoteKind, string> = {
   good_day: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
   maybe: "bg-amber-500/20 text-amber-800 dark:text-amber-200",
   maybe_with_if: "bg-amber-500/20 text-amber-800 dark:text-amber-200",
-  host_unavailable: "bg-muted text-muted-foreground",
+  host_unavailable: "bg-foreground/15 text-foreground",
   bad_day: "bg-destructive/15 text-destructive",
 };
 
@@ -45,6 +45,25 @@ const STATUS_SHORT: Record<ParticipantDayStatus, string> = {
   A: "A",
   IF: "IF",
   NP: "NP",
+};
+
+// Matches the per-status color/icon language the MonthCalendar
+// renders, so a participant's row in the matrix reads the same as
+// their cell on the calendar.
+const STATUS_CELL_CLASS: Record<ParticipantDayStatus, string> = {
+  NA: "bg-destructive/10 text-destructive",
+  I: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+  A: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  IF: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+  NP: "bg-foreground/15 text-foreground",
+};
+
+const STATUS_ICON: Record<ParticipantDayStatus, string> = {
+  NA: "✕",
+  I: "★",
+  A: "✓",
+  IF: "?",
+  NP: "—",
 };
 
 export interface DayMatrixParticipant {
@@ -192,9 +211,13 @@ export function DayMatrixTable({
                   return (
                     <td
                       key={p.id}
-                      className="h-12 px-3 align-middle text-muted-foreground"
+                      className={cn(
+                        "h-12 px-3 align-middle font-medium",
+                        STATUS_CELL_CLASS[status],
+                      )}
                       aria-label={`${p.characterName} on day ${day.day}: ${STATUS_LABEL[status]}`}
                     >
+                      <span aria-hidden="true">{STATUS_ICON[status]}</span>{" "}
                       {STATUS_SHORT[status]}
                     </td>
                   );

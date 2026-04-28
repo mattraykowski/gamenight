@@ -120,6 +120,20 @@ export type ScheduleWithDays = Schedule & {
   scheduleDays: ScheduleDay[];
 };
 
+/**
+ * GM Scheduling View payload shape — schedule + every linked
+ * participant + each participant's player.characterName + every
+ * participant's per-day status.
+ */
+export type ScheduleForScheduling = ScheduleWithDays & {
+  participants: Array<
+    ScheduleParticipant & {
+      player: { id: string; characterName: string } | null;
+      participantDays: Array<{ id: string; day: number; status: string }>;
+    }
+  >;
+};
+
 export const schedulesKeys = {
   all: ["schedules"] as const,
   byGame: (gameId: string) => [...schedulesKeys.all, "byGame", gameId] as const,
@@ -217,6 +231,44 @@ export function useGetScheduleForGame(
           ...(customFetch !== undefined ? { customFetch } : {}),
         }) as Promise<
           | { success: true; data: ScheduleWithDays }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    enabled: input.id.length > 0 && input.gameId.length > 0,
+  });
+}
+
+/**
+ * GM-only — fetch the schedule with participants + each
+ * participant's character name + participant_days, for the
+ * Scheduling View matrix.
+ */
+export function useGetScheduleForScheduling(
+  input: GetScheduleForGameInput,
+): UseQueryResult<ScheduleForScheduling, ApiError> {
+  return useQuery({
+    queryKey: [...schedulesKeys.detail(input.id), "scheduling", input],
+    queryFn: async () => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<ScheduleForScheduling>(
+        getScheduleForGame({
+          input,
+          fields: [
+            ...SCHEDULE_FIELDS,
+            { scheduleDays: SCHEDULE_DAY_FIELDS },
+            {
+              participants: [
+                ...SCHEDULE_PARTICIPANT_FIELDS,
+                { player: ["id", "characterName"] },
+                { participantDays: ["id", "day", "status"] },
+              ],
+            },
+          ] as unknown as Array<ScheduleResourceSchema["__primitiveFields"]>,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: ScheduleForScheduling }
           | { success: false; errors: AshRpcError[] }
         >,
       );
