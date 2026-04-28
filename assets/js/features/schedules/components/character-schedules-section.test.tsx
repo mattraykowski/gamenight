@@ -138,7 +138,7 @@ describe("<CharacterSchedulesSection> (T111)", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders 'Next Game:' with the closest upcoming game day on the This month card", async () => {
+  it("renders a prominent 'Next Game' callout above the This month list", async () => {
     const todayDay = TODAY.getDate();
     const nextDay = Math.min(todayDay + 2, 28);
     const current = buildSchedule({
@@ -156,10 +156,8 @@ describe("<CharacterSchedulesSection> (T111)", () => {
       <CharacterSchedulesSection characterId="char-1" schedules={[current]} />,
     );
 
-    const line = await screen.findByTestId(
-      `character-schedule-next-game-${current.id}`,
-    );
-    expect(line).toHaveTextContent("Next Game:");
+    const callout = await screen.findByTestId("character-schedules-next-game");
+    expect(callout).toHaveTextContent(/next game/i);
     const expected = new Date(
       CURRENT_YEAR,
       CURRENT_MONTH - 1,
@@ -169,7 +167,7 @@ describe("<CharacterSchedulesSection> (T111)", () => {
       month: "short",
       day: "numeric",
     });
-    expect(line).toHaveTextContent(expected);
+    expect(callout).toHaveTextContent(expected);
   });
 
   it("renders 'None remaining this month' when no upcoming Final A days exist", async () => {
@@ -184,13 +182,11 @@ describe("<CharacterSchedulesSection> (T111)", () => {
       <CharacterSchedulesSection characterId="char-1" schedules={[current]} />,
     );
 
-    const line = await screen.findByTestId(
-      `character-schedule-next-game-${current.id}`,
-    );
-    expect(line).toHaveTextContent(/none remaining this month/i);
+    const callout = await screen.findByTestId("character-schedules-next-game");
+    expect(callout).toHaveTextContent(/none remaining this month/i);
   });
 
-  it("does not render 'Next Game:' on the Next month card", async () => {
+  it("does not render the Next Game callout on the Next month card", async () => {
     const upcoming = buildSchedule({
       id: "next-game-not-shown",
       month: NEXT_MONTH,
@@ -203,7 +199,7 @@ describe("<CharacterSchedulesSection> (T111)", () => {
 
     await screen.findByText("Test schedule");
     expect(
-      screen.queryByTestId(`character-schedule-next-game-${upcoming.id}`),
+      screen.queryByTestId("character-schedules-next-game"),
     ).not.toBeInTheDocument();
   });
 

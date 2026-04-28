@@ -154,10 +154,12 @@ function ScheduleBucket({
       {schedules.length === 0 ? (
         <p className="mt-2 text-sm text-muted-foreground">{emptyText}</p>
       ) : (
-        <ul className="mt-3 space-y-3">
-          {schedules.map((schedule) => {
-            const next = showNextGame ? nextGameDate(schedule) : null;
-            return (
+        <>
+          {showNextGame ? (
+            <NextGameCallout schedules={schedules} />
+          ) : null}
+          <ul className="mt-3 space-y-3">
+            {schedules.map((schedule) => (
               <li
                 key={schedule.id}
                 className="flex items-center justify-between gap-3"
@@ -166,21 +168,6 @@ function ScheduleBucket({
                 <div>
                   <p className="font-medium">{schedule.name}</p>
                   <ScheduleStatusBadge status={schedule.status} />
-                  {showNextGame ? (
-                    <p
-                      className="mt-1 text-xs text-muted-foreground"
-                      data-testid={`character-schedule-next-game-${schedule.id}`}
-                    >
-                      Next Game:{" "}
-                      {next ? (
-                        <span className="font-medium text-foreground">
-                          {formatNextGame(next)}
-                        </span>
-                      ) : (
-                        <span>None remaining this month</span>
-                      )}
-                    </p>
-                  ) : null}
                 </div>
                 <Button
                   type="button"
@@ -196,10 +183,31 @@ function ScheduleBucket({
                   Open
                 </Button>
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+        </>
       )}
+    </div>
+  );
+}
+
+function NextGameCallout({ schedules }: { schedules: CharacterSchedule[] }) {
+  const next = schedules
+    .map((s) => nextGameDate(s))
+    .filter((d): d is Date => d !== null)
+    .sort((a, b) => a.getTime() - b.getTime())[0];
+
+  return (
+    <div
+      className="mt-3 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-4 py-3"
+      data-testid="character-schedules-next-game"
+    >
+      <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+        Next Game
+      </p>
+      <p className="mt-1 text-2xl font-bold tracking-tight">
+        {next ? formatNextGame(next) : "None remaining this month"}
+      </p>
     </div>
   );
 }
