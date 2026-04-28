@@ -337,17 +337,17 @@ description: "Task list for feature 003 — Game Schedule"
 
 ### Tests for US9 (RED first) ⚠️
 
-- [ ] T147 [P] [US9] System test [test/game_night/schedules/system_test.exs](test/game_night/schedules/system_test.exs) extension — `add_late_joiner/2` against a `:posted` schedule yields `np_only: true` participant with every `participant_day.status == :NP`; no notification fired.
-- [ ] T148 [P] [US9] Action test [test/game_night/schedules/participant_day_test.exs](test/game_night/schedules/participant_day_test.exs) — `:set_status` rejected for `np_only` participants.
-- [ ] T149 [P] [US9] Vitest test [assets/js/features/schedules/components/month-calendar.test.tsx](assets/js/features/schedules/components/month-calendar.test.tsx) extension — when every cell carries `status: "NP"`, calendar renders fully grayed and uninteractive. Verify RED.
+- [X] T147 [P] [US9] System test [test/game_night/schedules/system_test.exs](test/game_night/schedules/system_test.exs) extension — `add_late_joiner/2` against a `:posted` schedule yields `np_only: true` participant with every `participant_day.status == :NP`; no notification fired.
+- [X] T148 [P] [US9] Action test [test/game_night/schedules/participant_day_test.exs](test/game_night/schedules/participant_day_test.exs) — `:set_status` rejected for `np_only` participants.
+- [X] T149 [P] [US9] Vitest test [assets/js/features/schedules/components/month-calendar.test.tsx](assets/js/features/schedules/components/month-calendar.test.tsx) extension — when every cell carries `status: "NP"`, calendar renders fully grayed and uninteractive. Verify RED.
 
 ### Implementation for US9
 
-- [ ] T150 [US9] Implement [lib/game_night/schedules/changes/mark_days_np.ex](lib/game_night/schedules/changes/mark_days_np.ex) and `ParticipantDay.bulk_set_to_np` system action.
-- [ ] T151 [US9] Update `GameNight.Schedules.System.add_late_joiner/2` (T062) to handle the `:posted` branch using `MarkDaysNp`. No notification fan-out.
-- [ ] T151.5 [US9] Implement `GameNight.Schedules.System.handle_player_destroy/1` per the contract from [data-model.md §ScheduleParticipant Player-removal handling](./data-model.md): for each of the player's `ScheduleParticipant` rows, branch on `schedule.status` — destroy when `:preparing`/`:ready_for_availability`, otherwise update `np_only: true`, `submitted_at: nil` and call `bulk_set_to_np` for every day. Wired in T020.5; this completes the previously stubbed function. Verifies T020.6 GREEN.
-- [ ] T152 [US9] Update [assets/js/features/schedules/components/month-calendar.tsx](assets/js/features/schedules/components/month-calendar.tsx) to render NP cells correctly (gray, no hover, `aria-disabled`, `aria-label="<date>, Not Present"`).
-- [ ] T153 [US9] Run full gate. Confirm GREEN.
+- [X] T150 [US9] Implement [lib/game_night/schedules/changes/mark_days_np.ex](lib/game_night/schedules/changes/mark_days_np.ex) and `ParticipantDay.bulk_set_to_np` system action.
+- [X] T151 [US9] Update `GameNight.Schedules.System.add_late_joiner/2` (T062) to handle the `:posted` branch using `MarkDaysNp`. No notification fan-out.
+- [X] T151.5 [US9] Implement `GameNight.Schedules.System.handle_player_destroy/1` per the contract from [data-model.md §ScheduleParticipant Player-removal handling](./data-model.md): for each of the player's `ScheduleParticipant` rows, branch on `schedule.status` — destroy when `:preparing`/`:ready_for_availability`, otherwise update `np_only: true`, `submitted_at: nil` and call `bulk_set_to_np` for every day. Wired in T020.5; this completes the previously stubbed function. Verifies T020.6 GREEN.
+- [X] T152 [US9] Update [assets/js/features/schedules/components/month-calendar.tsx](assets/js/features/schedules/components/month-calendar.tsx) to render NP cells correctly (gray, no hover, `aria-disabled`, `aria-label="<date>, Not Present"`).
+- [X] T153 [US9] Run full gate. Confirm GREEN.
 
 **Checkpoint**: US9 complete. All nine user stories shipped.
 

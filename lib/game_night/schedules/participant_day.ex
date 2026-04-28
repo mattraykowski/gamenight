@@ -106,6 +106,20 @@ defmodule GameNight.Schedules.ParticipantDay do
 
       change set_attribute(:status, :NA)
     end
+
+    update :bulk_set_to_np do
+      description """
+      System-only — overwrite per-day status to :NP. Called when a
+      late-joining player is linked to a `:posted` schedule (US9)
+      or when an existing player is removed from a game and their
+      `ScheduleParticipant` rows on `:posted` schedules are
+      preserved as np_only.
+      """
+      accept []
+      require_atomic? false
+
+      change set_attribute(:status, :NP)
+    end
   end
 
   policies do

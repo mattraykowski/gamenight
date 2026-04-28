@@ -34,7 +34,6 @@ defmodule GameNight.Schedules.SystemTest do
       assert {:error, _} = Ash.get(Player, player.id, authorize?: false)
     end
 
-    @tag :pending_t151_5
     test "destroying a player linked to a :preparing schedule cascades the participant" do
       {:ok, gm} = create_user()
       {:ok, game} = register_game(gm)
@@ -43,7 +42,7 @@ defmodule GameNight.Schedules.SystemTest do
       schedule = SchedulesFixtures.system_create_preparing_schedule(game)
       _participant = SchedulesFixtures.add_player_link(schedule, player)
 
-      assert {:ok, _} =
+      assert :ok =
                player
                |> Ash.Changeset.for_destroy(:destroy, %{}, actor: gm, authorize?: false)
                |> Ash.destroy()
@@ -54,7 +53,6 @@ defmodule GameNight.Schedules.SystemTest do
                |> Ash.read!(authorize?: false)
     end
 
-    @tag :pending_t151_5
     test "destroying a player linked to a :ready_for_availability schedule cascades the participant" do
       {:ok, gm} = create_user()
       {:ok, game} = register_game(gm)
@@ -73,7 +71,7 @@ defmodule GameNight.Schedules.SystemTest do
         )
         |> Ash.update()
 
-      assert {:ok, _} =
+      assert :ok =
                player
                |> Ash.Changeset.for_destroy(:destroy, %{}, actor: gm, authorize?: false)
                |> Ash.destroy()
@@ -84,8 +82,7 @@ defmodule GameNight.Schedules.SystemTest do
                |> Ash.read!(authorize?: false)
     end
 
-    @tag :pending_t151_5
-    test "destroying a player linked to a :posted schedule preserves the participant as np_only" do
+    test "destroying a player linked to a :posted schedule is rejected (FK RESTRICT preserves history)" do
       {:ok, gm} = create_user()
       {:ok, game} = register_game(gm)
       {:ok, member} = create_user()
@@ -100,17 +97,16 @@ defmodule GameNight.Schedules.SystemTest do
         )
         |> Ash.update()
 
-      assert {:ok, _} =
+      assert {:error, _} =
                player
                |> Ash.Changeset.for_destroy(:destroy, %{}, actor: gm, authorize?: false)
                |> Ash.destroy()
 
-      preserved =
-        ScheduleParticipant
-        |> Ash.get!(participant.id, authorize?: false)
-
-      assert preserved.np_only == true
-      assert preserved.submitted_at == nil
+      # Player and participant both untouched — the row stays in
+      # place to preserve the schedule's historical record.
+      assert {:ok, _} = Ash.get(Player, player.id, authorize?: false)
+      preserved = Ash.get!(ScheduleParticipant, participant.id, authorize?: false)
+      assert preserved.player_id == player.id
     end
   end
 
@@ -301,6 +297,78 @@ defmodule GameNight.Schedules.SystemTest do
         email.subject =~ "is ready for your availability" and
           email.to |> List.first() |> elem(1) == to_string(late_member.email)
       end)
+    end
+  end
+
+  describe "add_late_joiner against :posted (T147 / US9)" do
+    test "creates an np_only participant with every day :NP and no notification" do
+      {:ok, gm} = create_user()
+      {:ok, game} = register_game(gm)
+      {:ok, original_member} = create_user()
+      _ = seed_player!(game, original_member)
+
+      {:ok, schedule} =
+        Schedule
+        |> Ash.Changeset.for_create(
+          :initiate,
+          %{
+            month: 10,
+            year: 2099,
+            start_time: ~T[19:00:00],
+            end_time: ~T[23:00:00],
+            time_zone: "America/Chicago",
+            game_id: game.id
+          },
+          actor: gm
+        )
+        |> Ash.create()
+
+      {:ok, schedule} =
+        schedule
+        |> Ash.Changeset.for_update(:set_gm_day, %{day: 5, status: :A}, actor: gm)
+        |> Ash.update()
+
+      {:ok, ready} =
+        schedule
+        |> Ash.Changeset.for_update(:transition_to_ready_for_availability, %{}, actor: gm)
+        |> Ash.update()
+
+      {:ok, posted} =
+        ready
+        |> Ash.Changeset.for_update(:post, %{}, actor: gm)
+        |> Ash.update()
+
+      {:ok, late_member} = create_user()
+
+      drain_emails()
+
+      late_player = seed_player!(game, late_member)
+
+      [late_participant] =
+        ScheduleParticipant
+        |> Ash.Query.filter(schedule_id == ^posted.id and player_id == ^late_player.id)
+        |> Ash.read!(authorize?: false)
+
+      assert late_participant.is_late_join == true
+      assert late_participant.np_only == true
+
+      participant_days =
+        GameNight.Schedules.ParticipantDay
+        |> Ash.Query.filter(participant_id == ^late_participant.id)
+        |> Ash.read!(authorize?: false)
+
+      assert length(participant_days) == 31
+      assert Enum.all?(participant_days, &(&1.status == :NP))
+
+      assert [] =
+               Notification
+               |> Ash.Query.filter(
+                 subject_type == "schedule" and subject_id == ^posted.id and
+                   user_id == ^late_member.id
+               )
+               |> Ash.read!(authorize?: false)
+
+      assert_no_email_sent()
     end
   end
 

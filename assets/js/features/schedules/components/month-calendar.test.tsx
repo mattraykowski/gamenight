@@ -139,6 +139,30 @@ describe("<MonthCalendar> (T027)", () => {
     expect(onCycle).not.toHaveBeenCalled();
   });
 
+  it("renders an all-NP calendar fully grayed and uninteractive (T149 / US9)", async () => {
+    const onCycle = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <MonthCalendar
+        year={2026}
+        month={10}
+        cells={buildCells(2026, 10, "NP")}
+        mode="read-only"
+        onCycle={onCycle}
+        ariaLabel="October 2026 calendar"
+      />,
+    );
+
+    const cells = screen.getAllByRole("gridcell");
+    for (const cell of cells) {
+      expect(cell).toHaveAttribute("aria-disabled", "true");
+      expect(cell).toHaveTextContent(/not present/i);
+    }
+
+    await user.click(cells[4] as HTMLElement);
+    expect(onCycle).not.toHaveBeenCalled();
+  });
+
   it("read-only mode never calls onCycle", async () => {
     const onCycle = vi.fn();
     const user = userEvent.setup();

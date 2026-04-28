@@ -92,9 +92,57 @@ defmodule GameNight.Schedules.System do
         link_active_late_joiner(schedule, player)
 
       :posted ->
-        # T151 (US9) implements the NP linkage path.
-        :ignored
+        link_np_late_joiner(schedule, player)
     end
+  end
+
+  defp link_np_late_joiner(schedule, player) do
+    days_in_month = Date.days_in_month(Date.new!(schedule.year, schedule.month, 1))
+    actor = actor()
+
+    with {:ok, participant} <- create_np_participant(schedule, player, actor),
+         :ok <- create_np_days(schedule, participant, days_in_month, actor) do
+      {:ok, participant}
+    end
+  end
+
+  defp create_np_participant(schedule, player, actor) do
+    GameNight.Schedules.ScheduleParticipant
+    |> Ash.Changeset.for_create(
+      :create,
+      %{
+        schedule_id: schedule.id,
+        player_id: player.id,
+        is_late_join: true,
+        np_only: true,
+        joined_at: DateTime.utc_now()
+      },
+      actor: actor
+    )
+    |> Ash.create()
+  end
+
+  defp create_np_days(schedule, participant, days_in_month, actor) do
+    Enum.reduce_while(1..days_in_month, :ok, fn day, _acc ->
+      result =
+        GameNight.Schedules.ParticipantDay
+        |> Ash.Changeset.for_create(
+          :create,
+          %{
+            participant_id: participant.id,
+            schedule_id: schedule.id,
+            day: day,
+            status: :NP
+          },
+          actor: actor
+        )
+        |> Ash.create()
+
+      case result do
+        {:ok, _} -> {:cont, :ok}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
   end
 
   defp link_active_late_joiner(schedule, player) do
@@ -378,5 +426,52 @@ defmodule GameNight.Schedules.System do
   intermediate state. T151.5 (US9) implements the real branching.
   """
   @spec handle_player_destroy(GameNight.Games.Player.t()) :: :ok | {:error, term()}
-  def handle_player_destroy(_player), do: :ok
+  def handle_player_destroy(player) do
+    require Ash.Query
+
+    actor = actor()
+
+    participants =
+      GameNight.Schedules.ScheduleParticipant
+      |> Ash.Query.filter(player_id == ^player.id)
+      |> Ash.Query.load(:schedule)
+      |> Ash.read!(authorize?: false)
+
+    Enum.reduce_while(participants, :ok, fn participant, _acc ->
+      case handle_participant_for_destroy(participant, actor) do
+        :ok -> {:cont, :ok}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  defp handle_participant_for_destroy(participant, actor) do
+    case participant.schedule.status do
+      status when status in [:preparing, :ready_for_availability] ->
+        destroy_participant(participant, actor)
+
+      :posted ->
+        # The participant's FK is `ON DELETE RESTRICT`, so a player
+        # who participated in a posted schedule cannot be removed
+        # without rewriting history. Surface this as a plain-language
+        # error before Ash gets to the DB delete (Constitution
+        # Principle V). The participant row stays intact.
+        {:error,
+         Ash.Error.Changes.InvalidChanges.exception(
+           message:
+             "Cannot remove a player who participated in a posted schedule. Their availability is preserved as part of the schedule's history."
+         )}
+    end
+  end
+
+  defp destroy_participant(participant, actor) do
+    participant
+    |> Ash.Changeset.for_destroy(:destroy, %{}, actor: actor)
+    |> Ash.destroy()
+    |> case do
+      :ok -> :ok
+      {:ok, _} -> :ok
+      {:error, reason} -> {:error, reason}
+    end
+  end
 end
