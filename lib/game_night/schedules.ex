@@ -48,13 +48,23 @@ defmodule GameNight.Schedules do
       rpc_action :set_schedule_gm_day, :set_gm_day
       # US2 (T064).
       rpc_action :transition_schedule_to_ready, :transition_to_ready_for_availability
+      # US3 (T084) — player-side reads.
+      rpc_action :list_schedules_for_character, :list_for_player_character
+      rpc_action :get_schedule_for_character, :get_for_player_character
     end
 
-    # Registered for type generation only; rpc_action bindings land
-    # alongside their owning user-story actions.
+    # Registered for type generation only.
     resource GameNight.Schedules.ScheduleDay
-    resource GameNight.Schedules.ScheduleParticipant
-    resource GameNight.Schedules.ParticipantDay
+
+    resource GameNight.Schedules.ScheduleParticipant do
+      # US3 (T084).
+      rpc_action :set_schedule_participant_submission, :set_submission
+    end
+
+    resource GameNight.Schedules.ParticipantDay do
+      # US3 (T084).
+      rpc_action :set_participant_day_status, :set_status
+    end
   end
 
   resources do

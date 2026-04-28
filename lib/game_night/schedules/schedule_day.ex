@@ -58,11 +58,38 @@ defmodule GameNight.Schedules.ScheduleDay do
       authorize_if always()
     end
 
-    # US1 — read admits the schedule's GM. Story phases (US3) extend
-    # this to admit linked players too, with a field policy that
-    # strips `gm_status` for non-GMs.
+    # US1 + US3 — read admits the GM and any linked player on a
+    # non-:preparing schedule. The field policy on `gm_status` below
+    # strips the raw GM status from non-GM payloads — the
+    # `gm_locked_na` calculation is what the player view consumes.
     policy action_type(:read) do
       authorize_if expr(schedule.game.owner_id == ^actor(:id))
+      authorize_if expr(
+                     exists(schedule.participants, player.user_id == ^actor(:id)) and
+                       schedule.status != :preparing
+                   )
+    end
+  end
+
+  field_policies do
+    # gm_status is GM-only. Non-GM readers get nil; the
+    # `gm_locked_na` calculation is the supported player-side field.
+    field_policy :gm_status do
+      authorize_if expr(schedule.game.owner_id == ^actor(:id))
+    end
+
+    # Catch-all so the rest of the public surface stays readable for
+    # everyone who passes the row-level read policy above.
+    field_policy :* do
+      authorize_if always()
+    end
+  end
+
+  calculations do
+    # Player-safe view of the GM's per-day status — exposes only
+    # whether the day is locked NA, not the actual gm_status atom.
+    calculate :gm_locked_na, :boolean, expr(gm_status == :NA) do
+      public? true
     end
   end
 

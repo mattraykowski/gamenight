@@ -191,13 +191,14 @@ export type ScheduleAttributesOnlySchema = {
 // ScheduleDay Schema
 export type ScheduleDayResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "day" | "gmStatus" | "finalStatus" | "insertedAt" | "updatedAt";
+  __primitiveFields: "id" | "day" | "gmStatus" | "finalStatus" | "insertedAt" | "updatedAt" | "gmLockedNa";
   id: UUID;
   day: number;
   gmStatus: "NA" | "I" | "A" | "IF";
   finalStatus: "NA" | "A" | null;
   insertedAt: UtcDateTimeUsec;
   updatedAt: UtcDateTimeUsec;
+  gmLockedNa: boolean | null;
 };
 
 
@@ -667,6 +668,12 @@ export type ScheduleDayFilterInput = {
     in?: Array<UtcDateTimeUsec>;
   };
 
+  gmLockedNa?: {
+    eq?: boolean;
+    notEq?: boolean;
+    isNil?: boolean;
+  };
+
 
 
 };
@@ -758,7 +765,7 @@ export type ParticipantDayFilterField = (typeof participantDayFilterFields)[numb
 export const scheduleFilterFields = ["id", "month", "year", "startTime", "endTime", "timeZone", "status", "postedAt", "insertedAt", "updatedAt", "name", "scheduleDays", "participants"] as const;
 export type ScheduleFilterField = (typeof scheduleFilterFields)[number];
 
-export const scheduleDayFilterFields = ["id", "day", "gmStatus", "finalStatus", "insertedAt", "updatedAt"] as const;
+export const scheduleDayFilterFields = ["id", "day", "gmStatus", "finalStatus", "insertedAt", "updatedAt", "gmLockedNa"] as const;
 export type ScheduleDayFilterField = (typeof scheduleDayFilterFields)[number];
 
 export const scheduleParticipantFilterFields = ["id", "isLateJoin", "npOnly", "submittedAt", "joinedAt", "insertedAt", "updatedAt"] as const;
@@ -786,7 +793,7 @@ export type ParticipantDaySortField = (typeof participantDaySortFields)[number];
 export const scheduleSortFields = ["id", "month", "year", "startTime", "endTime", "timeZone", "status", "postedAt", "insertedAt", "updatedAt", "name"] as const;
 export type ScheduleSortField = (typeof scheduleSortFields)[number];
 
-export const scheduleDaySortFields = ["id", "day", "gmStatus", "finalStatus", "insertedAt", "updatedAt"] as const;
+export const scheduleDaySortFields = ["id", "day", "gmStatus", "finalStatus", "insertedAt", "updatedAt", "gmLockedNa"] as const;
 export type ScheduleDaySortField = (typeof scheduleDaySortFields)[number];
 
 export const scheduleParticipantSortFields = ["id", "isLateJoin", "npOnly", "submittedAt", "joinedAt", "insertedAt", "updatedAt"] as const;

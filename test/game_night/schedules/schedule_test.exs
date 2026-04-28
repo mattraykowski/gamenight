@@ -335,6 +335,65 @@ defmodule GameNight.Schedules.ScheduleTest do
     end
   end
 
+  describe "GM-NA cascade (T070)" do
+    setup do
+      {:ok, gm} = create_user()
+      {:ok, game} = register_game(gm)
+      {:ok, member} = create_user()
+      _ = seed_player!(game, member)
+      {:ok, schedule} = initiate(gm, game, %{month: 10, year: 2099})
+
+      # GM marks day 5 as :A so the player can have a non-NA value.
+      {:ok, schedule} =
+        schedule
+        |> Ash.Changeset.for_update(:set_gm_day, %{day: 5, status: :A}, actor: gm)
+        |> Ash.update()
+
+      {:ok, schedule} =
+        schedule
+        |> Ash.Changeset.for_update(:transition_to_ready_for_availability, %{}, actor: gm)
+        |> Ash.update()
+
+      {:ok, gm: gm, game: game, schedule: schedule, member: member}
+    end
+
+    test "flipping GM day to NA after transition cascades to participant_days", %{
+      gm: gm,
+      schedule: schedule,
+      member: member
+    } do
+      [participant] =
+        GameNight.Schedules.ScheduleParticipant
+        |> Ash.Query.filter(schedule_id == ^schedule.id)
+        |> Ash.read!(authorize?: false)
+
+      day_5 =
+        GameNight.Schedules.ParticipantDay
+        |> Ash.Query.filter(participant_id == ^participant.id and day == 5)
+        |> Ash.read_one!(authorize?: false)
+
+      # Player toggles their day 5 to :I (allowed because GM day-5 is :A).
+      {:ok, _} =
+        day_5
+        |> Ash.Changeset.for_update(:set_status, %{status: :I}, actor: member)
+        |> Ash.update()
+
+      # GM flips day 5 to :NA — cascade should overwrite the
+      # participant's day 5 to :NA.
+      {:ok, _} =
+        schedule
+        |> Ash.Changeset.for_update(:set_gm_day, %{day: 5, status: :NA}, actor: gm)
+        |> Ash.update()
+
+      reloaded =
+        GameNight.Schedules.ParticipantDay
+        |> Ash.Query.filter(participant_id == ^participant.id and day == 5)
+        |> Ash.read_one!(authorize?: false)
+
+      assert reloaded.status == :NA
+    end
+  end
+
   defp transition_to_ready(actor, schedule) do
     schedule
     |> Ash.Changeset.for_update(:transition_to_ready_for_availability, %{}, actor: actor)

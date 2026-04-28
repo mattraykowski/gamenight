@@ -6,17 +6,24 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import {
+  getScheduleForCharacter,
   getScheduleForGame,
   initiateSchedule,
+  listSchedulesForCharacter,
   listSchedulesForGame,
   listSchedulesForGameTopSix,
+  setParticipantDayStatus,
   setScheduleGmDay,
+  setScheduleParticipantSubmission,
   transitionScheduleToReady,
   type AshRpcError,
+  type GetScheduleForCharacterInput,
   type GetScheduleForGameInput,
   type InitiateScheduleInput,
   type ScheduleDayResourceSchema,
+  type ScheduleParticipantResourceSchema,
   type ScheduleResourceSchema,
+  type SetParticipantDayStatusInput,
   type SetScheduleGmDayInput,
 } from "@/ash_rpc";
 import { getClientOptions } from "@/lib/api/client";
@@ -60,7 +67,7 @@ const SCHEDULE_FIELDS = [
 
 export type ScheduleDay = Pick<
   ScheduleDayResourceSchema,
-  "id" | "day" | "gmStatus" | "finalStatus"
+  "id" | "day" | "gmStatus" | "finalStatus" | "gmLockedNa"
 > & {
   scheduleId: string;
 };
@@ -70,6 +77,32 @@ const SCHEDULE_DAY_FIELDS = [
   "day",
   "gmStatus",
   "finalStatus",
+  "gmLockedNa",
+] as const;
+
+// Player-side projection — gm_status is field-policy-stripped to nil
+// for non-GMs, so the SPA reads `gmLockedNa` instead.
+const PLAYER_SCHEDULE_DAY_FIELDS = [
+  "id",
+  "day",
+  "finalStatus",
+  "gmLockedNa",
+] as const;
+
+export type ScheduleParticipant = Pick<
+  ScheduleParticipantResourceSchema,
+  "id" | "isLateJoin" | "npOnly" | "submittedAt" | "joinedAt"
+> & {
+  scheduleId: string;
+  playerId: string;
+};
+
+const SCHEDULE_PARTICIPANT_FIELDS = [
+  "id",
+  "isLateJoin",
+  "npOnly",
+  "submittedAt",
+  "joinedAt",
 ] as const;
 
 export type ScheduleWithDays = Schedule & {
@@ -82,6 +115,10 @@ export const schedulesKeys = {
   topSixForGame: (gameId: string) =>
     [...schedulesKeys.all, "byGame", gameId, "topSix"] as const,
   detail: (id: string) => [...schedulesKeys.all, "detail", id] as const,
+  byCharacter: (playerId: string) =>
+    [...schedulesKeys.all, "byCharacter", playerId] as const,
+  characterDetail: (playerId: string, scheduleId: string) =>
+    [...schedulesKeys.all, "byCharacter", playerId, scheduleId] as const,
 };
 
 async function runRpc<T>(
@@ -286,6 +323,158 @@ export function useSetScheduleGmDay(): UseMutationResult<
     onSuccess: (_data, vars) => {
       void queryClient.invalidateQueries({
         queryKey: schedulesKeys.detail(vars.scheduleId),
+      });
+    },
+  });
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Player-side hooks (US3)
+// ──────────────────────────────────────────────────────────────────────
+
+export type CharacterSchedule = Schedule;
+
+export type CharacterScheduleDetail = Schedule & {
+  scheduleDays: Array<Pick<ScheduleDayResourceSchema, "id" | "day" | "finalStatus" | "gmLockedNa"> & { scheduleId: string }>;
+  participants: Array<ScheduleParticipant & { participantDays: ParticipantDay[] }>;
+};
+
+export type ParticipantDay = {
+  id: string;
+  participantId: string;
+  scheduleId: string;
+  day: number;
+  status: "NA" | "I" | "A" | "IF" | "NP";
+};
+
+const PARTICIPANT_DAY_FIELDS = ["id", "day", "status"] as const;
+
+/** List every non-:preparing schedule the character is linked to. */
+export function useListSchedulesForCharacter(
+  playerId: string,
+): UseQueryResult<CharacterSchedule[], ApiError> {
+  return useQuery({
+    queryKey: schedulesKeys.byCharacter(playerId),
+    queryFn: async () => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<CharacterSchedule[]>(
+        listSchedulesForCharacter({
+          input: { playerId },
+          fields: SCHEDULE_FIELDS as unknown as Array<
+            ScheduleResourceSchema["__primitiveFields"]
+          >,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: CharacterSchedule[] }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    enabled: playerId.length > 0,
+  });
+}
+
+/** Get one schedule + the actor's participant + days (player-side). */
+export function useGetScheduleForCharacter(
+  input: GetScheduleForCharacterInput,
+): UseQueryResult<CharacterScheduleDetail, ApiError> {
+  return useQuery({
+    queryKey: [...schedulesKeys.characterDetail(input.playerId, input.id), input],
+    queryFn: async () => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<CharacterScheduleDetail>(
+        getScheduleForCharacter({
+          input,
+          fields: [
+            ...SCHEDULE_FIELDS,
+            { scheduleDays: PLAYER_SCHEDULE_DAY_FIELDS },
+            {
+              participants: [
+                ...SCHEDULE_PARTICIPANT_FIELDS,
+                { participantDays: PARTICIPANT_DAY_FIELDS },
+              ],
+            },
+          ] as unknown as Array<ScheduleResourceSchema["__primitiveFields"]>,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: CharacterScheduleDetail }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    enabled: input.id.length > 0 && input.playerId.length > 0,
+  });
+}
+
+/** Player toggles their per-day availability status. */
+export type SetParticipantDayStatusArgs = SetParticipantDayStatusInput & {
+  participantDayId: string;
+  scheduleId: string;
+  playerId: string;
+};
+
+export function useSetParticipantDayStatus(): UseMutationResult<
+  ParticipantDay,
+  ApiError,
+  SetParticipantDayStatusArgs
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (args: SetParticipantDayStatusArgs) => {
+      const { participantDayId, status } = args;
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<ParticipantDay>(
+        setParticipantDayStatus({
+          identity: participantDayId,
+          input: { status },
+          fields: PARTICIPANT_DAY_FIELDS as unknown as Array<"id" | "day" | "status">,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: ParticipantDay }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    onSuccess: (_data, vars) => {
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.characterDetail(vars.playerId, vars.scheduleId),
+      });
+    },
+  });
+}
+
+/** Player marks their availability submitted (FR-021). */
+export function useSetScheduleParticipantSubmission(): UseMutationResult<
+  ScheduleParticipant,
+  ApiError,
+  { participantId: string; scheduleId: string; playerId: string }
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ participantId }) => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<ScheduleParticipant>(
+        setScheduleParticipantSubmission({
+          identity: participantId,
+          fields: SCHEDULE_PARTICIPANT_FIELDS as unknown as Array<
+            ScheduleParticipantResourceSchema["__primitiveFields"]
+          >,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: ScheduleParticipant }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    onSuccess: (_data, vars) => {
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.characterDetail(vars.playerId, vars.scheduleId),
       });
     },
   });

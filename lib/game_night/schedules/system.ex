@@ -177,12 +177,30 @@ defmodule GameNight.Schedules.System do
   @doc """
   When the GM flips a day's `gm_status` to `:NA` while the schedule
   is `:ready_for_availability`, overwrite every linked participant's
-  status for that day to `:NA` inside the same transaction.
-
-  Body lands in T080 (US3).
+  status for that day to `:NA`. Runs as a `bulk_update` for atomic
+  fan-out across the schedule's ParticipantDay rows.
   """
-  @spec cascade_gm_na(GameNight.Schedules.Schedule.t(), 1..31, atom()) :: :ok | {:error, term()}
-  def cascade_gm_na(_schedule, _day, _new_gm_status), do: {:error, :not_implemented}
+  @spec cascade_gm_na(GameNight.Schedules.Schedule.t(), 1..31, atom()) ::
+          :ok | {:error, term()}
+  def cascade_gm_na(schedule, day, :NA) do
+    require Ash.Query
+
+    GameNight.Schedules.ParticipantDay
+    |> Ash.Query.filter(schedule_id == ^schedule.id and day == ^day)
+    |> Ash.bulk_update(:bulk_set_to_na, %{},
+      actor: actor(),
+      authorize?: true,
+      strategy: [:stream],
+      return_errors?: true
+    )
+    |> case do
+      %Ash.BulkResult{status: :success} -> :ok
+      %Ash.BulkResult{status: :empty} -> :ok
+      %Ash.BulkResult{status: status, errors: errors} -> {:error, {status, errors}}
+    end
+  end
+
+  def cascade_gm_na(_schedule, _day, _new_gm_status), do: :ok
 
   @doc """
   Insert one Notification row per recipient and enqueue one Swoosh

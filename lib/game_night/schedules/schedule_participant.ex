@@ -49,6 +49,8 @@ defmodule GameNight.Schedules.ScheduleParticipant do
 
     routes do
       base "/schedule_participants"
+
+      patch :set_submission, route: "/:id/set-submission"
     end
   end
 
@@ -58,11 +60,43 @@ defmodule GameNight.Schedules.ScheduleParticipant do
 
   actions do
     defaults [:read, :destroy, create: :*, update: :*]
+
+    update :set_submission do
+      description """
+      Mark the participant as having submitted their availability
+      (FR-021). Idempotent — re-calling preserves the original
+      `submitted_at`. All-NA submissions count: the action does not
+      check whether any per-day rows differ from the default
+      (research.md §18).
+      """
+      accept []
+      require_atomic? false
+
+      change fn changeset, _ctx ->
+        case Ash.Changeset.get_data(changeset, :submitted_at) do
+          nil -> Ash.Changeset.force_change_attribute(changeset, :submitted_at, DateTime.utc_now())
+          _ -> changeset
+        end
+      end
+    end
   end
 
   policies do
     bypass actor_attribute_equals(:_internal?, true) do
       authorize_if always()
+    end
+
+    policy action(:set_submission) do
+      authorize_if expr(player.user_id == ^actor(:id))
+      forbid_if expr(np_only == true)
+      forbid_if expr(schedule.status != :ready_for_availability)
+    end
+
+    # Reads admit the GM (for the roster) and the linked player
+    # themselves (for their own submission).
+    policy action_type(:read) do
+      authorize_if expr(schedule.game.owner_id == ^actor(:id))
+      authorize_if expr(player.user_id == ^actor(:id))
     end
   end
 

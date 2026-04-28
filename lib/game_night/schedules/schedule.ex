@@ -72,6 +72,10 @@ defmodule GameNight.Schedules.Schedule do
       patch :set_gm_day, route: "/:id/set-gm-day"
       patch :transition_to_ready_for_availability,
         route: "/:id/transition-to-ready-for-availability"
+
+      # US3 — player-side reads.
+      index :list_for_player_character, route: "/by-character/:player_id"
+      get :get_for_player_character, route: "/by-character/:player_id/:id"
     end
   end
 
@@ -138,6 +142,47 @@ defmodule GameNight.Schedules.Schedule do
 
       prepare build(
                filter: expr(id == ^arg(:id) and game_id == ^arg(:game_id)),
+               load: [:schedule_days, :name]
+             )
+    end
+
+    read :list_for_player_character do
+      description """
+      Player-side — list every non-:preparing schedule on a game
+      where the actor's character (Player) is linked. Filters out
+      schedules the player can't see yet (still in :preparing on
+      the GM's side).
+      """
+      argument :player_id, :uuid, allow_nil?: false
+
+      prepare build(
+               filter:
+                 expr(
+                   exists(participants, player_id == ^arg(:player_id)) and
+                     status != :preparing
+                 ),
+               sort: [year: :desc, month: :desc]
+             )
+    end
+
+    read :get_for_player_character do
+      description """
+      Player-side — fetch one schedule by id where the actor's
+      character is a linked participant. Cross-tenant access
+      collapses to not-found.
+      """
+      get? true
+
+      argument :id, :uuid, allow_nil?: false
+      argument :player_id, :uuid, allow_nil?: false
+
+      prepare build(
+               filter:
+                 expr(
+                   id == ^arg(:id) and
+                     exists(participants, player_id == ^arg(:player_id)) and
+                     status != :preparing
+                 ),
                load: [:schedule_days, :name]
              )
     end
@@ -247,9 +292,25 @@ defmodule GameNight.Schedules.Schedule do
     end
 
     # JSON:API PATCH does a load-then-update under the base `:read`
-    # action, so the GM also needs to pass that read policy.
+    # action, so the GM also needs to pass that read policy. Linked
+    # players also pass for non-:preparing schedules so the
+    # player-side detail view can load.
     policy action_type(:read) do
       authorize_if expr(game.owner_id == ^actor(:id))
+      authorize_if expr(
+                     exists(participants, player.user_id == ^actor(:id)) and
+                       status != :preparing
+                   )
+    end
+
+    # Player-side reads use their own named actions so the action-level
+    # policy is explicit (rather than depending on the action_type
+    # gate above).
+    policy action([:list_for_player_character, :get_for_player_character]) do
+      authorize_if expr(
+                     exists(participants, player.user_id == ^actor(:id)) and
+                       status != :preparing
+                   )
     end
 
     # `:initiate` is a create — Ash can't evaluate relationship
@@ -355,25 +416,35 @@ defmodule GameNight.Schedules.Schedule do
   def set_schedule_day_status(schedule, day, status) do
     require Ash.Query
 
+    with {:ok, schedule_day} <- find_schedule_day(schedule, day),
+         {:ok, _} <-
+           schedule_day
+           |> Ash.Changeset.for_update(:update, %{gm_status: status},
+             actor: GameNight.Schedules.System.actor()
+           )
+           |> Ash.update(),
+         :ok <- maybe_cascade_gm_na(schedule, day, status) do
+      :ok
+    end
+  end
+
+  defp find_schedule_day(schedule, day) do
+    require Ash.Query
+
     case GameNight.Schedules.ScheduleDay
          |> Ash.Query.filter(schedule_id == ^schedule.id and day == ^day)
          |> Ash.read_one(authorize?: false) do
-      {:ok, nil} ->
-        {:error, "ScheduleDay for day #{day} not found"}
-
-      {:ok, schedule_day} ->
-        schedule_day
-        |> Ash.Changeset.for_update(:update, %{gm_status: status},
-          actor: GameNight.Schedules.System.actor()
-        )
-        |> Ash.update()
-        |> case do
-          {:ok, _} -> :ok
-          {:error, reason} -> {:error, reason}
-        end
-
-      {:error, reason} ->
-        {:error, reason}
+      {:ok, nil} -> {:error, "ScheduleDay for day #{day} not found"}
+      other -> other
     end
   end
+
+  # FR-011 — when the GM flips a day to NA on a
+  # :ready_for_availability schedule, overwrite every linked
+  # participant's status for that day to :NA.
+  defp maybe_cascade_gm_na(%{status: :ready_for_availability} = schedule, day, :NA) do
+    GameNight.Schedules.System.cascade_gm_na(schedule, day, :NA)
+  end
+
+  defp maybe_cascade_gm_na(_schedule, _day, _status), do: :ok
 end

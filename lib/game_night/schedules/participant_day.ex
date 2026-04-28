@@ -46,6 +46,8 @@ defmodule GameNight.Schedules.ParticipantDay do
 
     routes do
       base "/participant_days"
+
+      patch :set_status, route: "/:id/set-status"
     end
   end
 
@@ -54,12 +56,55 @@ defmodule GameNight.Schedules.ParticipantDay do
   end
 
   actions do
-    defaults [:read, :destroy, create: :*, update: :*]
+    # Foundational system-actor defaults; the validation on
+    # :set_status forces non-atomic update mode for that named
+    # action, which doesn't propagate to the catch-all :update.
+    defaults [:read, :destroy, create: :*]
+
+    update :update do
+      accept [:day, :status, :participant_id, :schedule_id]
+      require_atomic? false
+    end
+
+    update :set_status do
+      description """
+      The participant's per-day availability toggle. Restricted to
+      the participant's user; the parent schedule must be in
+      `:ready_for_availability` (FR-024 — posted schedules are
+      read-only). NP-only participants can never call this; the
+      schedule's per-day GM-NA lock also denies the call.
+      """
+
+      accept []
+      require_atomic? false
+
+      argument :status, :atom, allow_nil?: false, constraints: [one_of: [:NA, :I, :A, :IF]]
+
+      validate {GameNight.Schedules.ParticipantDay.Validations.SetStatusAllowed, []}
+
+      change set_attribute(:status, arg(:status))
+    end
+
+    update :bulk_set_to_na do
+      description """
+      System-only — overwrite per-day status to :NA. Called by the
+      `Schedules.System.cascade_gm_na/3` flow when a GM flips a day
+      to NA on a `:ready_for_availability` schedule.
+      """
+      accept []
+      require_atomic? false
+
+      change set_attribute(:status, :NA)
+    end
   end
 
   policies do
     bypass actor_attribute_equals(:_internal?, true) do
       authorize_if always()
+    end
+
+    policy action(:set_status) do
+      authorize_if expr(participant.player.user_id == ^actor(:id))
     end
   end
 
@@ -99,6 +144,18 @@ defmodule GameNight.Schedules.ParticipantDay do
 
   identities do
     identity :unique_per_participant_day, [:participant_id, :day]
+  end
+
+  @doc false
+  def gm_na_for_day?(schedule_id, day) do
+    require Ash.Query
+
+    case GameNight.Schedules.ScheduleDay
+         |> Ash.Query.filter(schedule_id == ^schedule_id and day == ^day)
+         |> Ash.read_one(authorize?: false) do
+      {:ok, %{gm_status: :NA}} -> true
+      _ -> false
+    end
   end
 
   validations do

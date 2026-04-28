@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useListMyCharacters, type Player } from "@/features/players/hooks";
 import { CharactersEmptyState } from "@/features/players/components/characters-empty-state";
 import type { PlayerStatus } from "@/features/players/schemas";
@@ -66,29 +66,35 @@ export function CharactersRoute() {
 
 function CharacterRow({ player }: { player: Player }) {
   return (
-    <li
-      className="flex items-start justify-between gap-3 p-4"
-      data-testid={`all-characters-row-${player.id}`}
-    >
-      <div className="min-w-0">
-        <p className="font-medium text-foreground" data-testid="all-characters-name">
-          {player.characterName}
-        </p>
-        {player.characterSummary ? (
-          <p
-            className="mt-1 text-sm text-muted-foreground"
-            data-testid="all-characters-summary"
-          >
-            {player.characterSummary}
-          </p>
-        ) : null}
-      </div>
-      <span
-        className="shrink-0 text-xs uppercase tracking-wide text-muted-foreground"
-        data-testid="all-characters-status"
+    <li data-testid={`all-characters-row-${player.id}`}>
+      <Link
+        to="/characters/$id"
+        params={{ id: player.id }}
+        className="flex items-start justify-between gap-3 p-4 hover:bg-accent/40 focus-visible:bg-accent/40 focus-visible:outline-none"
       >
-        {STATUS_LABELS[player.status as PlayerStatus] ?? player.status}
-      </span>
+        <div className="min-w-0">
+          <p
+            className="font-medium text-foreground"
+            data-testid="all-characters-name"
+          >
+            {player.characterName}
+          </p>
+          {player.characterSummary ? (
+            <p
+              className="mt-1 text-sm text-muted-foreground"
+              data-testid="all-characters-summary"
+            >
+              {player.characterSummary}
+            </p>
+          ) : null}
+        </div>
+        <span
+          className="shrink-0 text-xs uppercase tracking-wide text-muted-foreground"
+          data-testid="all-characters-status"
+        >
+          {STATUS_LABELS[player.status as PlayerStatus] ?? player.status}
+        </span>
+      </Link>
     </li>
   );
 }
