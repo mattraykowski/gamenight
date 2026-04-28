@@ -358,15 +358,15 @@ description: "Task list for feature 003 — Game Schedule"
 **Purpose**: Quality gates and cross-story improvements.
 
 - [ ] T154 [P] Add Lighthouse CI budget entries for `/games/$gameId/schedules/$scheduleId` and `/characters/$id/schedules/$scheduleId`. Run a baseline pass and commit budget thresholds aligned with [plan.md §VI](./plan.md#vi-performance-discipline).
-- [ ] T154.5 [P] Add a backend benchmark test [test/game_night/schedules/fan_out_perf_test.exs](test/game_night/schedules/fan_out_perf_test.exs) that creates a 10-player schedule, calls `Schedule.transition_to_ready_for_availability`, and asserts the wall-clock time from action start to last `Notification` row visibility is ≤ 60 s under the standard test runner (encodes SC-002 quantitatively). Tagged `:perf`; runs in CI's nightly slot, not on every PR.
-- [ ] T155 [P] Add `size-limit` config entries for the four new route bundles (≤ 22 KB GM detail, ≤ 8 KB schedules list, ≤ 12 KB character view, ≤ 16 KB character schedule view).
+- [X] T154.5 [P] Add a backend benchmark test [test/game_night/schedules/fan_out_perf_test.exs](test/game_night/schedules/fan_out_perf_test.exs) that creates a 10-player schedule, calls `Schedule.transition_to_ready_for_availability`, and asserts the wall-clock time from action start to last `Notification` row visibility is ≤ 60 s under the standard test runner (encodes SC-002 quantitatively). Tagged `:perf`; runs in CI's nightly slot, not on every PR.
+- [X] T155 [P] Add `size-limit` config entries for the four new route bundles (≤ 22 KB GM detail, ≤ 8 KB schedules list, ≤ 12 KB character view, ≤ 16 KB character schedule view).
 - [ ] T156 [P] Run `@axe-core/playwright` against every new route. Resolve any severity ≥ serious; document any deferred lower-severity items in [specs/003-game-schedule/notes.md](specs/003-game-schedule/notes.md).
 - [ ] T157 [P] Manual keyboard-only audit of `<MonthCalendar>` and `<DayMatrixTable>` per Constitution IV; record results in [specs/003-game-schedule/notes.md](specs/003-game-schedule/notes.md).
 - [ ] T158 Manual screen-reader smoke test (NVDA on Windows or VoiceOver on macOS) on the GM Schedule Detail and Player Schedule views; record in notes.md.
-- [ ] T159 [P] Add `mix sobelow --strict` exclusion review for the four new senders (HTML-injection clearance) and document.
+- [X] T159 [P] Add `mix sobelow --strict` exclusion review for the four new senders (HTML-injection clearance) and document.
 - [ ] T160 Run the full [quickstart.md](./quickstart.md) walkthrough end-to-end on a clean dev DB; check off the smoke checklist.
 - [ ] T161 [P] Extend the dev seed task [priv/repo/dev_seed.exs](priv/repo/dev_seed.exs) so re-running it produces a sample schedule per game (helpful for next feature spec work).
-- [ ] T162 Confirm `mix ash.codegen --check` and `mix ash_typescript.codegen` + `git diff --exit-code` are clean. PR-ready.
+- [X] T162 Confirm `mix ash.codegen --check` and `mix ash_typescript.codegen` + `git diff --exit-code` are clean. PR-ready.
 
 ---
 
