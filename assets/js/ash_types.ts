@@ -202,7 +202,7 @@ export type ScheduleAttributesOnlySchema = {
 // ScheduleDay Schema
 export type ScheduleDayResourceSchema = {
   __type: "Resource";
-  __primitiveFields: "id" | "day" | "gmStatus" | "finalStatus" | "insertedAt" | "updatedAt" | "scheduleId" | "gmLockedNa";
+  __primitiveFields: "id" | "day" | "gmStatus" | "finalStatus" | "insertedAt" | "updatedAt" | "scheduleId" | "gmLockedNa" | "finalNoteKind" | "finalNoteLabel";
   id: UUID;
   day: number;
   gmStatus: "NA" | "I" | "A" | "IF";
@@ -211,6 +211,8 @@ export type ScheduleDayResourceSchema = {
   updatedAt: UtcDateTimeUsec;
   scheduleId: UUID;
   gmLockedNa: boolean | null;
+  finalNoteKind: string | null;
+  finalNoteLabel: string | null;
   schedule: { __type: "Relationship"; __resource: ScheduleResourceSchema; };
 };
 
@@ -746,6 +748,20 @@ export type ScheduleDayFilterInput = {
     isNil?: boolean;
   };
 
+  finalNoteKind?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+    isNil?: boolean;
+  };
+
+  finalNoteLabel?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+    isNil?: boolean;
+  };
+
 
   schedule?: ScheduleFilterInput;
 
@@ -855,7 +871,7 @@ export type ParticipantDayFilterField = (typeof participantDayFilterFields)[numb
 export const scheduleFilterFields = ["id", "month", "year", "startTime", "endTime", "timeZone", "status", "postedAt", "insertedAt", "updatedAt", "gameId", "name", "participantCount", "submissionCount", "game", "scheduleDays", "participants"] as const;
 export type ScheduleFilterField = (typeof scheduleFilterFields)[number];
 
-export const scheduleDayFilterFields = ["id", "day", "gmStatus", "finalStatus", "insertedAt", "updatedAt", "scheduleId", "gmLockedNa", "schedule"] as const;
+export const scheduleDayFilterFields = ["id", "day", "gmStatus", "finalStatus", "insertedAt", "updatedAt", "scheduleId", "gmLockedNa", "finalNoteKind", "finalNoteLabel", "schedule"] as const;
 export type ScheduleDayFilterField = (typeof scheduleDayFilterFields)[number];
 
 export const scheduleParticipantFilterFields = ["id", "isLateJoin", "npOnly", "submittedAt", "joinedAt", "insertedAt", "updatedAt", "scheduleId", "playerId", "schedule", "player", "participantDays"] as const;
@@ -883,7 +899,7 @@ export type ParticipantDaySortField = (typeof participantDaySortFields)[number];
 export const scheduleSortFields = ["id", "month", "year", "startTime", "endTime", "timeZone", "status", "postedAt", "insertedAt", "updatedAt", "gameId", "name", "participantCount", "submissionCount"] as const;
 export type ScheduleSortField = (typeof scheduleSortFields)[number];
 
-export const scheduleDaySortFields = ["id", "day", "gmStatus", "finalStatus", "insertedAt", "updatedAt", "scheduleId", "gmLockedNa"] as const;
+export const scheduleDaySortFields = ["id", "day", "gmStatus", "finalStatus", "insertedAt", "updatedAt", "scheduleId", "gmLockedNa", "finalNoteKind", "finalNoteLabel"] as const;
 export type ScheduleDaySortField = (typeof scheduleDaySortFields)[number];
 
 export const scheduleParticipantSortFields = ["id", "isLateJoin", "npOnly", "submittedAt", "joinedAt", "insertedAt", "updatedAt", "scheduleId", "playerId"] as const;

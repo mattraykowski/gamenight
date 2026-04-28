@@ -61,6 +61,16 @@ defmodule GameNight.Schedules.ScheduleDay do
 
   actions do
     defaults [:read, :destroy, create: :*, update: :*]
+
+    update :set_final_status do
+      description """
+      Internal — set the GM's Final decision for this day.
+      Called by `Schedule.update_final_days` (pre-post and post-post
+      cell edits) and by `Schedule.post`'s ComputeFinalDefault
+      change for days the GM didn't explicitly touch.
+      """
+      accept [:final_status]
+    end
   end
 
   policies do
@@ -99,6 +109,25 @@ defmodule GameNight.Schedules.ScheduleDay do
     # Player-safe view of the GM's per-day status — exposes only
     # whether the day is locked NA, not the actual gm_status atom.
     calculate :gm_locked_na, :boolean, expr(gm_status == :NA) do
+      public? true
+    end
+
+    # FR-028 — the per-day Final Note classification atom and
+    # human-readable label. Computed in the GM's Scheduling View
+    # from the GM's status + every linked, non-NP participant's
+    # status for the same day. Tested by
+    # `final_note_kind_test.exs` against the shared truth table.
+    calculate :final_note_kind,
+              :atom,
+              GameNight.Schedules.ScheduleDay.Calculations.FinalNote do
+      description "Atom classification of the day's overall availability."
+      public? true
+    end
+
+    calculate :final_note_label,
+              :string,
+              GameNight.Schedules.ScheduleDay.Calculations.FinalNoteLabel do
+      description "Human-readable label rendered next to the Final cell."
       public? true
     end
   end

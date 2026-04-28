@@ -344,6 +344,9 @@ defmodule GameNight.Schedules.System do
   defp sender_for_kind(:schedule_ready_for_availability),
     do: GameNight.Schedules.Senders.SendScheduleReadyEmail
 
+  defp sender_for_kind(:schedule_posted),
+    do: GameNight.Schedules.Senders.SendSchedulePostedEmail
+
   defp sender_for_kind(_), do: nil
 
   @doc """

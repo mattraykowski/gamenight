@@ -12,10 +12,12 @@ import {
   listSchedulesForCharacter,
   listSchedulesForGame,
   listSchedulesForGameTopSix,
+  postSchedule,
   setParticipantDayStatus,
   setScheduleGmDay,
   setScheduleParticipantSubmission,
   transitionScheduleToReady,
+  updateScheduleFinalDays,
   type AshRpcError,
   type GetScheduleForCharacterInput,
   type GetScheduleForGameInput,
@@ -492,6 +494,99 @@ export function useSetScheduleParticipantSubmission(): UseMutationResult<
     onSuccess: (_data, vars) => {
       void queryClient.invalidateQueries({
         queryKey: schedulesKeys.characterDetail(vars.playerId, vars.scheduleId),
+      });
+    },
+  });
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// US4 hooks (Scheduling View + Post)
+// ──────────────────────────────────────────────────────────────────────
+
+export interface UpdateScheduleFinalDayArgs {
+  scheduleId: string;
+  gameId: string;
+  day: number;
+  status: "NA" | "A";
+}
+
+/**
+ * GM-only — set the Final value for a single day. Wraps the
+ * batch `updateScheduleFinalDays` action with a single-element
+ * `finalDays` list so the per-cell toggle in the Scheduling View
+ * has a clean API. Allowed in `:ready_for_availability` (pre-post)
+ * and in `:posted` (silent post-edit).
+ */
+export function useUpdateScheduleFinalDay(): UseMutationResult<
+  Schedule,
+  ApiError,
+  UpdateScheduleFinalDayArgs
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ scheduleId, day, status }: UpdateScheduleFinalDayArgs) => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<Schedule>(
+        updateScheduleFinalDays({
+          identity: scheduleId,
+          input: { finalDays: [{ day, status }] },
+          fields: SCHEDULE_FIELDS as unknown as Array<
+            ScheduleResourceSchema["__primitiveFields"]
+          >,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: Schedule }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    onSuccess: (_data, vars) => {
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.detail(vars.scheduleId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.byGame(vars.gameId),
+      });
+    },
+  });
+}
+
+/** GM-only — transition a `:ready_for_availability` schedule to `:posted`. */
+export function usePostSchedule(): UseMutationResult<
+  Schedule,
+  ApiError,
+  { scheduleId: string; gameId: string }
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ scheduleId }: { scheduleId: string; gameId: string }) => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<Schedule>(
+        postSchedule({
+          identity: scheduleId,
+          fields: SCHEDULE_FIELDS as unknown as Array<
+            ScheduleResourceSchema["__primitiveFields"]
+          >,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: Schedule }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    onSuccess: (_data, vars) => {
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.detail(vars.scheduleId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.byGame(vars.gameId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.topSixForGame(vars.gameId),
       });
     },
   });

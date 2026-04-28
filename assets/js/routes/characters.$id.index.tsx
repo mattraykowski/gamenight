@@ -1,6 +1,7 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
+import { CharacterSchedulesSection } from "@/features/schedules/components/character-schedules-section";
 import { ScheduleStatusBadge } from "@/features/schedules/components/schedule-status-badge";
 import { useListSchedulesForCharacter } from "@/features/schedules/hooks";
 import { useListMyCharacters } from "@/features/players/hooks";
@@ -73,60 +74,69 @@ function CharacterDetailRoute() {
         </Button>
       </header>
 
-      <section className="mt-10" aria-labelledby="character-schedules-heading">
-        <h2
-          id="character-schedules-heading"
-          className="text-xl font-semibold tracking-tight"
-        >
-          Schedules
-        </h2>
+      {schedules.isPending ? (
+        <p className="mt-10 text-sm text-muted-foreground">
+          Loading schedules…
+        </p>
+      ) : schedules.isError ? (
+        <p className="mt-10 text-sm text-destructive" role="alert">
+          We couldn&apos;t load schedules. Please refresh.
+        </p>
+      ) : (
+        <>
+          <CharacterSchedulesSection
+            characterId={character.id}
+            schedules={schedules.data ?? []}
+          />
 
-        <div className="mt-4">
-          {schedules.isPending ? (
-            <p className="text-sm text-muted-foreground">Loading schedules…</p>
-          ) : schedules.isError ? (
-            <p className="text-sm text-destructive" role="alert">
-              We couldn&apos;t load schedules. Please refresh.
-            </p>
-          ) : schedules.data && schedules.data.length > 0 ? (
-            <ul
-              className="divide-y rounded-md border"
-              data-testid="character-schedules-list"
+          {(schedules.data ?? []).filter((s) => s.status !== "posted").length >
+          0 ? (
+            <section
+              className="mt-10"
+              aria-labelledby="character-availability-heading"
             >
-              {schedules.data.map((schedule) => (
-                <li
-                  key={schedule.id}
-                  className="flex items-center justify-between gap-3 p-4"
-                  data-testid={`character-schedule-row-${schedule.id}`}
-                >
-                  <div>
-                    <p className="font-medium">{schedule.name}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <ScheduleStatusBadge status={schedule.status} />
-                    <Button asChild variant="outline" size="sm">
-                      <Link
-                        to="/characters/$characterId/schedules/$scheduleId"
-                        params={{
-                          characterId: character.id,
-                          scheduleId: schedule.id,
-                        }}
-                      >
-                        Open
-                      </Link>
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="rounded-md border border-dashed border-muted-foreground/30 bg-muted/20 p-6 text-center text-sm text-muted-foreground">
-              No schedules ready for your availability yet. Your GM will let
-              you know.
-            </p>
-          )}
-        </div>
-      </section>
+              <h2
+                id="character-availability-heading"
+                className="text-xl font-semibold tracking-tight"
+              >
+                Awaiting your availability
+              </h2>
+              <ul
+                className="mt-4 divide-y rounded-md border"
+                data-testid="character-schedules-list"
+              >
+                {(schedules.data ?? [])
+                  .filter((s) => s.status !== "posted")
+                  .map((schedule) => (
+                    <li
+                      key={schedule.id}
+                      className="flex items-center justify-between gap-3 p-4"
+                      data-testid={`character-schedule-row-${schedule.id}`}
+                    >
+                      <div>
+                        <p className="font-medium">{schedule.name}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <ScheduleStatusBadge status={schedule.status} />
+                        <Button asChild variant="outline" size="sm">
+                          <Link
+                            to="/characters/$characterId/schedules/$scheduleId"
+                            params={{
+                              characterId: character.id,
+                              scheduleId: schedule.id,
+                            }}
+                          >
+                            Open
+                          </Link>
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+              </ul>
+            </section>
+          ) : null}
+        </>
+      )}
     </main>
   );
 }

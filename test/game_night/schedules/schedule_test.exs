@@ -439,6 +439,118 @@ defmodule GameNight.Schedules.ScheduleTest do
     end
   end
 
+  describe ":post action (T092)" do
+    setup do
+      {:ok, gm} = create_user()
+      {:ok, game} = register_game(gm)
+      {:ok, m1} = create_user()
+      _ = seed_player!(game, m1)
+      {:ok, schedule} = initiate(gm, game, %{month: 10, year: 2099})
+
+      # GM marks day 5 as :A so it's a "good day" (no participants
+      # yet have submitted).
+      {:ok, schedule} =
+        schedule
+        |> Ash.Changeset.for_update(:set_gm_day, %{day: 5, status: :A}, actor: gm)
+        |> Ash.update()
+
+      {:ok, ready} =
+        schedule
+        |> Ash.Changeset.for_update(:transition_to_ready_for_availability, %{}, actor: gm)
+        |> Ash.update()
+
+      {:ok, gm: gm, schedule: ready, m1: m1}
+    end
+
+    test "post flips status, sets posted_at, fills null final_status by rule", %{
+      gm: gm,
+      schedule: schedule,
+      m1: m1
+    } do
+      # Have the linked participant submit :A for day 5 so the day
+      # is "everyone available" → good day. Otherwise the default
+      # NA would tip it to bad day (1 NA out of 1 > floor(1/5) = 0).
+      [participant] =
+        GameNight.Schedules.ScheduleParticipant
+        |> Ash.Query.filter(schedule_id == ^schedule.id and player.user_id == ^m1.id)
+        |> Ash.read!(authorize?: false)
+
+      day_5_pd =
+        GameNight.Schedules.ParticipantDay
+        |> Ash.Query.filter(participant_id == ^participant.id and day == 5)
+        |> Ash.read_one!(authorize?: false)
+
+      {:ok, _} =
+        day_5_pd
+        |> Ash.Changeset.for_update(:set_status, %{status: :A}, actor: m1)
+        |> Ash.update()
+
+      assert {:ok, posted} = post_schedule(gm, schedule)
+      assert posted.status == :posted
+      assert %DateTime{} = posted.posted_at
+
+      days =
+        GameNight.Schedules.ScheduleDay
+        |> Ash.Query.filter(schedule_id == ^schedule.id)
+        |> Ash.read!(authorize?: false)
+
+      day_5 = Enum.find(days, &(&1.day == 5))
+      day_6 = Enum.find(days, &(&1.day == 6))
+
+      # Day 5 is GM-A + participant-A → good day → :A.
+      assert day_5.final_status == :A
+      # Day 6 is GM-NA → bad day → :NA.
+      assert day_6.final_status == :NA
+    end
+
+    test "post preserves Final values the GM set explicitly", %{
+      gm: gm,
+      schedule: schedule
+    } do
+      # GM toggles day 6 to :A pre-post even though it's a "bad day".
+      {:ok, _} =
+        schedule
+        |> Ash.Changeset.for_update(
+          :update_final_days,
+          %{final_days: [%{day: 6, status: :A}]},
+          actor: gm
+        )
+        |> Ash.update()
+
+      assert {:ok, _posted} = post_schedule(gm, schedule)
+
+      day_6 =
+        GameNight.Schedules.ScheduleDay
+        |> Ash.Query.filter(schedule_id == ^schedule.id and day == 6)
+        |> Ash.read_one!(authorize?: false)
+
+      # Preserved — ComputeFinalDefault only fills nulls.
+      assert day_6.final_status == :A
+    end
+
+    test "post is forbidden for non-owner", %{schedule: schedule} do
+      {:ok, intruder} = create_user()
+      assert {:error, %Ash.Error.Forbidden{}} = post_schedule(intruder, schedule)
+    end
+
+    test "post rejects when status != :ready_for_availability", %{
+      gm: gm,
+      schedule: schedule
+    } do
+      # First post.
+      {:ok, posted} = post_schedule(gm, schedule)
+
+      # Second post should fail with the state validation.
+      assert {:error, %Ash.Error.Invalid{}} = post_schedule(gm, posted)
+    end
+  end
+
+  defp post_schedule(actor, schedule) do
+    schedule
+    |> Ash.Changeset.for_update(:post, %{}, actor: actor)
+    |> Ash.update()
+  end
+
   describe "submission_count + participant_count calculations (T123 / players-ready column)" do
     setup do
       {:ok, gm} = create_user()

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ function ScheduleDetailRoute() {
   const setGmDay = useSetScheduleGmDay();
   const transitionToReady = useTransitionScheduleToReady();
   const { push } = useToasts();
+  const navigate = useNavigate();
 
   async function onTransitionToReady() {
     try {
@@ -151,10 +152,21 @@ function ScheduleDetailRoute() {
             isPending={transitionToReady.isPending}
           />
         ) : null}
-        {/* US4 — placeholder */}
-        <Button type="button" variant="outline" disabled aria-label="Scheduling View (coming in US4)">
-          Scheduling View
-        </Button>
+        {data.status === "ready_for_availability" || data.status === "posted" ? (
+          <Button
+            type="button"
+            variant="outline"
+            data-testid="open-scheduling-view"
+            onClick={() =>
+              void navigate({
+                to: "/games/$gameId/schedules/$scheduleId/scheduling",
+                params: { gameId, scheduleId },
+              })
+            }
+          >
+            Scheduling View
+          </Button>
+        ) : null}
         {/* US8 — placeholder */}
         <Button type="button" variant="outline" disabled aria-label="Delete (coming in US8)">
           Delete

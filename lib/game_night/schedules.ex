@@ -51,6 +51,9 @@ defmodule GameNight.Schedules do
       # US3 (T084) — player-side reads.
       rpc_action :list_schedules_for_character, :list_for_player_character
       rpc_action :get_schedule_for_character, :get_for_player_character
+      # US4 (T103).
+      rpc_action :update_schedule_final_days, :update_final_days
+      rpc_action :post_schedule, :post
     end
 
     # Registered for type generation only.

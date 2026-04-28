@@ -2332,6 +2332,74 @@ export async function validateListSchedulesForGameTopSix(
 }
 
 
+export type PostScheduleFields = UnifiedFieldSelection<ScheduleResourceSchema>[];
+
+export type InferPostScheduleResult<
+  Fields extends PostScheduleFields | undefined,
+> = InferResult<ScheduleResourceSchema, Fields>;
+
+export type PostScheduleResult<Fields extends PostScheduleFields | undefined = undefined> = | { success: true; data: InferPostScheduleResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing Schedule
+ *
+ * @ashActionType :update
+ */
+export async function postSchedule<Fields extends PostScheduleFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<PostScheduleResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "post_schedule",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<PostScheduleResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Validate: Update an existing Schedule
+ *
+ * @ashActionType :update
+ * @validation true
+ */
+export async function validatePostSchedule(
+  config: {
+  tenant?: string;
+  identity: UUID | string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ValidationResult> {
+  const payload = {
+    action: "post_schedule",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity
+  };
+
+  return executeValidationRpcRequest<ValidationResult>(
+    payload,
+    config
+  );
+}
+
+
 export type SetScheduleGmDayInput = {
   day: number;
   status: "NA" | "I" | "A" | "IF";
@@ -2468,6 +2536,82 @@ export async function validateTransitionScheduleToReady(
     action: "transition_schedule_to_ready",
     ...(config.tenant !== undefined && { tenant: config.tenant }),
     identity: config.identity
+  };
+
+  return executeValidationRpcRequest<ValidationResult>(
+    payload,
+    config
+  );
+}
+
+
+export type UpdateScheduleFinalDaysInput = {
+  finalDays: Array<Record<string, any>>;
+};
+
+export type UpdateScheduleFinalDaysFields = UnifiedFieldSelection<ScheduleResourceSchema>[];
+
+export type InferUpdateScheduleFinalDaysResult<
+  Fields extends UpdateScheduleFinalDaysFields | undefined,
+> = InferResult<ScheduleResourceSchema, Fields>;
+
+export type UpdateScheduleFinalDaysResult<Fields extends UpdateScheduleFinalDaysFields | undefined = undefined> = | { success: true; data: InferUpdateScheduleFinalDaysResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing Schedule
+ *
+ * @ashActionType :update
+ */
+export async function updateScheduleFinalDays<Fields extends UpdateScheduleFinalDaysFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input: UpdateScheduleFinalDaysInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<UpdateScheduleFinalDaysResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "update_schedule_final_days",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<UpdateScheduleFinalDaysResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Validate: Update an existing Schedule
+ *
+ * @ashActionType :update
+ * @validation true
+ */
+export async function validateUpdateScheduleFinalDays(
+  config: {
+  tenant?: string;
+  identity: UUID | string;
+  input: UpdateScheduleFinalDaysInput;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ValidationResult> {
+  const payload = {
+    action: "update_schedule_final_days",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input
   };
 
   return executeValidationRpcRequest<ValidationResult>(

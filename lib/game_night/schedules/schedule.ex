@@ -72,6 +72,8 @@ defmodule GameNight.Schedules.Schedule do
       patch :set_gm_day, route: "/:id/set-gm-day"
       patch :transition_to_ready_for_availability,
         route: "/:id/transition-to-ready-for-availability"
+      patch :update_final_days, route: "/:id/update-final-days"
+      patch :post, route: "/:id/post"
 
       # US3 — player-side reads.
       index :list_for_player_character, route: "/by-character/:player_id"
@@ -185,6 +187,81 @@ defmodule GameNight.Schedules.Schedule do
                  ),
                load: [:schedule_days, :name]
              )
+    end
+
+    update :update_final_days do
+      description """
+      GM-only — patch the Final decision for one or more days. Used
+      by the Scheduling View's per-cell toggle. Allowed in
+      `:ready_for_availability` (so the GM can adjust Final values
+      before posting) and in `:posted` (silent post-post edits).
+
+      Args: `final_days: [%{day: integer, status: :NA | :A}]`.
+      """
+      accept []
+      require_atomic? false
+
+      argument :final_days, {:array, :map}, allow_nil?: false
+
+      validate fn changeset, _ctx ->
+        case Ash.Changeset.get_data(changeset, :status) do
+          status when status in [:ready_for_availability, :posted] ->
+            :ok
+
+          other ->
+            {:error,
+             field: :status,
+             message:
+               "Schedule must be ready for availability or posted to update Final values (was #{inspect(other)})."}
+        end
+      end
+
+      change after_action(fn changeset, schedule, _ctx ->
+               final_days = Ash.Changeset.get_argument(changeset, :final_days)
+
+               case apply_final_days(schedule, final_days) do
+                 :ok -> {:ok, schedule}
+                 {:error, reason} -> {:error, reason}
+               end
+             end)
+    end
+
+    update :post do
+      description """
+      Transition a `:ready_for_availability` schedule to `:posted`.
+      ComputeFinalDefault fills any still-null `final_status` from
+      the truth table; days the GM set via `:update_final_days` are
+      preserved. Sends the `:schedule_posted` notification + email
+      to every linked, non-NP participant.
+      """
+      accept []
+      require_atomic? false
+
+      validate fn changeset, _ctx ->
+        case Ash.Changeset.get_data(changeset, :status) do
+          :ready_for_availability ->
+            :ok
+
+          other ->
+            {:error,
+             field: :status,
+             message:
+               "Schedule must be ready for availability to post (was #{inspect(other)})."}
+        end
+      end
+
+      change set_attribute(:status, :posted)
+      change set_attribute(:posted_at, &DateTime.utc_now/0)
+      change GameNight.Schedules.Changes.ComputeFinalDefault
+      change after_action(fn _changeset, schedule, _ctx ->
+               case GameNight.Schedules.System.fan_out_notification(
+                      schedule,
+                      :schedule_posted
+                    ) do
+                 :ok -> {:ok, schedule}
+                 {:error, reason} -> {:error, reason}
+               end
+             end)
     end
 
     update :transition_to_ready_for_availability do
@@ -309,7 +386,9 @@ defmodule GameNight.Schedules.Schedule do
              :list_for_game_top_six,
              :get_for_game,
              :set_gm_day,
-             :transition_to_ready_for_availability
+             :transition_to_ready_for_availability,
+             :update_final_days,
+             :post
            ]) do
       authorize_if expr(game.owner_id == ^actor(:id))
     end
@@ -477,4 +556,35 @@ defmodule GameNight.Schedules.Schedule do
   end
 
   defp maybe_cascade_gm_na(_schedule, _day, _status), do: :ok
+
+  @doc false
+  def apply_final_days(schedule, final_days) when is_list(final_days) do
+    require Ash.Query
+
+    Enum.reduce_while(final_days, :ok, fn entry, _acc ->
+      day = day_from_entry(entry)
+      status = status_from_entry(entry)
+
+      with {:ok, %GameNight.Schedules.ScheduleDay{} = sd} <- find_schedule_day(schedule, day),
+           {:ok, _} <-
+             sd
+             |> Ash.Changeset.for_update(:set_final_status, %{final_status: status},
+               actor: GameNight.Schedules.System.actor()
+             )
+             |> Ash.update() do
+        {:cont, :ok}
+      else
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  defp day_from_entry(%{"day" => day}) when is_integer(day), do: day
+  defp day_from_entry(%{day: day}) when is_integer(day), do: day
+  defp day_from_entry(%{"day" => day}) when is_binary(day), do: String.to_integer(day)
+
+  defp status_from_entry(%{"status" => status}) when is_atom(status), do: status
+  defp status_from_entry(%{status: status}) when is_atom(status), do: status
+  defp status_from_entry(%{"status" => status}) when is_binary(status), do: String.to_existing_atom(status)
+  defp status_from_entry(%{status: status}) when is_binary(status), do: String.to_existing_atom(status)
 end
