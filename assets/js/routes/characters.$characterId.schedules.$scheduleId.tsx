@@ -56,6 +56,7 @@ function CharacterScheduleRoute() {
 
   const cells = useMemo<DayCell[]>(() => {
     if (!schedule.data) return [];
+    const isPostedSchedule = schedule.data.status === "posted";
     const dayMap = new Map<number, ParticipantDay>();
     for (const pd of myParticipant?.participantDays ?? []) {
       dayMap.set(pd.day, pd);
@@ -65,6 +66,15 @@ function CharacterScheduleRoute() {
       .slice()
       .sort((a, b) => a.day - b.day)
       .map((sd): DayCell => {
+        if (isPostedSchedule) {
+          // Posted view shows the GM's Final decision (A = game runs,
+          // NA = no game), not the player's submitted availability.
+          return {
+            day: sd.day,
+            status: (sd.finalStatus ?? "NA") as ParticipantDayStatus,
+            gmLockedNa: false,
+          };
+        }
         const pd = dayMap.get(sd.day);
         const status = (pd?.status ?? "NA") as ParticipantDayStatus;
         return {

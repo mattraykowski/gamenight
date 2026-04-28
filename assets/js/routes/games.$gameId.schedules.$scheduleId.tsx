@@ -64,12 +64,13 @@ function ScheduleDetailRoute() {
 
   const cells = useMemo<DayCell[]>(() => {
     if (!schedule.data) return [];
+    const isPosted = schedule.data.status === "posted";
     return schedule.data.scheduleDays
       .slice()
       .sort((a, b) => a.day - b.day)
       .map((d: ScheduleDay) => ({
         day: d.day,
-        status: d.gmStatus ?? "NA",
+        status: isPosted ? (d.finalStatus ?? "NA") : (d.gmStatus ?? "NA"),
         gmLockedNa: false,
       }));
   }, [schedule.data]);
