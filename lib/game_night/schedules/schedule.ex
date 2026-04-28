@@ -268,8 +268,13 @@ defmodule GameNight.Schedules.Schedule do
       attribute_writable? true
     end
 
-    has_many :schedule_days, GameNight.Schedules.ScheduleDay
-    has_many :participants, GameNight.Schedules.ScheduleParticipant
+    has_many :schedule_days, GameNight.Schedules.ScheduleDay do
+      public? true
+    end
+
+    has_many :participants, GameNight.Schedules.ScheduleParticipant do
+      public? true
+    end
   end
 
   identities do

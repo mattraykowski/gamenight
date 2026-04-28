@@ -166,6 +166,8 @@ export type ScheduleResourceSchema = {
   insertedAt: UtcDateTimeUsec;
   updatedAt: UtcDateTimeUsec;
   name: string | null;
+  scheduleDays: { __type: "Relationship"; __array: true; __resource: ScheduleDayResourceSchema; };
+  participants: { __type: "Relationship"; __array: true; __resource: ScheduleParticipantResourceSchema; };
 };
 
 
@@ -606,6 +608,9 @@ export type ScheduleFilterInput = {
   };
 
 
+  scheduleDays?: ScheduleDayFilterInput;
+
+  participants?: ScheduleParticipantFilterInput;
 
 };
 export type ScheduleDayFilterInput = {
@@ -750,7 +755,7 @@ export type NotificationFilterField = (typeof notificationFilterFields)[number];
 export const participantDayFilterFields = ["id", "day", "status", "insertedAt", "updatedAt"] as const;
 export type ParticipantDayFilterField = (typeof participantDayFilterFields)[number];
 
-export const scheduleFilterFields = ["id", "month", "year", "startTime", "endTime", "timeZone", "status", "postedAt", "insertedAt", "updatedAt", "name"] as const;
+export const scheduleFilterFields = ["id", "month", "year", "startTime", "endTime", "timeZone", "status", "postedAt", "insertedAt", "updatedAt", "name", "scheduleDays", "participants"] as const;
 export type ScheduleFilterField = (typeof scheduleFilterFields)[number];
 
 export const scheduleDayFilterFields = ["id", "day", "gmStatus", "finalStatus", "insertedAt", "updatedAt"] as const;
