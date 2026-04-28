@@ -109,13 +109,14 @@ function InitiateScheduleForm({
   // Native `<input type="month">` and `<input type="time">` render
   // a calendar/clock indicator via `::-webkit-calendar-picker-indicator`
   // which the browser otherwise tints based on the page's
-  // color-scheme. On the dialog's white surface the default tint
-  // can come out near-invisible. We force a 100% opacity contrasted
-  // tint via `invert-50` so the icon reads as a dark glyph against
-  // the white field. Applied alongside a darker explicit border so
-  // the field outline is unambiguously visible.
+  // color-scheme. The default tint can come out near-invisible.
+  // Force the indicator to a clearly visible opacity, and pin
+  // color-scheme so the browser uses the matching native picker
+  // chrome (light glyph on dark mode, dark glyph on light mode).
+  // The field border itself is already visible — see the global
+  // --input token in `assets/css/app.css`.
   const pickerInputClass =
-    "border-foreground/30 [color-scheme:light] [&::-webkit-calendar-picker-indicator]:opacity-80 [&::-webkit-calendar-picker-indicator]:cursor-pointer dark:[color-scheme:dark]";
+    "[color-scheme:light] [&::-webkit-calendar-picker-indicator]:opacity-80 [&::-webkit-calendar-picker-indicator]:cursor-pointer dark:[color-scheme:dark]";
 
   return (
     <form
