@@ -161,21 +161,24 @@ async function runRpc<T>(
 /** GM-only — top-6 most recent schedules for the View Game widget. */
 export function useListSchedulesForGameTopSix(
   gameId: string,
-): UseQueryResult<Schedule[], ApiError> {
+): UseQueryResult<CharacterSchedule[], ApiError> {
   return useQuery({
     queryKey: schedulesKeys.topSixForGame(gameId),
     queryFn: async () => {
       const { customFetch, headers } = getClientOptions();
-      return runRpc<Schedule[]>(
+      return runRpc<CharacterSchedule[]>(
         listSchedulesForGameTopSix({
           input: { gameId },
-          fields: SCHEDULE_FIELDS as unknown as Array<
+          fields: [
+            ...SCHEDULE_FIELDS,
+            { scheduleDays: ["day", "finalStatus"] },
+          ] as unknown as Array<
             ScheduleResourceSchema["__primitiveFields"]
           >,
           headers,
           ...(customFetch !== undefined ? { customFetch } : {}),
         }) as Promise<
-          | { success: true; data: Schedule[] }
+          | { success: true; data: CharacterSchedule[] }
           | { success: false; errors: AshRpcError[] }
         >,
       );

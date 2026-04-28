@@ -64,7 +64,7 @@ function buildSchedule(overrides: Partial<CharacterSchedule>): CharacterSchedule
 describe("<CharacterSchedulesSection> (T111)", () => {
   it("renders empty states when no schedules match", async () => {
     renderInRouter(
-      <CharacterSchedulesSection characterId="char-1" schedules={[]} />,
+      <CharacterSchedulesSection audience={{ kind: "character", characterId: "char-1" }} schedules={[]} />,
     );
     expect(
       await screen.findByText(/no posted schedule for the current month/i),
@@ -82,7 +82,7 @@ describe("<CharacterSchedulesSection> (T111)", () => {
       year: CURRENT_YEAR,
     });
     renderInRouter(
-      <CharacterSchedulesSection characterId="char-1" schedules={[current]} />,
+      <CharacterSchedulesSection audience={{ kind: "character", characterId: "char-1" }} schedules={[current]} />,
     );
 
     expect(await screen.findByText("This month's session")).toBeInTheDocument();
@@ -99,7 +99,7 @@ describe("<CharacterSchedulesSection> (T111)", () => {
       year: NEXT_YEAR,
     });
     renderInRouter(
-      <CharacterSchedulesSection characterId="char-1" schedules={[upcoming]} />,
+      <CharacterSchedulesSection audience={{ kind: "character", characterId: "char-1" }} schedules={[upcoming]} />,
     );
 
     expect(
@@ -114,7 +114,7 @@ describe("<CharacterSchedulesSection> (T111)", () => {
       status: "ready_for_availability",
     });
     renderInRouter(
-      <CharacterSchedulesSection characterId="char-1" schedules={[ready]} />,
+      <CharacterSchedulesSection audience={{ kind: "character", characterId: "char-1" }} schedules={[ready]} />,
     );
     // Wait for the section to mount, then assert the absence.
     await screen.findByText(/posted schedules/i);
@@ -130,7 +130,7 @@ describe("<CharacterSchedulesSection> (T111)", () => {
       year: 2024,
     });
     renderInRouter(
-      <CharacterSchedulesSection characterId="char-1" schedules={[otherPosted]} />,
+      <CharacterSchedulesSection audience={{ kind: "character", characterId: "char-1" }} schedules={[otherPosted]} />,
     );
 
     expect(
@@ -153,7 +153,7 @@ describe("<CharacterSchedulesSection> (T111)", () => {
       ],
     });
     renderInRouter(
-      <CharacterSchedulesSection characterId="char-1" schedules={[current]} />,
+      <CharacterSchedulesSection audience={{ kind: "character", characterId: "char-1" }} schedules={[current]} />,
     );
 
     const callout = await screen.findByTestId("character-schedules-next-game");
@@ -179,7 +179,7 @@ describe("<CharacterSchedulesSection> (T111)", () => {
       scheduleDays: [{ day: 1, finalStatus: "NA" }],
     });
     renderInRouter(
-      <CharacterSchedulesSection characterId="char-1" schedules={[current]} />,
+      <CharacterSchedulesSection audience={{ kind: "character", characterId: "char-1" }} schedules={[current]} />,
     );
 
     const callout = await screen.findByTestId("character-schedules-next-game");
@@ -194,7 +194,7 @@ describe("<CharacterSchedulesSection> (T111)", () => {
       scheduleDays: [{ day: 5, finalStatus: "A" }],
     });
     renderInRouter(
-      <CharacterSchedulesSection characterId="char-1" schedules={[upcoming]} />,
+      <CharacterSchedulesSection audience={{ kind: "character", characterId: "char-1" }} schedules={[upcoming]} />,
     );
 
     await screen.findByText("Test schedule");
@@ -210,7 +210,7 @@ describe("<CharacterSchedulesSection> (T111)", () => {
       year: CURRENT_YEAR,
     });
     renderInRouter(
-      <CharacterSchedulesSection characterId="char-1" schedules={[current]} />,
+      <CharacterSchedulesSection audience={{ kind: "character", characterId: "char-1" }} schedules={[current]} />,
     );
 
     await screen.findByText("Test schedule");

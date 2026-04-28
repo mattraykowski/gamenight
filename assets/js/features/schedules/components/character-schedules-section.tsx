@@ -1,12 +1,21 @@
 import { useNavigate } from "@tanstack/react-router";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import type { CharacterSchedule } from "../hooks";
 import { ScheduleStatusBadge } from "./schedule-status-badge";
 
+export type SchedulesSectionAudience =
+  | { kind: "character"; characterId: string }
+  | { kind: "game"; gameId: string };
+
 export interface CharacterSchedulesSectionProps {
-  characterId: string;
+  audience: SchedulesSectionAudience;
   schedules: CharacterSchedule[];
+  /** Hide the "Posted schedules" header — used when the section is
+   *  embedded as a sidebar that already lives under a higher-level
+   *  heading (e.g. the View Game summary). */
+  hideHeader?: boolean;
 }
 
 interface MonthYear {
@@ -60,8 +69,9 @@ function formatNextGame(date: Date): string {
  * list (sorted future-then-past) for that character.
  */
 export function CharacterSchedulesSection({
-  characterId,
+  audience,
   schedules,
+  hideHeader = false,
 }: CharacterSchedulesSectionProps) {
   const navigate = useNavigate();
 
@@ -72,42 +82,59 @@ export function CharacterSchedulesSection({
   const upcomingSchedules = posted.filter((s) => isInMonthYear(s, upcoming));
   const hasOtherPosted = posted.length > currentSchedules.length + upcomingSchedules.length;
 
+  function navigateToList() {
+    if (audience.kind === "character") {
+      void navigate({
+        to: "/characters/$characterId/schedules",
+        params: { characterId: audience.characterId },
+      });
+    } else {
+      void navigate({
+        to: "/games/$gameId/schedules",
+        params: { gameId: audience.gameId },
+      });
+    }
+  }
+
   return (
     <section
-      className="mt-10"
+      className={hideHeader ? undefined : "mt-10"}
       aria-labelledby="character-schedules-heading"
       data-testid="character-schedules-section"
     >
-      <header className="flex items-end justify-between gap-4">
-        <h2
-          id="character-schedules-heading"
-          className="text-xl font-semibold tracking-tight"
-        >
-          Posted schedules
-        </h2>
-        {hasOtherPosted ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            data-testid="character-schedules-view-all"
-            onClick={() =>
-              void navigate({
-                to: "/characters/$characterId/schedules",
-                params: { characterId },
-              })
-            }
+      {hideHeader ? null : (
+        <header className="flex items-end justify-between gap-4">
+          <h2
+            id="character-schedules-heading"
+            className="text-xl font-semibold tracking-tight"
           >
-            View all
-          </Button>
-        ) : null}
-      </header>
+            Posted schedules
+          </h2>
+          {hasOtherPosted ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              data-testid="character-schedules-view-all"
+              onClick={navigateToList}
+            >
+              View all
+            </Button>
+          ) : null}
+        </header>
+      )}
 
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
+      <div
+        className={cn(
+          "grid gap-4",
+          hideHeader ? "" : "mt-4",
+          "md:grid-cols-2",
+        )}
+      >
         <ScheduleBucket
           headingId="character-schedules-current"
           title="This month"
-          characterId={characterId}
+          audience={audience}
           schedules={currentSchedules}
           emptyText="No posted schedule for the current month."
           showNextGame
@@ -115,7 +142,7 @@ export function CharacterSchedulesSection({
         <ScheduleBucket
           headingId="character-schedules-upcoming"
           title="Next month"
-          characterId={characterId}
+          audience={audience}
           schedules={upcomingSchedules}
           emptyText="Nothing posted for next month yet."
         />
@@ -127,7 +154,7 @@ export function CharacterSchedulesSection({
 interface ScheduleBucketProps {
   headingId: string;
   title: string;
-  characterId: string;
+  audience: SchedulesSectionAudience;
   schedules: CharacterSchedule[];
   emptyText: string;
   showNextGame?: boolean;
@@ -136,12 +163,26 @@ interface ScheduleBucketProps {
 function ScheduleBucket({
   headingId,
   title,
-  characterId,
+  audience,
   schedules,
   emptyText,
   showNextGame = false,
 }: ScheduleBucketProps) {
   const navigate = useNavigate();
+
+  function open(scheduleId: string) {
+    if (audience.kind === "character") {
+      void navigate({
+        to: "/characters/$characterId/schedules/$scheduleId",
+        params: { characterId: audience.characterId, scheduleId },
+      });
+    } else {
+      void navigate({
+        to: "/games/$gameId/schedules/$scheduleId",
+        params: { gameId: audience.gameId, scheduleId },
+      });
+    }
+  }
 
   return (
     <div className="rounded-md border p-4" aria-labelledby={headingId}>
@@ -173,12 +214,7 @@ function ScheduleBucket({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    void navigate({
-                      to: "/characters/$characterId/schedules/$scheduleId",
-                      params: { characterId, scheduleId: schedule.id },
-                    })
-                  }
+                  onClick={() => open(schedule.id)}
                 >
                   Open
                 </Button>

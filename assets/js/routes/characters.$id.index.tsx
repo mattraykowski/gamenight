@@ -85,7 +85,7 @@ function CharacterDetailRoute() {
       ) : (
         <>
           <CharacterSchedulesSection
-            characterId={character.id}
+            audience={{ kind: "character", characterId: character.id }}
             schedules={schedules.data ?? []}
           />
 

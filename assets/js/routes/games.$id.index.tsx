@@ -17,6 +17,7 @@ import {
   type InvitationFormValues,
 } from "@/features/invitations/schemas";
 import { PlayersTable } from "@/features/players/components/players-table";
+import { CharacterSchedulesSection } from "@/features/schedules/components/character-schedules-section";
 import { InitiateScheduleDialog } from "@/features/schedules/components/initiate-schedule-dialog";
 import { SchedulesTable } from "@/features/schedules/components/schedules-table";
 import {
@@ -187,7 +188,7 @@ export function GameDetailRoute() {
   const { data: entry } = game;
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-5xl px-6 py-12">
       <div className="flex items-start justify-between gap-4">
         <h1
           data-route-heading
@@ -221,25 +222,48 @@ export function GameDetailRoute() {
         ) : null}
       </div>
 
-      <div className="mt-8 space-y-6">
-        <GameFieldRow id="title" label="Title">
-          <p className="text-base" data-testid="game-detail-title">
-            {entry.title}
-          </p>
-        </GameFieldRow>
-        <GameFieldRow id="description" label="Description">
-          <p
-            className="whitespace-pre-wrap text-base text-muted-foreground"
-            data-testid="game-detail-description"
-          >
-            {entry.description && entry.description.length > 0 ? entry.description : "—"}
-          </p>
-        </GameFieldRow>
-        <GameFieldRow id="status" label="Status">
-          <p className="text-base" data-testid="game-detail-status">
-            {STATUS_LABELS[entry.status] ?? entry.status}
-          </p>
-        </GameFieldRow>
+      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
+        <div className="space-y-6">
+          <GameFieldRow id="title" label="Title">
+            <p className="text-base" data-testid="game-detail-title">
+              {entry.title}
+            </p>
+          </GameFieldRow>
+          <GameFieldRow id="description" label="Description">
+            <p
+              className="whitespace-pre-wrap text-base text-muted-foreground"
+              data-testid="game-detail-description"
+            >
+              {entry.description && entry.description.length > 0 ? entry.description : "—"}
+            </p>
+          </GameFieldRow>
+          <GameFieldRow id="status" label="Status">
+            <p className="text-base" data-testid="game-detail-status">
+              {STATUS_LABELS[entry.status] ?? entry.status}
+            </p>
+          </GameFieldRow>
+        </div>
+
+        {isOwner ? (
+          <aside aria-label="Upcoming schedule overview">
+            {schedulesTopSix.isPending ? (
+              <p className="text-sm text-muted-foreground">Loading schedules…</p>
+            ) : schedulesTopSix.isError ? (
+              <p
+                className="rounded-md border border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                role="alert"
+              >
+                We couldn&apos;t load schedules. Please refresh.
+              </p>
+            ) : (
+              <CharacterSchedulesSection
+                audience={{ kind: "game", gameId: id }}
+                schedules={schedulesTopSix.data ?? []}
+                hideHeader
+              />
+            )}
+          </aside>
+        ) : null}
       </div>
 
       <section
