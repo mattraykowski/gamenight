@@ -71,13 +71,13 @@ test.describe("US1 — GM initiates a schedule", () => {
     await page.getByLabel("End time").fill("23:00");
     await page.getByRole("button", { name: /create schedule/i }).click();
 
-    // The dialog closes; the schedules table now shows one row.
-    await expect(page.getByText(nameLabel)).toBeVisible();
-    await expect(page.getByText(/preparing/i).first()).toBeVisible();
-
-    // Click the View link to land on the Schedule Detail page.
-    await page.getByTestId(/^schedule-row-view-/).click();
-    await expect(page.getByRole("heading", { level: 1, name: nameLabel })).toBeVisible();
+    // The dialog closes and the route navigates to the Schedule
+    // Detail page directly — staying on /games/:id with a stale
+    // table is the wrong UX.
+    await expect(
+      page.getByRole("heading", { level: 1, name: nameLabel }),
+    ).toBeVisible();
+    await expect(page).toHaveURL(/\/games\/[^/]+\/schedules\/[^/]+$/);
 
     // The MonthCalendar grid is present.
     const grid = page.getByRole("grid");

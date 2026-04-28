@@ -116,8 +116,12 @@ export function GameDetailRoute() {
 
   async function onInitiateSchedule(input: InitiateScheduleInput) {
     try {
-      await initiateSchedule.mutateAsync(input);
+      const created = await initiateSchedule.mutateAsync(input);
       push({ title: "Schedule initiated.", variant: "success" });
+      await navigate({
+        to: "/games/$gameId/schedules/$scheduleId",
+        params: { gameId: id, scheduleId: created.id },
+      });
     } catch {
       push({
         title: "Could not initiate the schedule. Please try again.",

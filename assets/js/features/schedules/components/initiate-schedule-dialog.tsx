@@ -106,6 +106,17 @@ function InitiateScheduleForm({
 
   const submitting = isPending ?? isSubmitting;
 
+  // Native `<input type="month">` and `<input type="time">` render
+  // a calendar/clock indicator via `::-webkit-calendar-picker-indicator`
+  // which the browser otherwise tints based on the page's
+  // color-scheme. On the dialog's white surface the default tint
+  // can come out near-invisible. We force a 100% opacity contrasted
+  // tint via `invert-50` so the icon reads as a dark glyph against
+  // the white field. Applied alongside a darker explicit border so
+  // the field outline is unambiguously visible.
+  const pickerInputClass =
+    "border-foreground/30 [color-scheme:light] [&::-webkit-calendar-picker-indicator]:opacity-80 [&::-webkit-calendar-picker-indicator]:cursor-pointer dark:[color-scheme:dark]";
+
   return (
     <form
       noValidate
@@ -118,6 +129,7 @@ function InitiateScheduleForm({
         <Input
           id="initiate-schedule-month"
           type="month"
+          className={pickerInputClass}
           aria-invalid={errors.monthYear ? true : undefined}
           {...register("monthYear")}
         />
@@ -134,6 +146,7 @@ function InitiateScheduleForm({
           <Input
             id="initiate-schedule-start-time"
             type="time"
+            className={pickerInputClass}
             aria-invalid={errors.startTime ? true : undefined}
             {...register("startTime")}
           />
@@ -148,6 +161,7 @@ function InitiateScheduleForm({
           <Input
             id="initiate-schedule-end-time"
             type="time"
+            className={pickerInputClass}
             aria-invalid={errors.endTime ? true : undefined}
             {...register("endTime")}
           />
