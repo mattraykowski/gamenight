@@ -26,6 +26,8 @@ import { Route as GamesNewRouteImport } from './routes/games.new'
 import { Route as Confirm_new_userTokenRouteImport } from './routes/confirm_new_user.$token'
 import { Route as GamesIdIndexRouteImport } from './routes/games.$id.index'
 import { Route as GamesIdEditRouteImport } from './routes/games.$id.edit'
+import { Route as GamesGameIdSchedulesIndexRouteImport } from './routes/games.$gameId.schedules.index'
+import { Route as GamesGameIdSchedulesScheduleIdRouteImport } from './routes/games.$gameId.schedules.$scheduleId'
 
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
@@ -112,6 +114,18 @@ const GamesIdEditRoute = GamesIdEditRouteImport.update({
   path: '/games/$id/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GamesGameIdSchedulesIndexRoute =
+  GamesGameIdSchedulesIndexRouteImport.update({
+    id: '/games/$gameId/schedules/',
+    path: '/games/$gameId/schedules/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const GamesGameIdSchedulesScheduleIdRoute =
+  GamesGameIdSchedulesScheduleIdRouteImport.update({
+    id: '/games/$gameId/schedules/$scheduleId',
+    path: '/games/$gameId/schedules/$scheduleId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -131,6 +145,8 @@ export interface FileRoutesByFullPath {
   '/invitations/': typeof InvitationsIndexRoute
   '/games/$id/edit': typeof GamesIdEditRoute
   '/games/$id/': typeof GamesIdIndexRoute
+  '/games/$gameId/schedules/$scheduleId': typeof GamesGameIdSchedulesScheduleIdRoute
+  '/games/$gameId/schedules/': typeof GamesGameIdSchedulesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -150,6 +166,8 @@ export interface FileRoutesByTo {
   '/invitations': typeof InvitationsIndexRoute
   '/games/$id/edit': typeof GamesIdEditRoute
   '/games/$id': typeof GamesIdIndexRoute
+  '/games/$gameId/schedules/$scheduleId': typeof GamesGameIdSchedulesScheduleIdRoute
+  '/games/$gameId/schedules': typeof GamesGameIdSchedulesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -170,6 +188,8 @@ export interface FileRoutesById {
   '/invitations/': typeof InvitationsIndexRoute
   '/games/$id/edit': typeof GamesIdEditRoute
   '/games/$id/': typeof GamesIdIndexRoute
+  '/games/$gameId/schedules/$scheduleId': typeof GamesGameIdSchedulesScheduleIdRoute
+  '/games/$gameId/schedules/': typeof GamesGameIdSchedulesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -191,6 +211,8 @@ export interface FileRouteTypes {
     | '/invitations/'
     | '/games/$id/edit'
     | '/games/$id/'
+    | '/games/$gameId/schedules/$scheduleId'
+    | '/games/$gameId/schedules/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -210,6 +232,8 @@ export interface FileRouteTypes {
     | '/invitations'
     | '/games/$id/edit'
     | '/games/$id'
+    | '/games/$gameId/schedules/$scheduleId'
+    | '/games/$gameId/schedules'
   id:
     | '__root__'
     | '/'
@@ -229,6 +253,8 @@ export interface FileRouteTypes {
     | '/invitations/'
     | '/games/$id/edit'
     | '/games/$id/'
+    | '/games/$gameId/schedules/$scheduleId'
+    | '/games/$gameId/schedules/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -249,6 +275,8 @@ export interface RootRouteChildren {
   InvitationsIndexRoute: typeof InvitationsIndexRoute
   GamesIdEditRoute: typeof GamesIdEditRoute
   GamesIdIndexRoute: typeof GamesIdIndexRoute
+  GamesGameIdSchedulesScheduleIdRoute: typeof GamesGameIdSchedulesScheduleIdRoute
+  GamesGameIdSchedulesIndexRoute: typeof GamesGameIdSchedulesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -372,6 +400,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GamesIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/games/$gameId/schedules/': {
+      id: '/games/$gameId/schedules/'
+      path: '/games/$gameId/schedules'
+      fullPath: '/games/$gameId/schedules/'
+      preLoaderRoute: typeof GamesGameIdSchedulesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games/$gameId/schedules/$scheduleId': {
+      id: '/games/$gameId/schedules/$scheduleId'
+      path: '/games/$gameId/schedules/$scheduleId'
+      fullPath: '/games/$gameId/schedules/$scheduleId'
+      preLoaderRoute: typeof GamesGameIdSchedulesScheduleIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -393,6 +435,8 @@ const rootRouteChildren: RootRouteChildren = {
   InvitationsIndexRoute: InvitationsIndexRoute,
   GamesIdEditRoute: GamesIdEditRoute,
   GamesIdIndexRoute: GamesIdIndexRoute,
+  GamesGameIdSchedulesScheduleIdRoute: GamesGameIdSchedulesScheduleIdRoute,
+  GamesGameIdSchedulesIndexRoute: GamesGameIdSchedulesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

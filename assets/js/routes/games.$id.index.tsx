@@ -17,6 +17,13 @@ import {
   type InvitationFormValues,
 } from "@/features/invitations/schemas";
 import { PlayersTable } from "@/features/players/components/players-table";
+import { InitiateScheduleDialog } from "@/features/schedules/components/initiate-schedule-dialog";
+import { SchedulesTable } from "@/features/schedules/components/schedules-table";
+import {
+  useInitiateSchedule,
+  useListSchedulesForGameTopSix,
+} from "@/features/schedules/hooks";
+import type { InitiateScheduleInput } from "@/ash_rpc";
 import { PlayerEditDialog } from "@/features/players/components/player-edit-dialog";
 import {
   useListPlayersForGame,
@@ -67,6 +74,8 @@ export function GameDetailRoute() {
   const playerRoster = useListPlayersForGame(id);
   const gmRoster = useListPlayersForGm(id);
   const pendingInvites = useListPendingInvitationsForGame(id);
+  const schedulesTopSix = useListSchedulesForGameTopSix(id);
+  const initiateSchedule = useInitiateSchedule();
 
   async function onDelete() {
     try {
@@ -100,6 +109,18 @@ export function GameDetailRoute() {
     } catch {
       push({
         title: "Could not revoke the invitation. Please try again.",
+        variant: "error",
+      });
+    }
+  }
+
+  async function onInitiateSchedule(input: InitiateScheduleInput) {
+    try {
+      await initiateSchedule.mutateAsync(input);
+      push({ title: "Schedule initiated.", variant: "success" });
+    } catch {
+      push({
+        title: "Could not initiate the schedule. Please try again.",
         variant: "error",
       });
     }
@@ -346,6 +367,61 @@ export function GameDetailRoute() {
                     </Button>
                   </RevokeInvitationDialog>
                 )}
+              />
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {isOwner ? (
+        <section className="mt-12" aria-labelledby="schedules-heading">
+          <div className="flex items-center justify-between">
+            <h2
+              id="schedules-heading"
+              className="text-xl font-semibold tracking-tight"
+            >
+              Schedules
+            </h2>
+            <div className="flex items-center gap-2">
+              <InitiateScheduleDialog
+                gameId={id}
+                onSubmit={onInitiateSchedule}
+                isPending={initiateSchedule.isPending}
+              >
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  data-testid="initiate-schedule-trigger"
+                >
+                  Initiate schedule
+                </Button>
+              </InitiateScheduleDialog>
+              <Button asChild variant="outline" size="sm">
+                <Link
+                  to="/games/$gameId/schedules"
+                  params={{ gameId: id }}
+                  data-testid="view-all-schedules"
+                >
+                  View all schedules
+                </Link>
+              </Button>
+            </div>
+          </div>
+          <div className="mt-4">
+            {schedulesTopSix.isPending ? (
+              <p>Loading schedules…</p>
+            ) : schedulesTopSix.isError ? (
+              <p
+                className="rounded-md border border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                role="alert"
+              >
+                We couldn&apos;t load schedules. Please refresh.
+              </p>
+            ) : (
+              <SchedulesTable
+                schedules={schedulesTopSix.data ?? []}
+                gameId={id}
               />
             )}
           </div>

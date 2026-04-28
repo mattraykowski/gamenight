@@ -43,8 +43,33 @@ defmodule GameNight.Schedules.Schedule do
   json_api do
     type "schedule"
 
+    # Include the derived display name in the default response so
+    # every consumer (table rows, breadcrumbs, email subjects) gets
+    # it without an opt-in `?fields[schedule]=name`. Per the user's
+    # "derive via Ash best practices" directive in research.md §1.
+    default_fields [
+      :id,
+      :game_id,
+      :month,
+      :year,
+      :start_time,
+      :end_time,
+      :time_zone,
+      :status,
+      :posted_at,
+      :inserted_at,
+      :updated_at,
+      :name
+    ]
+
     routes do
       base "/schedules"
+
+      index :list_for_game, route: "/by-game/:game_id"
+      index :list_for_game_top_six, route: "/by-game/:game_id/top-six"
+      get :get_for_game, route: "/by-game/:game_id/:id"
+      post :initiate
+      patch :set_gm_day, route: "/:id/set-gm-day"
     end
   end
 
@@ -172,6 +197,12 @@ defmodule GameNight.Schedules.Schedule do
     # US1 — GM-only reads and updates use the relationship-walk
     # filter (works for read/update because the row exists).
     policy action([:list_for_game, :list_for_game_top_six, :get_for_game, :set_gm_day]) do
+      authorize_if expr(game.owner_id == ^actor(:id))
+    end
+
+    # JSON:API PATCH does a load-then-update under the base `:read`
+    # action, so the GM also needs to pass that read policy.
+    policy action_type(:read) do
       authorize_if expr(game.owner_id == ^actor(:id))
     end
 

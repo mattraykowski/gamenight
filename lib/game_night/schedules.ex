@@ -36,9 +36,23 @@ defmodule GameNight.Schedules do
     otp_app: :game_night,
     extensions: [AshJsonApi.Domain, AshTypescript.Rpc]
 
-  # RPC bindings the SPA calls via `/rpc/run`.
-  # Populated incrementally as user-story actions land.
+  # RPC bindings the SPA calls via `/rpc/run`. Story phases add
+  # rpc_action entries alongside their resource actions.
   typescript_rpc do
+    resource GameNight.Schedules.Schedule do
+      # US1 (T040).
+      rpc_action :list_schedules_for_game, :list_for_game
+      rpc_action :list_schedules_for_game_top_six, :list_for_game_top_six
+      rpc_action :get_schedule_for_game, :get_for_game
+      rpc_action :initiate_schedule, :initiate
+      rpc_action :set_schedule_gm_day, :set_gm_day
+    end
+
+    # Registered for type generation only; rpc_action bindings land
+    # alongside their owning user-story actions.
+    resource GameNight.Schedules.ScheduleDay
+    resource GameNight.Schedules.ScheduleParticipant
+    resource GameNight.Schedules.ParticipantDay
   end
 
   resources do
