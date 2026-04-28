@@ -89,6 +89,21 @@ defmodule GameNight.Games.Player do
       upsert? true
       upsert_identity :unique_game_user
       upsert_fields []
+
+      # Feature 003 (T063) — when a Player accepts an invitation
+      # (Invitation.accept_with_token calls this action) and the
+      # game has open schedules already in :ready_for_availability,
+      # link them retroactively. No-op for fresh games with no
+      # schedules. The hook is :ok-or-no-op — schedule failures
+      # don't block player creation.
+      change after_action(fn _changeset, player, _ctx ->
+               GameNight.Schedules.System.link_player_to_open_schedules(
+                 player.game_id,
+                 player
+               )
+
+               {:ok, player}
+             end)
     end
 
     # Feature 003 (T020.5) — Player removal cascades into the
@@ -104,6 +119,10 @@ defmodule GameNight.Games.Player do
     # schedule will fail at the DB level with an FK violation —
     # which is the documented intermediate state.
     destroy :destroy do
+      # The before_action hook calls into the Schedules domain to
+      # cascade conditionally — non-atomic by nature.
+      require_atomic? false
+
       change before_action(fn changeset, _ctx ->
                case GameNight.Schedules.System.handle_player_destroy(changeset.data) do
                  :ok -> changeset

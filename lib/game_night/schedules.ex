@@ -46,6 +46,8 @@ defmodule GameNight.Schedules do
       rpc_action :get_schedule_for_game, :get_for_game
       rpc_action :initiate_schedule, :initiate
       rpc_action :set_schedule_gm_day, :set_gm_day
+      # US2 (T064).
+      rpc_action :transition_schedule_to_ready, :transition_to_ready_for_availability
     end
 
     # Registered for type generation only; rpc_action bindings land

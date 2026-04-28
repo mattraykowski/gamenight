@@ -70,6 +70,8 @@ defmodule GameNight.Schedules.Schedule do
       get :get_for_game, route: "/by-game/:game_id/:id"
       post :initiate
       patch :set_gm_day, route: "/:id/set-gm-day"
+      patch :transition_to_ready_for_availability,
+        route: "/:id/transition-to-ready-for-availability"
     end
   end
 
@@ -140,6 +142,44 @@ defmodule GameNight.Schedules.Schedule do
              )
     end
 
+    update :transition_to_ready_for_availability do
+      description """
+      Transition a `:preparing` schedule to `:ready_for_availability`.
+      Links every accepted player on the schedule's game to the
+      schedule (one ScheduleParticipant + N ParticipantDay rows
+      apiece) and fans out the `:schedule_ready_for_availability`
+      notification + email to each linked player.
+      """
+
+      accept []
+      require_atomic? false
+
+      validate fn changeset, _ctx ->
+        case Ash.Changeset.get_data(changeset, :status) do
+          :preparing ->
+            :ok
+
+          other ->
+            {:error,
+             field: :status,
+             message:
+               "Schedule must be in :preparing to transition (was #{inspect(other)})."}
+        end
+      end
+
+      change set_attribute(:status, :ready_for_availability)
+      change GameNight.Schedules.Changes.LinkActivePlayers
+      change after_action(fn _changeset, schedule, _context ->
+               case GameNight.Schedules.System.fan_out_notification(
+                      schedule,
+                      :schedule_ready_for_availability
+                    ) do
+                 :ok -> {:ok, schedule}
+                 {:error, reason} -> {:error, reason}
+               end
+             end)
+    end
+
     update :set_gm_day do
       description """
       GM-only — toggle one ScheduleDay's `gm_status`. Rejects when
@@ -196,7 +236,13 @@ defmodule GameNight.Schedules.Schedule do
 
     # US1 — GM-only reads and updates use the relationship-walk
     # filter (works for read/update because the row exists).
-    policy action([:list_for_game, :list_for_game_top_six, :get_for_game, :set_gm_day]) do
+    policy action([
+             :list_for_game,
+             :list_for_game_top_six,
+             :get_for_game,
+             :set_gm_day,
+             :transition_to_ready_for_availability
+           ]) do
       authorize_if expr(game.owner_id == ^actor(:id))
     end
 

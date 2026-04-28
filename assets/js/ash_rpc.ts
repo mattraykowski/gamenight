@@ -2185,3 +2185,71 @@ export async function validateSetScheduleGmDay(
   );
 }
 
+
+export type TransitionScheduleToReadyFields = UnifiedFieldSelection<ScheduleResourceSchema>[];
+
+export type InferTransitionScheduleToReadyResult<
+  Fields extends TransitionScheduleToReadyFields | undefined,
+> = InferResult<ScheduleResourceSchema, Fields>;
+
+export type TransitionScheduleToReadyResult<Fields extends TransitionScheduleToReadyFields | undefined = undefined> = | { success: true; data: InferTransitionScheduleToReadyResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing Schedule
+ *
+ * @ashActionType :update
+ */
+export async function transitionScheduleToReady<Fields extends TransitionScheduleToReadyFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<TransitionScheduleToReadyResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "transition_schedule_to_ready",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<TransitionScheduleToReadyResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Validate: Update an existing Schedule
+ *
+ * @ashActionType :update
+ * @validation true
+ */
+export async function validateTransitionScheduleToReady(
+  config: {
+  tenant?: string;
+  identity: UUID | string;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ValidationResult> {
+  const payload = {
+    action: "transition_schedule_to_ready",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity
+  };
+
+  return executeValidationRpcRequest<ValidationResult>(
+    payload,
+    config
+  );
+}
+

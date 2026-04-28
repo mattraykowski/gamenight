@@ -4,9 +4,11 @@ import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { MonthCalendar, type DayCell } from "@/features/schedules/components/month-calendar";
 import { ScheduleStatusBadge } from "@/features/schedules/components/schedule-status-badge";
+import { TransitionToReadyButton } from "@/features/schedules/components/transition-to-ready-button";
 import {
   useGetScheduleForGame,
   useSetScheduleGmDay,
+  useTransitionScheduleToReady,
   type ScheduleDay,
 } from "@/features/schedules/hooks";
 import { AVAILABILITY_CYCLE, type AvailabilityStatus } from "@/features/schedules/kinds";
@@ -25,7 +27,24 @@ function ScheduleDetailRoute() {
   const { gameId, scheduleId } = Route.useParams();
   const schedule = useGetScheduleForGame({ id: scheduleId, gameId });
   const setGmDay = useSetScheduleGmDay();
+  const transitionToReady = useTransitionScheduleToReady();
   const { push } = useToasts();
+
+  async function onTransitionToReady() {
+    try {
+      await transitionToReady.mutateAsync({ scheduleId, gameId });
+      push({
+        title: "Schedule sent to players for availability.",
+        variant: "success",
+      });
+    } catch {
+      push({
+        title:
+          "Could not send the schedule. Please refresh and try again.",
+        variant: "error",
+      });
+    }
+  }
 
   const cells = useMemo<DayCell[]>(() => {
     if (!schedule.data) return [];
@@ -126,10 +145,12 @@ function ScheduleDetailRoute() {
       />
 
       <div className="mt-6 flex flex-wrap gap-3">
-        {/* US2 — placeholder; the action lands in T067 */}
-        <Button type="button" variant="default" disabled aria-label="Ready for Availability (coming in US2)">
-          Ready for Availability
-        </Button>
+        {data.status === "preparing" ? (
+          <TransitionToReadyButton
+            onConfirm={onTransitionToReady}
+            isPending={transitionToReady.isPending}
+          />
+        ) : null}
         {/* US4 — placeholder */}
         <Button type="button" variant="outline" disabled aria-label="Scheduling View (coming in US4)">
           Scheduling View

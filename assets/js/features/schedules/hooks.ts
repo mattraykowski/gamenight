@@ -11,6 +11,7 @@ import {
   listSchedulesForGame,
   listSchedulesForGameTopSix,
   setScheduleGmDay,
+  transitionScheduleToReady,
   type AshRpcError,
   type GetScheduleForGameInput,
   type InitiateScheduleInput,
@@ -209,6 +210,45 @@ export function useInitiateSchedule(): UseMutationResult<
         queryKey: schedulesKeys.topSixForGame(created.gameId),
       });
       queryClient.setQueryData(schedulesKeys.detail(created.id), created);
+    },
+  });
+}
+
+/** GM-only — transition a :preparing schedule to :ready_for_availability. */
+export function useTransitionScheduleToReady(): UseMutationResult<
+  Schedule,
+  ApiError,
+  { scheduleId: string; gameId: string }
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ scheduleId }: { scheduleId: string; gameId: string }) => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<Schedule>(
+        transitionScheduleToReady({
+          identity: scheduleId,
+          fields: SCHEDULE_FIELDS as unknown as Array<
+            ScheduleResourceSchema["__primitiveFields"]
+          >,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: Schedule }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    onSuccess: (_data, vars) => {
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.detail(vars.scheduleId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.byGame(vars.gameId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.topSixForGame(vars.gameId),
+      });
     },
   });
 }

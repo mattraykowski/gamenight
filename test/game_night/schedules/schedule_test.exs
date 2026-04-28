@@ -248,6 +248,110 @@ defmodule GameNight.Schedules.ScheduleTest do
     end
   end
 
+  describe ":transition_to_ready_for_availability action (T051)" do
+    setup do
+      {:ok, gm} = create_user()
+      {:ok, game} = register_game(gm)
+      {:ok, schedule} = initiate(gm, game, %{month: 10, year: 2099})
+
+      # Seed two accepted players (members of the GM's game) so the
+      # transition has rows to fan out to.
+      {:ok, member_a} = create_user()
+      {:ok, member_b} = create_user()
+      player_a = seed_player!(game, member_a)
+      player_b = seed_player!(game, member_b)
+
+      {:ok,
+       gm: gm,
+       game: game,
+       schedule: schedule,
+       player_a: player_a,
+       player_b: player_b}
+    end
+
+    test "creates one ScheduleParticipant per accepted Player + flips status", %{
+      gm: gm,
+      schedule: schedule,
+      player_a: player_a,
+      player_b: player_b
+    } do
+      assert {:ok, transitioned} = transition_to_ready(gm, schedule)
+
+      assert transitioned.status == :ready_for_availability
+
+      participants =
+        GameNight.Schedules.ScheduleParticipant
+        |> Ash.Query.filter(schedule_id == ^schedule.id)
+        |> Ash.read!(authorize?: false)
+
+      assert length(participants) == 2
+      player_ids = participants |> Enum.map(& &1.player_id) |> Enum.sort()
+      assert player_ids == Enum.sort([player_a.id, player_b.id])
+
+      # Every participant got per-day NA rows for every day of the
+      # month (October 2099 = 31 days).
+      for participant <- participants do
+        days =
+          GameNight.Schedules.ParticipantDay
+          |> Ash.Query.filter(participant_id == ^participant.id)
+          |> Ash.read!(authorize?: false)
+
+        assert length(days) == 31
+        assert Enum.all?(days, &(&1.status == :NA))
+      end
+    end
+
+    test "is idempotent under retry — re-calling does not duplicate participants", %{
+      gm: gm,
+      schedule: schedule
+    } do
+      {:ok, _} = transition_to_ready(gm, schedule)
+      reloaded = Ash.get!(Schedule, schedule.id, authorize?: false)
+
+      # Second call with a schedule already in :ready_for_availability
+      # is rejected by the state validation; we assert it does NOT
+      # create extra participants.
+      _ = transition_to_ready(gm, reloaded)
+
+      participants_count =
+        GameNight.Schedules.ScheduleParticipant
+        |> Ash.Query.filter(schedule_id == ^schedule.id)
+        |> Ash.read!(authorize?: false)
+        |> length()
+
+      assert participants_count == 2
+    end
+
+    test "non-owner cannot transition", %{schedule: schedule} do
+      {:ok, intruder} = create_user()
+      assert {:error, %Ash.Error.Forbidden{}} = transition_to_ready(intruder, schedule)
+    end
+
+    test "anonymous cannot transition", %{schedule: schedule} do
+      assert {:error, _} =
+               schedule
+               |> Ash.Changeset.for_update(:transition_to_ready_for_availability, %{})
+               |> Ash.update()
+    end
+  end
+
+  defp transition_to_ready(actor, schedule) do
+    schedule
+    |> Ash.Changeset.for_update(:transition_to_ready_for_availability, %{}, actor: actor)
+    |> Ash.update()
+  end
+
+  defp seed_player!(game, user) do
+    GameNight.Games.Player
+    |> Ash.Changeset.for_create(:create, %{
+      game_id: game.id,
+      user_id: user.id,
+      character_name: "Test Char",
+      status: :active
+    })
+    |> Ash.create!(authorize?: false)
+  end
+
   defp create_user do
     email = "schedule-test-#{System.unique_integer([:positive])}@example.test"
     password = "schedule-test-password-1"

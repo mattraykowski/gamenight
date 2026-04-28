@@ -12,8 +12,12 @@ defmodule GameNight.Schedules.SystemTest do
 
   alias GameNight.Accounts.User
   alias GameNight.Games.{Game, Player}
+  alias GameNight.Notifications.Notification
+  alias GameNight.Schedules.Schedule
   alias GameNight.Schedules.ScheduleParticipant
   alias GameNight.SchedulesFixtures
+
+  import Swoosh.TestAssertions
 
   describe "Player.destroy → handle_player_destroy/1 (T020.6)" do
     test "destroys a player with no schedule participants (foundational happy path)" do
@@ -110,6 +114,196 @@ defmodule GameNight.Schedules.SystemTest do
     end
   end
 
+  describe "transition_to_ready end-to-end (T052)" do
+    test "fans out one Notification + one email per linked player" do
+      {:ok, gm} = create_user()
+      {:ok, game} = register_game(gm)
+      {:ok, member_a} = create_user()
+      {:ok, member_b} = create_user()
+      player_a = seed_player!(game, member_a)
+      _player_b = seed_player!(game, member_b)
+
+      # Discard registration-confirm emails so the schedule-ready
+      # emails are the first ones assert_email_sent matches against.
+      drain_emails()
+
+      {:ok, schedule} =
+        Schedule
+        |> Ash.Changeset.for_create(
+          :initiate,
+          %{
+            month: 10,
+            year: 2099,
+            start_time: ~T[19:00:00],
+            end_time: ~T[23:00:00],
+            time_zone: "America/Chicago",
+            game_id: game.id
+          },
+          actor: gm
+        )
+        |> Ash.create()
+
+      assert {:ok, _ready} =
+               schedule
+               |> Ash.Changeset.for_update(
+                 :transition_to_ready_for_availability,
+                 %{},
+                 actor: gm
+               )
+               |> Ash.update()
+
+      # Two Notification rows materialised, one per linked player.
+      notifications =
+        Notification
+        |> Ash.Query.filter(
+          subject_type == "schedule" and subject_id == ^schedule.id
+        )
+        |> Ash.read!(authorize?: false)
+
+      assert length(notifications) == 2
+
+      assert Enum.all?(
+               notifications,
+               &(&1.kind == :schedule_ready_for_availability)
+             )
+
+      user_ids = notifications |> Enum.map(& &1.user_id) |> Enum.sort()
+      assert user_ids == Enum.sort([member_a.id, member_b.id])
+
+      # An email landed in the local Swoosh mailbox for each player.
+      assert_email_sent(fn email ->
+        email.subject =~ "is ready for your availability" and
+          email.to |> List.first() |> elem(1) == to_string(member_a.email)
+      end)
+
+      assert_email_sent(fn email ->
+        email.subject =~ "is ready for your availability" and
+          email.to |> List.first() |> elem(1) == to_string(member_b.email)
+      end)
+
+      _ = player_a
+    end
+
+    test "fan_out_notification telemetry span fires" do
+      {:ok, gm} = create_user()
+      {:ok, game} = register_game(gm)
+      {:ok, member} = create_user()
+      _ = seed_player!(game, member)
+
+      drain_emails()
+
+      {:ok, schedule} =
+        Schedule
+        |> Ash.Changeset.for_create(
+          :initiate,
+          %{
+            month: 10,
+            year: 2099,
+            start_time: ~T[19:00:00],
+            end_time: ~T[23:00:00],
+            time_zone: "America/Chicago",
+            game_id: game.id
+          },
+          actor: gm
+        )
+        |> Ash.create()
+
+      ref = :telemetry_test.attach_event_handlers(self(), [
+        [:game_night, :schedules, :fan_out, :start],
+        [:game_night, :schedules, :fan_out, :stop]
+      ])
+
+      try do
+        {:ok, _} =
+          schedule
+          |> Ash.Changeset.for_update(
+            :transition_to_ready_for_availability,
+            %{},
+            actor: gm
+          )
+          |> Ash.update()
+
+        assert_received {[:game_night, :schedules, :fan_out, :start], ^ref, _, _}
+        assert_received {[:game_night, :schedules, :fan_out, :stop], ^ref, _, _}
+      after
+        :telemetry.detach(ref)
+      end
+    end
+  end
+
+  describe "add_late_joiner against :ready_for_availability (T053)" do
+    test "creates a participant with is_late_join: true + sends notification" do
+      {:ok, gm} = create_user()
+      {:ok, game} = register_game(gm)
+      {:ok, original_member} = create_user()
+      _ = seed_player!(game, original_member)
+
+      {:ok, schedule} =
+        Schedule
+        |> Ash.Changeset.for_create(
+          :initiate,
+          %{
+            month: 10,
+            year: 2099,
+            start_time: ~T[19:00:00],
+            end_time: ~T[23:00:00],
+            time_zone: "America/Chicago",
+            game_id: game.id
+          },
+          actor: gm
+        )
+        |> Ash.create()
+
+      {:ok, _ready} =
+        schedule
+        |> Ash.Changeset.for_update(:transition_to_ready_for_availability, %{}, actor: gm)
+        |> Ash.update()
+
+      # New member joins after the transition.
+      {:ok, late_member} = create_user()
+
+      # Drain after create_user() to discard the confirm-email so
+      # the next assert_email_sent matches the schedule-ready email
+      # that the after_action will fire.
+      drain_emails()
+
+      late_player = seed_player!(game, late_member)
+
+      # The Player create's after_action should have linked them.
+      [late_participant] =
+        ScheduleParticipant
+        |> Ash.Query.filter(schedule_id == ^schedule.id and player_id == ^late_player.id)
+        |> Ash.read!(authorize?: false)
+
+      assert late_participant.is_late_join == true
+      assert late_participant.np_only == false
+
+      # And per-day NA rows materialised.
+      participant_days =
+        GameNight.Schedules.ParticipantDay
+        |> Ash.Query.filter(participant_id == ^late_participant.id)
+        |> Ash.read!(authorize?: false)
+
+      assert length(participant_days) == 31
+
+      # Notification + email fired for the late joiner.
+      [notification] =
+        Notification
+        |> Ash.Query.filter(
+          subject_type == "schedule" and subject_id == ^schedule.id and
+            user_id == ^late_member.id
+        )
+        |> Ash.read!(authorize?: false)
+
+      assert notification.kind == :schedule_ready_for_availability
+
+      assert_email_sent(fn email ->
+        email.subject =~ "is ready for your availability" and
+          email.to |> List.first() |> elem(1) == to_string(late_member.email)
+      end)
+    end
+  end
+
   defp create_user do
     email = "schedule-system-test-#{System.unique_integer([:positive])}@example.test"
     password = "schedule-system-test-password-1"
@@ -140,5 +334,13 @@ defmodule GameNight.Schedules.SystemTest do
       status: :active
     })
     |> Ash.create!(authorize?: false)
+  end
+
+  defp drain_emails do
+    receive do
+      {:email, _} -> drain_emails()
+    after
+      0 -> :ok
+    end
   end
 end
