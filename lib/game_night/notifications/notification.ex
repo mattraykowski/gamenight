@@ -151,6 +151,16 @@ defmodule GameNight.Notifications.Notification do
       """
       accept [:resolved_at]
     end
+
+    destroy :destroy_for_subject do
+      description """
+      System-only — hard-delete every notification whose
+      `subject_type` + `subject_id` match the caller-supplied
+      filter. Used when the underlying subject is itself being
+      deleted (e.g. `Schedule.delete` in US8 — the polymorphic
+      notification rows are not FK-cascaded).
+      """
+    end
   end
 
   policies do
@@ -162,7 +172,12 @@ defmodule GameNight.Notifications.Notification do
     # `user_id == ^actor(:id)`. That stack — narrow bypass + per-user
     # filter on every other action — is the defence-in-depth posture
     # required by Constitution Principle II.
-    bypass action([:create_for_invitation, :create_unique, :resolve_for_subject]) do
+    bypass action([
+             :create_for_invitation,
+             :create_unique,
+             :resolve_for_subject,
+             :destroy_for_subject
+           ]) do
       authorize_if actor_attribute_equals(:_internal?, true)
     end
 

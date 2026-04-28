@@ -312,18 +312,18 @@ description: "Task list for feature 003 — Game Schedule"
 
 ### Tests for US8 (RED first) ⚠️
 
-- [ ] T138 [P] [US8] Action test in [test/game_night/schedules/schedule_test.exs](test/game_night/schedules/schedule_test.exs) — `:delete` requires `confirmation: "delete"` (case-sensitive); other values rejected; cascade removes schedule_days, participants, participant_days, related notifications. Asserts no `Notification` rows are inserted by the delete action and `assert_no_email_sent/0` holds across the action call (encodes FR-045 negative space).
-- [ ] T139 [P] [US8] Vitest test [assets/js/features/schedules/components/delete-schedule-dialog.test.tsx](assets/js/features/schedules/components/delete-schedule-dialog.test.tsx) — confirm button stays disabled until input matches; case-sensitive. Verify RED.
+- [X] T138 [P] [US8] Action test in [test/game_night/schedules/schedule_test.exs](test/game_night/schedules/schedule_test.exs) — `:delete` requires `confirmation: "delete"` (case-sensitive); other values rejected; cascade removes schedule_days, participants, participant_days, related notifications. Asserts no `Notification` rows are inserted by the delete action and `assert_no_email_sent/0` holds across the action call (encodes FR-045 negative space).
+- [X] T139 [P] [US8] Vitest test [assets/js/features/schedules/components/delete-schedule-dialog.test.tsx](assets/js/features/schedules/components/delete-schedule-dialog.test.tsx) — confirm button stays disabled until input matches; case-sensitive. Verify RED.
 - [ ] T140 [US8] Playwright spec [assets/e2e/schedule-delete.spec.ts](assets/e2e/schedule-delete.spec.ts).
 
 ### Implementation for US8
 
-- [ ] T141 [US8] Implement `Schedule.delete` destroy action in [lib/game_night/schedules/schedule.ex](lib/game_night/schedules/schedule.ex) with the typed-confirmation validation; cascade DDL is in place from foundational migrations; the action callback removes related `Notification` rows (polymorphic — not FK-cascaded).
-- [ ] T142 [US8] Expose `Schedule.delete` via JSON:API/RPC.
-- [ ] T143 [US8] Implement [assets/js/features/schedules/components/delete-schedule-dialog.tsx](assets/js/features/schedules/components/delete-schedule-dialog.tsx) — mirrors the feature-001 typed-confirmation pattern.
-- [ ] T144 [US8] Add `useDeleteSchedule` hook (invalidates list/detail keys; navigates back on success).
-- [ ] T145 [US8] Update [assets/js/routes/games.$gameId.schedules.$scheduleId.tsx](assets/js/routes/games.$gameId.schedules.$scheduleId.tsx) — wire the Delete button to the dialog.
-- [ ] T146 [US8] Run full gate. Confirm GREEN.
+- [X] T141 [US8] Implement `Schedule.delete` destroy action in [lib/game_night/schedules/schedule.ex](lib/game_night/schedules/schedule.ex) with the typed-confirmation validation; cascade DDL is in place from foundational migrations; the action callback removes related `Notification` rows (polymorphic — not FK-cascaded).
+- [X] T142 [US8] Expose `Schedule.delete` via JSON:API/RPC.
+- [X] T143 [US8] Implement [assets/js/features/schedules/components/delete-schedule-dialog.tsx](assets/js/features/schedules/components/delete-schedule-dialog.tsx) — mirrors the feature-001 typed-confirmation pattern.
+- [X] T144 [US8] Add `useDeleteSchedule` hook (invalidates list/detail keys; navigates back on success).
+- [X] T145 [US8] Update [assets/js/routes/games.$gameId.schedules.$scheduleId.tsx](assets/js/routes/games.$gameId.schedules.$scheduleId.tsx) — wire the Delete button to the dialog.
+- [X] T146 [US8] Run full gate. Confirm GREEN.
 
 **Checkpoint**: US8 complete.
 

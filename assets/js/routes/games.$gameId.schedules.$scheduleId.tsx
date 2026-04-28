@@ -2,11 +2,13 @@ import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-ro
 import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
+import { DeleteScheduleDialog } from "@/features/schedules/components/delete-schedule-dialog";
 import { MonthCalendar, type DayCell } from "@/features/schedules/components/month-calendar";
 import { ScheduleStatusBadge } from "@/features/schedules/components/schedule-status-badge";
 import { SendReminderButton } from "@/features/schedules/components/send-reminder-button";
 import { TransitionToReadyButton } from "@/features/schedules/components/transition-to-ready-button";
 import {
+  useDeleteSchedule,
   useGetScheduleForScheduling,
   useSendReminder,
   useSetScheduleGmDay,
@@ -31,8 +33,22 @@ function ScheduleDetailRoute() {
   const setGmDay = useSetScheduleGmDay();
   const transitionToReady = useTransitionScheduleToReady();
   const sendReminder = useSendReminder();
+  const destroy = useDeleteSchedule();
   const { push } = useToasts();
   const navigate = useNavigate();
+
+  async function onDelete(confirmation: string) {
+    try {
+      await destroy.mutateAsync({ scheduleId, gameId, confirmation });
+      push({ title: "Schedule deleted.", variant: "success" });
+      await navigate({ to: "/games/$id", params: { id: gameId } });
+    } catch {
+      push({
+        title: "Could not delete the schedule. Please try again.",
+        variant: "error",
+      });
+    }
+  }
 
   async function onSendReminder(participantId: string) {
     try {
@@ -237,10 +253,19 @@ function ScheduleDetailRoute() {
             Scheduling View
           </Button>
         ) : null}
-        {/* US8 — placeholder */}
-        <Button type="button" variant="outline" disabled aria-label="Delete (coming in US8)">
-          Delete
-        </Button>
+        <DeleteScheduleDialog
+          scheduleName={data.name ?? "this schedule"}
+          onConfirm={onDelete}
+          isPending={destroy.isPending}
+        >
+          <Button
+            type="button"
+            variant="outline"
+            data-testid="delete-schedule-trigger"
+          >
+            Delete
+          </Button>
+        </DeleteScheduleDialog>
       </div>
     </main>
   );

@@ -76,6 +76,7 @@ defmodule GameNight.Schedules.Schedule do
       patch :update_final_days_and_notify,
         route: "/:id/update-final-days-and-notify"
       patch :post, route: "/:id/post"
+      delete :delete, route: "/:id"
 
       # US3 — player-side reads.
       index :list_for_player_character, route: "/by-character/:player_id"
@@ -270,6 +271,36 @@ defmodule GameNight.Schedules.Schedule do
              end)
     end
 
+    destroy :delete do
+      description """
+      US8 — hard-delete a schedule. Requires the GM to type
+      `"delete"` (case-sensitive) into a `confirmation` argument.
+      Schedule_days, participants, and participant_days are removed
+      via FK cascade. Polymorphic `Notification` rows pointing at
+      this schedule are wiped in the after_action callback (no FK
+      cascade).
+      """
+      argument :confirmation, :string, allow_nil?: false
+      require_atomic? false
+
+      validate fn changeset, _ctx ->
+        case Ash.Changeset.get_argument(changeset, :confirmation) do
+          "delete" ->
+            :ok
+
+          _ ->
+            {:error,
+             field: :confirmation, message: "must be exactly \"delete\" (case-sensitive)"}
+        end
+      end
+
+      change before_action(fn changeset, _ctx ->
+               schedule = changeset.data
+               _ = GameNight.Notifications.System.destroy_for_subject("schedule", schedule.id)
+               changeset
+             end)
+    end
+
     update :post do
       description """
       Transition a `:ready_for_availability` schedule to `:posted`.
@@ -433,7 +464,8 @@ defmodule GameNight.Schedules.Schedule do
              :transition_to_ready_for_availability,
              :update_final_days,
              :update_final_days_and_notify,
-             :post
+             :post,
+             :delete
            ]) do
       authorize_if expr(game.owner_id == ^actor(:id))
     end

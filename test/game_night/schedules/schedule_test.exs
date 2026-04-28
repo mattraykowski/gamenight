@@ -877,6 +877,110 @@ defmodule GameNight.Schedules.ScheduleTest do
     |> Ash.create()
   end
 
+  describe ":delete action (T138 / US8)" do
+    setup do
+      {:ok, gm} = create_user()
+      {:ok, game} = register_game(gm)
+      {:ok, m1} = create_user()
+      _ = seed_player!(game, m1)
+      {:ok, schedule} = initiate(gm, game, %{month: 10, year: 2099})
+
+      {:ok, schedule} =
+        schedule
+        |> Ash.Changeset.for_update(:set_gm_day, %{day: 5, status: :A}, actor: gm)
+        |> Ash.update()
+
+      {:ok, ready} =
+        schedule
+        |> Ash.Changeset.for_update(:transition_to_ready_for_availability, %{}, actor: gm)
+        |> Ash.update()
+
+      {:ok, gm: gm, game: game, schedule: ready, m1: m1}
+    end
+
+    test "rejects :delete when confirmation does not match exactly (case-sensitive)", %{
+      gm: gm,
+      schedule: schedule
+    } do
+      assert {:error, _} =
+               schedule
+               |> Ash.Changeset.for_destroy(:delete, %{confirmation: "DELETE"}, actor: gm)
+               |> Ash.destroy()
+
+      assert {:error, _} =
+               schedule
+               |> Ash.Changeset.for_destroy(:delete, %{confirmation: "Delete"}, actor: gm)
+               |> Ash.destroy()
+
+      assert {:error, _} =
+               schedule
+               |> Ash.Changeset.for_destroy(:delete, %{confirmation: "destroy"}, actor: gm)
+               |> Ash.destroy()
+
+      assert {:ok, _} = Ash.reload(schedule, authorize?: false)
+    end
+
+    test "cascades schedule_days/participants/participant_days and clears notifications, with no email side-effect",
+         %{gm: gm, schedule: schedule} do
+      [participant] =
+        GameNight.Schedules.ScheduleParticipant
+        |> Ash.Query.filter(schedule_id == ^schedule.id)
+        |> Ash.read!(authorize?: false)
+
+      drain_emails()
+
+      assert :ok =
+               schedule
+               |> Ash.Changeset.for_destroy(:delete, %{confirmation: "delete"}, actor: gm)
+               |> Ash.destroy()
+
+      assert {:error, _} = Ash.reload(schedule, authorize?: false)
+
+      assert [] =
+               GameNight.Schedules.ScheduleDay
+               |> Ash.Query.filter(schedule_id == ^schedule.id)
+               |> Ash.read!(authorize?: false)
+
+      assert {:error, _} = Ash.reload(participant, authorize?: false)
+
+      assert [] =
+               GameNight.Schedules.ParticipantDay
+               |> Ash.Query.filter(participant_id == ^participant.id)
+               |> Ash.read!(authorize?: false)
+
+      assert [] =
+               GameNight.Notifications.Notification
+               |> Ash.Query.filter(subject_type == "schedule" and subject_id == ^schedule.id)
+               |> Ash.read!(authorize?: false)
+
+      assert_no_email_sent()
+    end
+
+    test "non-owner cannot delete (policy)", %{schedule: schedule} do
+      {:ok, intruder} = create_user()
+
+      assert {:error, _} =
+               schedule
+               |> Ash.Changeset.for_destroy(:delete, %{confirmation: "delete"}, actor: intruder)
+               |> Ash.destroy()
+
+      assert {:ok, _} = Ash.reload(schedule, authorize?: false)
+    end
+
+    test "GM can re-initiate the same month after deleting (FR-046)", %{
+      gm: gm,
+      game: game,
+      schedule: schedule
+    } do
+      assert :ok =
+               schedule
+               |> Ash.Changeset.for_destroy(:delete, %{confirmation: "delete"}, actor: gm)
+               |> Ash.destroy()
+
+      assert {:ok, _} = initiate(gm, game, %{month: 10, year: 2099})
+    end
+  end
+
   defp set_gm_day(actor, schedule, day, status) do
     schedule
     |> Ash.Changeset.for_update(:set_gm_day, %{day: day, status: status}, actor: actor)

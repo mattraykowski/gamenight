@@ -133,6 +133,30 @@ defmodule GameNight.Notifications.System do
     end
   end
 
+  @doc """
+  Hard-delete every notification matching `subject_type` +
+  `subject_id`. Used when the underlying subject is itself being
+  removed and no FK cascade applies (the notification table is
+  polymorphic).
+  """
+  @spec destroy_for_subject(String.t(), Ecto.UUID.t()) :: :ok | {:error, term()}
+  def destroy_for_subject(subject_type, subject_id)
+      when is_binary(subject_type) and is_binary(subject_id) do
+    Notification
+    |> Ash.Query.filter(
+      subject_type == ^subject_type and subject_id == ^subject_id
+    )
+    |> Ash.bulk_destroy(:destroy_for_subject, %{},
+      authorize?: false,
+      return_errors?: true
+    )
+    |> case do
+      %Ash.BulkResult{status: :success} -> :ok
+      %Ash.BulkResult{status: :empty} -> :ok
+      %Ash.BulkResult{status: status, errors: errors} -> {:error, {status, errors}}
+    end
+  end
+
   defp find_user_by_email(email) do
     case User
          |> Ash.Query.for_read(:get_by_email, %{email: email})

@@ -6,6 +6,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import {
+  deleteSchedule,
   getScheduleForCharacter,
   getScheduleForGame,
   initiateSchedule,
@@ -647,6 +648,56 @@ export function usePostSchedule(): UseMutationResult<
     },
     onSuccess: (_data, vars) => {
       void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.detail(vars.scheduleId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.byGame(vars.gameId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.topSixForGame(vars.gameId),
+      });
+    },
+  });
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// US8 hooks (Delete schedule)
+// ──────────────────────────────────────────────────────────────────────
+
+export interface DeleteScheduleArgs {
+  scheduleId: string;
+  gameId: string;
+  confirmation: string;
+}
+
+/**
+ * GM-only — destroy a Schedule (typed-confirmation gated). The
+ * schedule_days/participants/participant_days rows cascade via the
+ * DB FKs, and `Notification` rows for this subject are wiped in the
+ * action's before_action callback.
+ */
+export function useDeleteSchedule(): UseMutationResult<
+  void,
+  ApiError,
+  DeleteScheduleArgs
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ scheduleId, confirmation }: DeleteScheduleArgs) => {
+      const { customFetch, headers } = getClientOptions();
+      const result = await deleteSchedule({
+        identity: scheduleId,
+        input: { confirmation },
+        headers,
+        ...(customFetch !== undefined ? { customFetch } : {}),
+      });
+      if (!result.success) {
+        throw narrowApiError(result.errors);
+      }
+    },
+    onSuccess: (_data, vars) => {
+      queryClient.removeQueries({
         queryKey: schedulesKeys.detail(vars.scheduleId),
       });
       void queryClient.invalidateQueries({

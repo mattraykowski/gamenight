@@ -1886,6 +1886,74 @@ export async function validateSetParticipantDayStatus(
 }
 
 
+export type DeleteScheduleInput = {
+  confirmation: string;
+};
+
+export type DeleteScheduleResult = | { success: true; data: {}; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Delete a Schedule
+ *
+ * @ashActionType :destroy
+ */
+export async function deleteSchedule(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input: DeleteScheduleInput;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<DeleteScheduleResult> {
+  const payload = {
+    action: "delete_schedule",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input
+  };
+
+  return executeActionRpcRequest<DeleteScheduleResult>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Validate: Delete a Schedule
+ *
+ * @ashActionType :destroy
+ * @validation true
+ */
+export async function validateDeleteSchedule(
+  config: {
+  tenant?: string;
+  identity: UUID | string;
+  input: DeleteScheduleInput;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ValidationResult> {
+  const payload = {
+    action: "delete_schedule",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input
+  };
+
+  return executeValidationRpcRequest<ValidationResult>(
+    payload,
+    config
+  );
+}
+
+
 export type GetScheduleForCharacterInput = {
   id: UUID;
   playerId: UUID;
