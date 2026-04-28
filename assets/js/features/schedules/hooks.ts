@@ -19,6 +19,7 @@ import {
   setScheduleParticipantSubmission,
   transitionScheduleToReady,
   updateScheduleFinalDays,
+  updateScheduleFinalDaysAndNotify,
   type AshRpcError,
   type GetScheduleForCharacterInput,
   type GetScheduleForGameInput,
@@ -687,6 +688,103 @@ export function useSendReminder(): UseMutationResult<
     onSuccess: (_data, vars) => {
       // Invalidate the detail key so the roster re-renders the
       // updated submitted_at / button state.
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.detail(vars.scheduleId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.byGame(vars.gameId),
+      });
+    },
+  });
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// US7 hooks (Update posted schedule)
+// ──────────────────────────────────────────────────────────────────────
+
+export interface UpdateScheduleFinalDaysBatchArgs {
+  scheduleId: string;
+  gameId: string;
+  finalDays: Array<{ day: number; status: "NA" | "A" }>;
+}
+
+/**
+ * GM-only — silent batch update of Final values on a posted (or
+ * ready-for-availability) schedule. No notifications.
+ */
+export function useUpdateScheduleFinalDaysBatch(): UseMutationResult<
+  Schedule,
+  ApiError,
+  UpdateScheduleFinalDaysBatchArgs
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      scheduleId,
+      finalDays,
+    }: UpdateScheduleFinalDaysBatchArgs) => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<Schedule>(
+        updateScheduleFinalDays({
+          identity: scheduleId,
+          input: { finalDays },
+          fields: SCHEDULE_FIELDS as unknown as Array<
+            ScheduleResourceSchema["__primitiveFields"]
+          >,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: Schedule }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    onSuccess: (_data, vars) => {
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.detail(vars.scheduleId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: schedulesKeys.byGame(vars.gameId),
+      });
+    },
+  });
+}
+
+/**
+ * GM-only — same shape as `useUpdateScheduleFinalDaysBatch`, but
+ * fans out the `:schedule_updated` notification + email per
+ * linked participant. Posted-only per the action's state guard.
+ */
+export function useUpdateScheduleFinalDaysAndNotify(): UseMutationResult<
+  Schedule,
+  ApiError,
+  UpdateScheduleFinalDaysBatchArgs
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      scheduleId,
+      finalDays,
+    }: UpdateScheduleFinalDaysBatchArgs) => {
+      const { customFetch, headers } = getClientOptions();
+      return runRpc<Schedule>(
+        updateScheduleFinalDaysAndNotify({
+          identity: scheduleId,
+          input: { finalDays },
+          fields: SCHEDULE_FIELDS as unknown as Array<
+            ScheduleResourceSchema["__primitiveFields"]
+          >,
+          headers,
+          ...(customFetch !== undefined ? { customFetch } : {}),
+        }) as Promise<
+          | { success: true; data: Schedule }
+          | { success: false; errors: AshRpcError[] }
+        >,
+      );
+    },
+    onSuccess: (_data, vars) => {
       void queryClient.invalidateQueries({
         queryKey: schedulesKeys.detail(vars.scheduleId),
       });

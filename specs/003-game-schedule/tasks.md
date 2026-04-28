@@ -288,17 +288,17 @@ description: "Task list for feature 003 — Game Schedule"
 
 ### Tests for US7 (RED first) ⚠️
 
-- [ ] T130 [P] [US7] Action test in [test/game_night/schedules/schedule_test.exs](test/game_night/schedules/schedule_test.exs) for `:update_final_days` when status is `:posted` (silent — same shape as the pre-post path tested in US4) and `:update_final_days_and_notify` (allowed only in `:posted`; fans out `:schedule_updated`). Asserts player columns are not mutable from these actions and that `:update_final_days_and_notify` rejects when status is `:ready_for_availability`.
-- [ ] T131 [P] [US7] Email test [test/game_night/schedules/senders/send_schedule_updated_email_test.exs](test/game_night/schedules/senders/send_schedule_updated_email_test.exs).
-- [ ] T132 [P] [US7] Vitest test [assets/js/features/schedules/components/update-posted-schedule-buttons.test.tsx](assets/js/features/schedules/components/update-posted-schedule-buttons.test.tsx) — both buttons fire correct mutation; toast variants. Verify RED.
+- [X] T130 [P] [US7] Action test in [test/game_night/schedules/schedule_test.exs](test/game_night/schedules/schedule_test.exs) for `:update_final_days` when status is `:posted` (silent — same shape as the pre-post path tested in US4) and `:update_final_days_and_notify` (allowed only in `:posted`; fans out `:schedule_updated`). Asserts player columns are not mutable from these actions and that `:update_final_days_and_notify` rejects when status is `:ready_for_availability`.
+- [X] T131 [P] [US7] Email test [test/game_night/schedules/senders/send_schedule_updated_email_test.exs](test/game_night/schedules/senders/send_schedule_updated_email_test.exs).
+- [X] T132 [P] [US7] Vitest test [assets/js/features/schedules/components/update-posted-schedule-buttons.test.tsx](assets/js/features/schedules/components/update-posted-schedule-buttons.test.tsx) — both buttons fire correct mutation; toast variants. Verify RED.
 
 ### Implementation for US7
 
-- [ ] T133 [US7] Implement `Schedule.update_final_days` (state in `[:ready_for_availability, :posted]`) and `Schedule.update_final_days_and_notify` (state == `:posted`) actions in [lib/game_night/schedules/schedule.ex](lib/game_night/schedules/schedule.ex). Expose both in JSON:API/RPC; codegen and commit.
-- [ ] T134 [US7] Implement [lib/game_night/schedules/senders/send_schedule_updated_email.ex](lib/game_night/schedules/senders/send_schedule_updated_email.ex).
-- [ ] T135 [US7] Implement [assets/js/features/schedules/components/update-posted-schedule-buttons.tsx](assets/js/features/schedules/components/update-posted-schedule-buttons.tsx) and `useUpdateScheduleFinalDays` (silent — also reused by the pre-post per-cell hook from T106) + `useUpdateScheduleFinalDaysAndNotify` (notify; allowed only in `:posted`) hooks.
-- [ ] T136 [US7] Update [assets/js/routes/games.$gameId.schedules.$scheduleId.scheduling.tsx](assets/js/routes/games.$gameId.schedules.$scheduleId.scheduling.tsx) — when status is `:posted`, swap Post button for the dual Update buttons.
-- [ ] T137 [US7] Run full gate. Confirm GREEN.
+- [X] T133 [US7] Implement `Schedule.update_final_days` (state in `[:ready_for_availability, :posted]`) and `Schedule.update_final_days_and_notify` (state == `:posted`) actions in [lib/game_night/schedules/schedule.ex](lib/game_night/schedules/schedule.ex). Expose both in JSON:API/RPC; codegen and commit.
+- [X] T134 [US7] Implement [lib/game_night/schedules/senders/send_schedule_updated_email.ex](lib/game_night/schedules/senders/send_schedule_updated_email.ex).
+- [X] T135 [US7] Implement [assets/js/features/schedules/components/update-posted-schedule-buttons.tsx](assets/js/features/schedules/components/update-posted-schedule-buttons.tsx) and `useUpdateScheduleFinalDays` (silent — also reused by the pre-post per-cell hook from T106) + `useUpdateScheduleFinalDaysAndNotify` (notify; allowed only in `:posted`) hooks.
+- [X] T136 [US7] Update [assets/js/routes/games.$gameId.schedules.$scheduleId.scheduling.tsx](assets/js/routes/games.$gameId.schedules.$scheduleId.scheduling.tsx) — when status is `:posted`, swap Post button for the dual Update buttons.
+- [X] T137 [US7] Run full gate. Confirm GREEN.
 
 **Checkpoint**: US7 complete.
 

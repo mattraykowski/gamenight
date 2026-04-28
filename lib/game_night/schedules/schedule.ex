@@ -73,6 +73,8 @@ defmodule GameNight.Schedules.Schedule do
       patch :transition_to_ready_for_availability,
         route: "/:id/transition-to-ready-for-availability"
       patch :update_final_days, route: "/:id/update-final-days"
+      patch :update_final_days_and_notify,
+        route: "/:id/update-final-days-and-notify"
       patch :post, route: "/:id/post"
 
       # US3 — player-side reads.
@@ -222,6 +224,48 @@ defmodule GameNight.Schedules.Schedule do
                case apply_final_days(schedule, final_days) do
                  :ok -> {:ok, schedule}
                  {:error, reason} -> {:error, reason}
+               end
+             end)
+    end
+
+    update :update_final_days_and_notify do
+      description """
+      US7 — same as `:update_final_days` but only allowed when the
+      schedule is `:posted` and additionally fans out the
+      `:schedule_updated` notification + email to every linked,
+      non-NP participant. Used by the GM's "Update and notify"
+      button in the Scheduling View.
+
+      Args: `final_days: [%{day: integer, status: :NA | :A}]`.
+      """
+      accept []
+      require_atomic? false
+
+      argument :final_days, {:array, :map}, allow_nil?: false
+
+      validate fn changeset, _ctx ->
+        case Ash.Changeset.get_data(changeset, :status) do
+          :posted ->
+            :ok
+
+          other ->
+            {:error,
+             field: :status,
+             message:
+               "Schedule must be posted to update-and-notify (was #{inspect(other)})."}
+        end
+      end
+
+      change after_action(fn changeset, schedule, _ctx ->
+               final_days = Ash.Changeset.get_argument(changeset, :final_days)
+
+               with :ok <- apply_final_days(schedule, final_days),
+                    :ok <-
+                      GameNight.Schedules.System.fan_out_notification(
+                        schedule,
+                        :schedule_updated
+                      ) do
+                 {:ok, schedule}
                end
              end)
     end
@@ -388,6 +432,7 @@ defmodule GameNight.Schedules.Schedule do
              :set_gm_day,
              :transition_to_ready_for_availability,
              :update_final_days,
+             :update_final_days_and_notify,
              :post
            ]) do
       authorize_if expr(game.owner_id == ^actor(:id))

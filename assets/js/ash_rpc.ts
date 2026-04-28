@@ -2621,6 +2621,82 @@ export async function validateUpdateScheduleFinalDays(
 }
 
 
+export type UpdateScheduleFinalDaysAndNotifyInput = {
+  finalDays: Array<Record<string, any>>;
+};
+
+export type UpdateScheduleFinalDaysAndNotifyFields = UnifiedFieldSelection<ScheduleResourceSchema>[];
+
+export type InferUpdateScheduleFinalDaysAndNotifyResult<
+  Fields extends UpdateScheduleFinalDaysAndNotifyFields | undefined,
+> = InferResult<ScheduleResourceSchema, Fields>;
+
+export type UpdateScheduleFinalDaysAndNotifyResult<Fields extends UpdateScheduleFinalDaysAndNotifyFields | undefined = undefined> = | { success: true; data: InferUpdateScheduleFinalDaysAndNotifyResult<Fields>; }
+| { success: false; errors: AshRpcError[]; }
+
+;
+
+/**
+ * Update an existing Schedule
+ *
+ * @ashActionType :update
+ */
+export async function updateScheduleFinalDaysAndNotify<Fields extends UpdateScheduleFinalDaysAndNotifyFields | undefined = undefined>(
+  config: {
+  tenant?: string;
+  identity: UUID;
+  input: UpdateScheduleFinalDaysAndNotifyInput;
+  fields?: Fields;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<UpdateScheduleFinalDaysAndNotifyResult<Fields extends undefined ? [] : Fields>> {
+  const payload = {
+    action: "update_schedule_final_days_and_notify",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input,
+    ...(config.fields !== undefined && { fields: config.fields })
+  };
+
+  return executeActionRpcRequest<UpdateScheduleFinalDaysAndNotifyResult<Fields extends undefined ? [] : Fields>>(
+    payload,
+    config
+  );
+}
+
+
+/**
+ * Validate: Update an existing Schedule
+ *
+ * @ashActionType :update
+ * @validation true
+ */
+export async function validateUpdateScheduleFinalDaysAndNotify(
+  config: {
+  tenant?: string;
+  identity: UUID | string;
+  input: UpdateScheduleFinalDaysAndNotifyInput;
+  headers?: Record<string, string>;
+  fetchOptions?: RequestInit;
+  customFetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+}
+): Promise<ValidationResult> {
+  const payload = {
+    action: "update_schedule_final_days_and_notify",
+    ...(config.tenant !== undefined && { tenant: config.tenant }),
+    identity: config.identity,
+    input: config.input
+  };
+
+  return executeValidationRpcRequest<ValidationResult>(
+    payload,
+    config
+  );
+}
+
+
 export type SendScheduleReminderFields = UnifiedFieldSelection<ScheduleParticipantResourceSchema>[];
 
 export type InferSendScheduleReminderResult<

@@ -356,6 +356,9 @@ defmodule GameNight.Schedules.System do
   defp sender_for_kind(:schedule_reminder),
     do: GameNight.Schedules.Senders.SendScheduleReminderEmail
 
+  defp sender_for_kind(:schedule_updated),
+    do: GameNight.Schedules.Senders.SendScheduleUpdatedEmail
+
   defp sender_for_kind(_), do: nil
 
   @doc """

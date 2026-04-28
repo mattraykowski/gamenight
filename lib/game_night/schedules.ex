@@ -54,6 +54,8 @@ defmodule GameNight.Schedules do
       # US4 (T103).
       rpc_action :update_schedule_final_days, :update_final_days
       rpc_action :post_schedule, :post
+      # US7 (T133).
+      rpc_action :update_schedule_final_days_and_notify, :update_final_days_and_notify
     end
 
     # Registered for type generation only.

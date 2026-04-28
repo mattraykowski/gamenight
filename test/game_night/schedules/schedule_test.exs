@@ -17,6 +17,8 @@ defmodule GameNight.Schedules.ScheduleTest do
   alias GameNight.Games.Game
   alias GameNight.Schedules.Schedule
 
+  import Swoosh.TestAssertions
+
   describe ":initiate action (T021)" do
     setup do
       {:ok, gm} = create_user()
@@ -549,6 +551,136 @@ defmodule GameNight.Schedules.ScheduleTest do
     schedule
     |> Ash.Changeset.for_update(:post, %{}, actor: actor)
     |> Ash.update()
+  end
+
+  describe ":update_final_days + :update_final_days_and_notify (T130 / US7)" do
+    setup do
+      {:ok, gm} = create_user()
+      {:ok, game} = register_game(gm)
+      {:ok, m1} = create_user()
+      _ = seed_player!(game, m1)
+      {:ok, schedule} = initiate(gm, game, %{month: 10, year: 2099})
+
+      {:ok, schedule} =
+        schedule
+        |> Ash.Changeset.for_update(:set_gm_day, %{day: 5, status: :A}, actor: gm)
+        |> Ash.update()
+
+      {:ok, ready} =
+        schedule
+        |> Ash.Changeset.for_update(:transition_to_ready_for_availability, %{}, actor: gm)
+        |> Ash.update()
+
+      {:ok, gm: gm, schedule: ready, m1: m1}
+    end
+
+    test ":update_final_days persists per-day Final values silently in :posted state",
+         %{gm: gm, schedule: schedule} do
+      {:ok, posted} =
+        schedule
+        |> Ash.Changeset.for_update(:post, %{}, actor: gm)
+        |> Ash.update()
+
+      drain_emails()
+
+      {:ok, _} =
+        posted
+        |> Ash.Changeset.for_update(
+          :update_final_days,
+          %{final_days: [%{day: 5, status: :NA}]},
+          actor: gm
+        )
+        |> Ash.update()
+
+      day_5 =
+        GameNight.Schedules.ScheduleDay
+        |> Ash.Query.filter(schedule_id == ^schedule.id and day == 5)
+        |> Ash.read_one!(authorize?: false)
+
+      assert day_5.final_status == :NA
+
+      # Silent — no `:schedule_updated` notifications materialised.
+      schedule_updated_count =
+        GameNight.Notifications.Notification
+        |> Ash.Query.filter(
+          subject_type == "schedule" and subject_id == ^schedule.id and
+            kind == :schedule_updated
+        )
+        |> Ash.read!(authorize?: false)
+        |> length()
+
+      assert schedule_updated_count == 0
+    end
+
+    test ":update_final_days_and_notify fans out :schedule_updated", %{
+      gm: gm,
+      m1: m1,
+      schedule: schedule
+    } do
+      {:ok, posted} =
+        schedule
+        |> Ash.Changeset.for_update(:post, %{}, actor: gm)
+        |> Ash.update()
+
+      drain_emails()
+
+      {:ok, _} =
+        posted
+        |> Ash.Changeset.for_update(
+          :update_final_days_and_notify,
+          %{final_days: [%{day: 5, status: :NA}]},
+          actor: gm
+        )
+        |> Ash.update()
+
+      [notification] =
+        GameNight.Notifications.Notification
+        |> Ash.Query.filter(
+          subject_type == "schedule" and subject_id == ^schedule.id and
+            kind == :schedule_updated and user_id == ^m1.id
+        )
+        |> Ash.read!(authorize?: false)
+
+      assert notification.kind == :schedule_updated
+
+      assert_email_sent(fn email ->
+        email.subject =~ "was updated" and
+          email.to |> List.first() |> elem(1) == to_string(m1.email)
+      end)
+    end
+
+    test ":update_final_days_and_notify rejects when status is :ready_for_availability",
+         %{gm: gm, schedule: schedule} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               schedule
+               |> Ash.Changeset.for_update(
+                 :update_final_days_and_notify,
+                 %{final_days: [%{day: 5, status: :A}]},
+                 actor: gm
+               )
+               |> Ash.update()
+    end
+
+    test "non-owner cannot update Final values", %{schedule: schedule} do
+      {:ok, intruder} = create_user()
+
+      assert {:error, %Ash.Error.Forbidden{}} =
+               schedule
+               |> Ash.Changeset.for_update(
+                 :update_final_days,
+                 %{final_days: [%{day: 5, status: :A}]},
+                 actor: intruder
+               )
+               |> Ash.update()
+    end
+  end
+
+  defp drain_emails do
+    receive do
+      {:email, _} -> drain_emails()
+    after
+      0 -> :ok
+    end
   end
 
   describe "submission_count + participant_count calculations (T123 / players-ready column)" do

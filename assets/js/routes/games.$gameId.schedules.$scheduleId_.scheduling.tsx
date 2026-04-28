@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -8,10 +8,13 @@ import {
   type DayMatrixParticipant,
 } from "@/features/schedules/components/day-matrix-table";
 import { PostScheduleDialog } from "@/features/schedules/components/post-schedule-dialog";
+import { UpdatePostedScheduleButtons } from "@/features/schedules/components/update-posted-schedule-buttons";
 import {
   useGetScheduleForScheduling,
   usePostSchedule,
   useUpdateScheduleFinalDay,
+  useUpdateScheduleFinalDaysAndNotify,
+  useUpdateScheduleFinalDaysBatch,
 } from "@/features/schedules/hooks";
 import type {
   AvailabilityStatus,
@@ -35,9 +38,17 @@ function SchedulingViewRoute() {
   const { gameId, scheduleId } = Route.useParams();
   const schedule = useGetScheduleForScheduling({ id: scheduleId, gameId });
   const updateFinalDay = useUpdateScheduleFinalDay();
+  const updateFinalDaysBatch = useUpdateScheduleFinalDaysBatch();
+  const updateFinalDaysAndNotify = useUpdateScheduleFinalDaysAndNotify();
   const post = usePostSchedule();
   const { push } = useToasts();
   const navigate = useNavigate();
+
+  const [pendingFinalEdits, setPendingFinalEdits] = useState<
+    Map<number, FinalStatus>
+  >(new Map());
+
+  const isPosted = schedule.data?.status === "posted";
 
   const matrix = useMemo(() => {
     if (!schedule.data) return null;
@@ -71,18 +82,36 @@ function SchedulingViewRoute() {
           participantStatuses[p.id] =
             statusByParticipantDay.get(`${p.id}:${sd.day}`) ?? "NA";
         }
+        const persisted = sd.finalStatus as FinalStatus | null;
+        const overlay = pendingFinalEdits.get(sd.day);
         return {
           day: sd.day,
           gmStatus: (sd.gmStatus ?? "NA") as AvailabilityStatus,
-          finalStatus: sd.finalStatus as FinalStatus | null,
+          finalStatus: overlay ?? persisted,
           participantStatuses,
         };
       });
 
     return { days, participants };
-  }, [schedule.data]);
+  }, [schedule.data, pendingFinalEdits]);
 
   async function onCycleFinal(day: number, next: FinalStatus) {
+    if (isPosted) {
+      setPendingFinalEdits((prev) => {
+        const newMap = new Map(prev);
+        const persisted =
+          (schedule.data?.scheduleDays.find((d) => d.day === day)
+            ?.finalStatus as FinalStatus | null) ?? null;
+        if (persisted === next) {
+          newMap.delete(day);
+        } else {
+          newMap.set(day, next);
+        }
+        return newMap;
+      });
+      return;
+    }
+
     try {
       await updateFinalDay.mutateAsync({
         scheduleId,
@@ -105,6 +134,54 @@ function SchedulingViewRoute() {
     } catch {
       push({
         title: "Could not post the schedule. Please try again.",
+        variant: "error",
+      });
+    }
+  }
+
+  function pendingFinalDays(): Array<{ day: number; status: FinalStatus }> {
+    return Array.from(pendingFinalEdits.entries()).map(([day, status]) => ({
+      day,
+      status,
+    }));
+  }
+
+  async function onUpdatePosted() {
+    const finalDays = pendingFinalDays();
+    if (finalDays.length === 0) return;
+    try {
+      await updateFinalDaysBatch.mutateAsync({
+        scheduleId,
+        gameId,
+        finalDays,
+      });
+      setPendingFinalEdits(new Map());
+      push({ title: "Schedule updated.", variant: "success" });
+    } catch {
+      push({
+        title: "Could not update the schedule. Please try again.",
+        variant: "error",
+      });
+    }
+  }
+
+  async function onUpdatePostedAndNotify() {
+    const finalDays = pendingFinalDays();
+    if (finalDays.length === 0) return;
+    try {
+      await updateFinalDaysAndNotify.mutateAsync({
+        scheduleId,
+        gameId,
+        finalDays,
+      });
+      setPendingFinalEdits(new Map());
+      push({
+        title: "Schedule updated and players notified.",
+        variant: "success",
+      });
+    } catch {
+      push({
+        title: "Could not update and notify. Please try again.",
         variant: "error",
       });
     }
@@ -143,8 +220,12 @@ function SchedulingViewRoute() {
 
   const data = schedule.data;
   const isReady = data.status === "ready_for_availability";
-  const isPosted = data.status === "posted";
   const canPost = isReady;
+  const hasPendingChanges = pendingFinalEdits.size > 0;
+  const isMatrixPending =
+    updateFinalDay.isPending ||
+    updateFinalDaysBatch.isPending ||
+    updateFinalDaysAndNotify.isPending;
 
   return (
     <main className="container mx-auto max-w-6xl py-8" id="main-content">
@@ -157,7 +238,7 @@ function SchedulingViewRoute() {
             {isReady
               ? "Toggle Final values to NA or A. We'll commit them when you click Post Schedule."
               : isPosted
-                ? "Schedule is posted. Final values can still be edited; players see the latest."
+                ? "Schedule is posted. Toggle Final values to stage edits, then choose Update schedule (silent) or Update and notify."
                 : "This schedule isn't ready for the Scheduling View yet."}
           </p>
         </div>
@@ -179,7 +260,7 @@ function SchedulingViewRoute() {
         participants={matrix.participants}
         days={matrix.days}
         onCycleFinal={onCycleFinal}
-        isPending={updateFinalDay.isPending}
+        isPending={isMatrixPending}
       />
 
       {canPost ? (
@@ -189,6 +270,18 @@ function SchedulingViewRoute() {
               Post schedule
             </Button>
           </PostScheduleDialog>
+        </div>
+      ) : null}
+
+      {isPosted ? (
+        <div className="mt-6">
+          <UpdatePostedScheduleButtons
+            hasChanges={hasPendingChanges}
+            onUpdate={onUpdatePosted}
+            onUpdateAndNotify={onUpdatePostedAndNotify}
+            isUpdatePending={updateFinalDaysBatch.isPending}
+            isNotifyPending={updateFinalDaysAndNotify.isPending}
+          />
         </div>
       ) : null}
     </main>
