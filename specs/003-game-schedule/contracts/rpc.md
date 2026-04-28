@@ -38,7 +38,7 @@ export type ScheduleStatus = "preparing" | "ready_for_availability" | "posted";
 export type AvailabilityStatus = "NA" | "I" | "A" | "IF";
 export type ParticipantDayStatus = AvailabilityStatus | "NP";
 export type FinalStatus = "NA" | "A";
-export type FinalNoteKind = "good_day" | "maybe" | "maybe_with_if" | "bad_day";
+export type FinalNoteKind = "good_day" | "maybe" | "maybe_with_if" | "host_unavailable" | "bad_day";
 
 export interface Schedule {
   id: string;
@@ -129,9 +129,9 @@ Both `GameNight.Schedules.Calculations.FinalNoteKind` (Elixir) and `assets/js/fe
 For a given day, with `gm` ∈ {NA, I, A, IF} and `participants` an array of `:NA | :I | :A | :IF` (NP late-joiners excluded), `n = participants.length`:
 
 ```text
-if (gm == NA) → bad_day
+if (gm == NA) → host_unavailable
 else if (every p in participants is I or A and gm in [I, A]) → good_day
-else if (any p == IF) → maybe_with_if  (carries the array of IF player names)
+else if (any p == IF or gm == IF) → maybe_with_if  (carries the array of IF participant names; "GM" appended when gm == IF)
 else if (count(p in [NA, IF]) > floor(n / 5)) → bad_day
 else if (count(p in [NA, IF]) > 0) → maybe
 else if (n == 0 and gm in [I, A]) → good_day
@@ -143,7 +143,7 @@ Test fixture cases (must match in both languages):
 | gm | participants | n | expected kind |
 | --- | --- | --- | --- |
 | `A` | `[]` | 0 | `good_day` |
-| `NA` | `[A, A, A]` | 3 | `bad_day` |
+| `NA` | `[A, A, A]` | 3 | `host_unavailable` |
 | `A` | `[A, A, A, A, A]` | 5 | `good_day` |
 | `A` | `[A, NA, A, A, A]` | 5 | `maybe` |
 | `A` | `[A, NA, NA, A, A]` | 5 | `bad_day` |

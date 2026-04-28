@@ -58,7 +58,7 @@ describe("<DayMatrixTable> (T094)", () => {
     expect(note).toHaveTextContent(/good day/i);
   });
 
-  it("renders 'Bad Day' (✕) when GM is NA", () => {
+  it("renders 'Host Unavailable' when GM is NA (distinct from bad day)", () => {
     render(
       <DayMatrixTable
         participants={PARTICIPANTS}
@@ -68,6 +68,33 @@ describe("<DayMatrixTable> (T094)", () => {
             gmStatus: "NA",
             finalStatus: null,
             participantStatuses: { p1: "A", p2: "A" },
+          },
+        ]}
+        onCycleFinal={() => undefined}
+      />,
+    );
+
+    const note = screen.getByTestId("day-matrix-note-1");
+    expect(note).toHaveTextContent(/host unavailable/i);
+    expect(note).not.toHaveTextContent(/bad day/i);
+  });
+
+  it("renders 'Bad Day' (✕) when too many participants are NA but GM is available", () => {
+    render(
+      <DayMatrixTable
+        participants={[
+          { id: "p1", characterName: "A", npOnly: false },
+          { id: "p2", characterName: "B", npOnly: false },
+          { id: "p3", characterName: "C", npOnly: false },
+          { id: "p4", characterName: "D", npOnly: false },
+          { id: "p5", characterName: "E", npOnly: false },
+        ]}
+        days={[
+          {
+            day: 1,
+            gmStatus: "A",
+            finalStatus: null,
+            participantStatuses: { p1: "NA", p2: "NA", p3: "A", p4: "A", p5: "A" },
           },
         ]}
         onCycleFinal={() => undefined}
@@ -119,6 +146,26 @@ describe("<DayMatrixTable> (T094)", () => {
 
     await user.click(screen.getByTestId("day-matrix-final-5"));
     expect(onCycle).toHaveBeenCalledWith(5, "NA");
+  });
+
+  it("renders columns in order: Day, Final, Note, then participants", () => {
+    render(
+      <DayMatrixTable
+        participants={PARTICIPANTS}
+        days={[
+          {
+            day: 1,
+            gmStatus: "A",
+            finalStatus: null,
+            participantStatuses: { p1: "A", p2: "A" },
+          },
+        ]}
+        onCycleFinal={() => undefined}
+      />,
+    );
+
+    const headers = screen.getAllByRole("columnheader").map((h) => h.textContent);
+    expect(headers).toEqual(["Day", "Final", "Note", "Anne", "Bobby"]);
   });
 
   it("excludes np_only participants from rendered columns", () => {

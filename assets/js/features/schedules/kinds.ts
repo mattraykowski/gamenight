@@ -31,6 +31,7 @@ export const FINAL_NOTE_KINDS = [
   "good_day",
   "maybe",
   "maybe_with_if",
+  "host_unavailable",
   "bad_day",
 ] as const;
 export type FinalNoteKind = (typeof FINAL_NOTE_KINDS)[number];

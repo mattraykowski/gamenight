@@ -19,6 +19,7 @@ const FINAL_KIND_CLASS: Record<FinalNoteKind, string> = {
   good_day: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
   maybe: "bg-amber-500/20 text-amber-800 dark:text-amber-200",
   maybe_with_if: "bg-amber-500/20 text-amber-800 dark:text-amber-200",
+  host_unavailable: "bg-muted text-muted-foreground",
   bad_day: "bg-destructive/15 text-destructive",
 };
 
@@ -26,6 +27,7 @@ const FINAL_KIND_ICON: Record<FinalNoteKind, string> = {
   good_day: "✓",
   maybe: "⚠",
   maybe_with_if: "⚠",
+  host_unavailable: "—",
   bad_day: "✕",
 };
 
@@ -106,6 +108,12 @@ export function DayMatrixTable({
             >
               Final
             </th>
+            <th
+              scope="col"
+              className="h-10 px-3 text-left align-middle font-medium text-muted-foreground"
+            >
+              Note
+            </th>
             {visibleParticipants.map((participant) => (
               <th
                 key={participant.id}
@@ -115,12 +123,6 @@ export function DayMatrixTable({
                 {participant.characterName}
               </th>
             ))}
-            <th
-              scope="col"
-              className="h-10 px-3 text-left align-middle font-medium text-muted-foreground"
-            >
-              Note
-            </th>
           </tr>
         </thead>
         <tbody className="[&_tr:last-child]:border-0">
@@ -175,6 +177,16 @@ export function DayMatrixTable({
                     {displayedFinal === "A" ? "✓ A" : "✕ NA"}
                   </Button>
                 </td>
+                <td
+                  className={cn(
+                    "h-12 px-3 align-middle font-medium",
+                    FINAL_KIND_CLASS[note.kind],
+                  )}
+                  data-testid={`day-matrix-note-${day.day}`}
+                >
+                  <span aria-hidden="true">{FINAL_KIND_ICON[note.kind]}</span>{" "}
+                  {noteLabel}
+                </td>
                 {visibleParticipants.map((p) => {
                   const status = (day.participantStatuses[p.id] ?? "NA") as ParticipantDayStatus;
                   return (
@@ -187,16 +199,6 @@ export function DayMatrixTable({
                     </td>
                   );
                 })}
-                <td
-                  className={cn(
-                    "h-12 px-3 align-middle font-medium",
-                    FINAL_KIND_CLASS[note.kind],
-                  )}
-                  data-testid={`day-matrix-note-${day.day}`}
-                >
-                  <span aria-hidden="true">{FINAL_KIND_ICON[note.kind]}</span>{" "}
-                  {noteLabel}
-                </td>
               </tr>
             );
           })}

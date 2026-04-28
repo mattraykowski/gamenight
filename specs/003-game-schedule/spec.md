@@ -61,7 +61,7 @@ A player sees on their dashboard's "My Characters" table that one of their chara
 
 ### User Story 4 - GM posts the final schedule via the Scheduling View (Priority: P1)
 
-Once the GM is ready, they open **Scheduling View** for the schedule. Each row is a day of the month and the columns are: **Final**, one column per player (read-only, showing their submission), and a **Final Note** column that the system computes per day. The Final column toggles only between **NA** and **A** (a smaller set than the input statuses). It is pre-filled per row using the same rule as the Final Note: days computed as "Good Day" pre-fill `A`, all other days pre-fill `NA`. The GM adjusts as desired, then clicks **Post Schedule**. The schedule status becomes `posted`. Every linked player receives an email and an in-app notification. Players' submission views become permanently read-only (no further Edit). Each player's character "View Game" page now shows the posted days.
+Once the GM is ready, they open **Scheduling View** for the schedule. Each row is a day of the month and the columns are, in order: **Final**, **Final Note**, then one column per linked player (read-only, showing their submission). The Final column toggles only between **NA** and **A** (a smaller set than the input statuses). It is pre-filled per row using the same rule as the Final Note: days computed as "Good Day" pre-fill `A`, all other days pre-fill `NA`. The GM adjusts as desired, then clicks **Post Schedule**. The schedule status becomes `posted`. Every linked player receives an email and an in-app notification. Players' submission views become permanently read-only (no further Edit). Each player's character "View Game" page now shows the posted days.
 
 **Why this priority**: Posting is the payoff — the moment the schedule becomes a committed plan players act on. Without this, no game session ever gets confirmed.
 
@@ -72,7 +72,8 @@ Once the GM is ready, they open **Scheduling View** for the schedule. Each row i
 1. **Given** a schedule day where every linked player and the GM are I or A, **When** the Scheduling View renders, **Then** the Final Note for that day shows **"Good Day"** with a green background and the Final column is pre-filled `A`.
 2. **Given** a schedule day where exactly one out of five players is NA or IF and no player is IF, **When** the Scheduling View renders, **Then** the Final Note shows **"Maybe"** with a yellow background and Final pre-fills `NA`.
 3. **Given** a schedule day where one or more players are IF, **When** the Scheduling View renders, **Then** the Final Note shows **"Maybe, talk to <Player Name>"** (listing each IF player's name) with a yellow background.
-4. **Given** a schedule day where more than one-fifth of linked players are NA or IF, **When** the Scheduling View renders, **Then** the Final Note shows **"Bad Day"** with a red background and Final pre-fills `NA`.
+4. **Given** a schedule day where more than one-fifth of linked players are NA or IF (and the GM is otherwise available), **When** the Scheduling View renders, **Then** the Final Note shows **"Bad Day"** with a red background and Final pre-fills `NA`.
+5. **Given** a schedule day where the GM marked themselves NA, **When** the Scheduling View renders, **Then** the Final Note shows **"Host Unavailable"** with a gray background and Final pre-fills `NA`. This is distinct from "Bad Day" so the GM can tell at a glance that the day is blocked by their own availability rather than by participants'.
 5. **Given** a Scheduling View where the GM left some Final values blank, **When** they click "Post Schedule," **Then** any blank Final value is treated as `NA` on post, the schedule status becomes `posted`, and every linked player receives both an email and an in-app notification.
 6. **Given** a `posted` schedule, **When** a linked player reopens their submission, **Then** they see read-only data with no Edit button.
 
@@ -214,9 +215,10 @@ A player who joins a game after a schedule was already posted should still be ab
 #### Scheduling View, Final column, and Final Note rule
 
 - **FR-025**: The GM MUST be able to open a "Scheduling View" for any schedule in `ready_for_availability` or `posted` status.
-- **FR-026**: The Scheduling View MUST render one row per day of the schedule's month with columns: **Final** (editable by GM), one read-only column per linked player showing that player's submitted status (or **NP** for late-joiners on a posted schedule), and a system-computed **Final Note** column.
+- **FR-026**: The Scheduling View MUST render one row per day of the schedule's month with columns, in this order: **Final** (editable by GM), the system-computed **Final Note** column, then one read-only column per linked player showing that player's submitted status (or **NP** for late-joiners on a posted schedule).
 - **FR-027**: The Final column MUST cycle only between **NA** and **A** (a smaller set than input statuses).
-- **FR-028**: For each day, the system MUST compute the Final Note using the linked players' and GM's statuses for that day:
+- **FR-028**: For each day, the system MUST compute the Final Note using the GM's status and the linked players' statuses for that day. Rules apply top-down (first match wins):
+  - GM is **NA**: Final Note = "Host Unavailable" (gray background). Distinct from "Bad Day" so the GM can tell at a glance that the day is blocked by their own availability rather than by participants'.
   - All **I** or **A**: Final Note = "Good Day" (green background).
   - One or more linked players are **IF**: Final Note = "Maybe, talk to <Player Name>" listing each IF player (yellow background).
   - At most one-fifth of linked players are **NA** or **IF** and none are IF: Final Note = "Maybe" (yellow background).

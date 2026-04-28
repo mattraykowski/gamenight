@@ -4,12 +4,15 @@ defmodule GameNight.Schedules.Calculations.FinalNoteKind do
   for a day plus the linked participants' (non-NP) statuses for the
   same day, returns one of:
 
-    * `:good_day`        — green; everyone is `:I` or `:A`.
-    * `:maybe`           — yellow; ≤ 1/5 of participants are NA/IF.
-    * `:maybe_with_if`   — yellow; one or more IFs (carries the
-                            list of names that need talking to).
-    * `:bad_day`         — red; GM NA or > 1/5 of participants
-                            NA/IF.
+    * `:good_day`         — green; everyone is `:I` or `:A`.
+    * `:maybe`            — yellow; ≤ 1/5 of participants are NA/IF.
+    * `:maybe_with_if`    — yellow; one or more IFs (carries the
+                             list of names that need talking to).
+    * `:host_unavailable` — gray; GM is NA. Distinct from bad-day
+                             so the UI can communicate "the GM
+                             can't run this" specifically.
+    * `:bad_day`          — red; > 1/5 of participants NA/IF (and
+                             the GM is otherwise available).
 
   See research.md §4 + the shared truth-table fixture
   `test/support/fixtures/schedule_final_note_fixtures.ex` (which
@@ -21,7 +24,7 @@ defmodule GameNight.Schedules.Calculations.FinalNoteKind do
   """
 
   @type avail :: :NA | :I | :A | :IF
-  @type kind :: :good_day | :maybe | :maybe_with_if | :bad_day
+  @type kind :: :good_day | :maybe | :maybe_with_if | :host_unavailable | :bad_day
 
   @doc """
   Classify the Final Note kind. `if_names` is a list of the IF
@@ -42,7 +45,7 @@ defmodule GameNight.Schedules.Calculations.FinalNoteKind do
 
     cond do
       gm == :NA ->
-        {:bad_day, []}
+        {:host_unavailable, []}
 
       gm in [:I, :A] and Enum.all?(participants, &(&1 in [:I, :A])) ->
         {:good_day, []}
@@ -77,6 +80,7 @@ defmodule GameNight.Schedules.Calculations.FinalNoteKind do
   def label(:good_day, _), do: "Good Day"
   def label(:maybe, _), do: "Maybe"
   def label(:bad_day, _), do: "Bad Day"
+  def label(:host_unavailable, _), do: "Host Unavailable"
 
   def label(:maybe_with_if, names) when is_list(names) and names != [] do
     "Maybe, talk to " <> Enum.join(names, ", ")

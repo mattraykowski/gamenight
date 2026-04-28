@@ -5,7 +5,7 @@
 **Decision**: Express every derived presentation value as an Ash `calculate` block on the resource. Specifically:
 
 - `Schedule.name :: :string` — composed from `month`, `year`, `start_time`, `end_time`. Implemented as a calculation **module** (`GameNight.Schedules.Calculations.Name`) rather than an inline `expr/1`, because formatting requires `Calendar.strftime/2` and locale-aware AM/PM rendering that is beyond Ash's expression DSL.
-- `ScheduleDay.final_note_kind :: :atom` (one of `:good_day | :maybe | :maybe_with_if | :bad_day`) — composed from `gm_status` and the related `participant_days` for the same `day`. Implemented as a calculation module that loads `participant_days` via the Ash load API.
+- `ScheduleDay.final_note_kind :: :atom` (one of `:good_day | :maybe | :maybe_with_if | :host_unavailable | :bad_day`) — composed from `gm_status` and the related `participant_days` for the same `day`. Implemented as a calculation module that loads `participant_days` via the Ash load API.
 
 **Rationale**:
 1. Calculations are first-class members of the resource contract: they participate in JSON:API serialization, are loadable via `?fields[schedule]=name`, and surface in the `ash_typescript`-generated client without any extra wiring. A stored column would require a `change` to keep it consistent with `month`/`year`/`start_time`/`end_time` — adding write paths for a value that is purely a function of other fields invites drift.

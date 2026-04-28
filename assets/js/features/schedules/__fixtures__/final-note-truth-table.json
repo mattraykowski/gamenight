@@ -10,12 +10,12 @@
       "expected_label": "Good Day"
     },
     {
-      "name": "GM NA blocks the day",
+      "name": "GM NA blocks the day → host unavailable",
       "gm": "NA",
       "participants": ["A", "A", "A"],
       "if_player_names": [],
-      "expected_kind": "bad_day",
-      "expected_label": "Bad Day"
+      "expected_kind": "host_unavailable",
+      "expected_label": "Host Unavailable"
     },
     {
       "name": "everyone available",

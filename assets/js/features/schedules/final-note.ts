@@ -31,7 +31,7 @@ export function classifyFinalNote(
   const gmIsIf = gm === "IF";
 
   if (gm === "NA") {
-    return { kind: "bad_day", ifNames: [] };
+    return { kind: "host_unavailable", ifNames: [] };
   }
 
   if (
@@ -72,6 +72,8 @@ export function finalNoteLabel(result: FinalNoteResult): string {
       return "Maybe";
     case "bad_day":
       return "Bad Day";
+    case "host_unavailable":
+      return "Host Unavailable";
     case "maybe_with_if":
       return result.ifNames.length > 0
         ? `Maybe, talk to ${result.ifNames.join(", ")}`

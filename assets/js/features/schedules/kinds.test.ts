@@ -31,11 +31,12 @@ describe("Schedule kind enums (T016)", () => {
     expect(FINAL_STATUSES).toEqual(["NA", "A"]);
   });
 
-  it("final-note kinds are the four classification atoms", () => {
+  it("final-note kinds are the five classification atoms", () => {
     expect(FINAL_NOTE_KINDS).toEqual([
       "good_day",
       "maybe",
       "maybe_with_if",
+      "host_unavailable",
       "bad_day",
     ]);
   });
