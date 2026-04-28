@@ -740,11 +740,14 @@ export function useUpdateScheduleFinalDaysBatch(): UseMutationResult<
         >,
       );
     },
-    onSuccess: (_data, vars) => {
-      void queryClient.invalidateQueries({
+    onSuccess: async (_data, vars) => {
+      // Await the refetch so the route's `mutateAsync` doesn't resolve
+      // until the cache holds the new Final values. Otherwise clearing
+      // local pending overlays flashes the stale persisted values.
+      await queryClient.invalidateQueries({
         queryKey: schedulesKeys.detail(vars.scheduleId),
       });
-      void queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: schedulesKeys.byGame(vars.gameId),
       });
     },
@@ -784,11 +787,11 @@ export function useUpdateScheduleFinalDaysAndNotify(): UseMutationResult<
         >,
       );
     },
-    onSuccess: (_data, vars) => {
-      void queryClient.invalidateQueries({
+    onSuccess: async (_data, vars) => {
+      await queryClient.invalidateQueries({
         queryKey: schedulesKeys.detail(vars.scheduleId),
       });
-      void queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: schedulesKeys.byGame(vars.gameId),
       });
     },
