@@ -78,6 +78,10 @@ defmodule GameNight.Schedules.Schedule do
       patch :post, route: "/:id/post"
       delete :delete, route: "/:id"
 
+      # Feature 004 — generic action returning the CalendarEventDay
+      # projection for the visible month.
+      route :get, "/calendar-events", :list_calendar_event_days_for_month
+
       # US3 — player-side reads.
       index :list_for_player_character, route: "/by-character/:player_id"
       get :get_for_player_character, route: "/by-character/:player_id/:id"
@@ -269,6 +273,23 @@ defmodule GameNight.Schedules.Schedule do
                  {:ok, schedule}
                end
              end)
+    end
+
+    action :list_calendar_event_days_for_month, {:array, :map} do
+      description """
+      Feature 004 — read-only projection for the cross-schedule
+      Calendar route. Returns one CalendarEventDay row per Final-A
+      day on every posted schedule the actor is connected to (game
+      owner OR non-`np_only` participant) for the given (year, month).
+      Anonymous actor → empty list (defence in depth).
+
+      See specs/004-full-calendar/data-model.md.
+      """
+
+      argument :year, :integer, allow_nil?: false
+      argument :month, :integer, allow_nil?: false, constraints: [min: 1, max: 12]
+
+      run GameNight.Schedules.Schedule.Actions.ListCalendarEventDaysForMonth
     end
 
     destroy :delete do
@@ -497,6 +518,14 @@ defmodule GameNight.Schedules.Schedule do
     # the game and asserts ownership before the row is materialised.
     policy action(:initiate) do
       authorize_if {GameNight.Schedules.Schedule.Checks.GameOwner, []}
+    end
+
+    # Feature 004 — generic action that returns a derived projection.
+    # Authorization happens inside the action body (filters by actor);
+    # the policy admits any caller, including anonymous, because the
+    # body returns [] for nil actor. See data-model.md §4.
+    policy action(:list_calendar_event_days_for_month) do
+      authorize_if always()
     end
   end
 

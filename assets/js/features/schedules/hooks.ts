@@ -31,6 +31,7 @@ import {
   type SetParticipantDayStatusInput,
   type SetScheduleGmDayInput,
 } from "@/ash_rpc";
+import { calendarKeys } from "@/features/calendar/hooks";
 import { getClientOptions } from "@/lib/api/client";
 import { narrowApiError, type ApiError } from "@/lib/api/errors";
 
@@ -617,6 +618,7 @@ export function useUpdateScheduleFinalDay(): UseMutationResult<
       void queryClient.invalidateQueries({
         queryKey: schedulesKeys.byGame(vars.gameId),
       });
+      void queryClient.invalidateQueries({ queryKey: calendarKeys.all });
     },
   });
 }
@@ -656,6 +658,7 @@ export function usePostSchedule(): UseMutationResult<
       void queryClient.invalidateQueries({
         queryKey: schedulesKeys.topSixForGame(vars.gameId),
       });
+      void queryClient.invalidateQueries({ queryKey: calendarKeys.all });
     },
   });
 }
@@ -706,6 +709,7 @@ export function useDeleteSchedule(): UseMutationResult<
       void queryClient.invalidateQueries({
         queryKey: schedulesKeys.topSixForGame(vars.gameId),
       });
+      void queryClient.invalidateQueries({ queryKey: calendarKeys.all });
     },
   });
 }
@@ -814,6 +818,7 @@ export function useUpdateScheduleFinalDaysBatch(): UseMutationResult<
       await queryClient.invalidateQueries({
         queryKey: schedulesKeys.byGame(vars.gameId),
       });
+      await queryClient.invalidateQueries({ queryKey: calendarKeys.all });
     },
   });
 }
@@ -858,6 +863,7 @@ export function useUpdateScheduleFinalDaysAndNotify(): UseMutationResult<
       await queryClient.invalidateQueries({
         queryKey: schedulesKeys.byGame(vars.gameId),
       });
+      await queryClient.invalidateQueries({ queryKey: calendarKeys.all });
     },
   });
 }
