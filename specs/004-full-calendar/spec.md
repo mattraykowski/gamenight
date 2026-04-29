@@ -3,7 +3,7 @@
 **Feature Branch**: `004-full-calendar`
 **Created**: 2026-04-28
 **Status**: Draft
-**Input**: User description: "Full Calendar: As a user I want be able to click Calendar on the top navigation when logged in and have it bring me to a calendar view. When I first arrive it should default to a monthly calendar of the current month with the ability to navigate forward, backward, and back to 'today' when I am not on the current month. Any days that I am either a GM for or have a Character for a schedule it should show an event. Clicking on the event should bring me to the correct schedule page."
+**Input**: User description: "Full Calendar: As a user I want to be able to click Calendar on the top navigation when logged in and have it bring me to a calendar view. When I first arrive it should default to a monthly calendar of the current month with the ability to navigate forward, backward, and back to 'today' when I am not on the current month. Any days that I am either a GM for or have a Character for a schedule it should show an event. Clicking on the event should bring me to the correct schedule page."
 
 ---
 

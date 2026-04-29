@@ -65,3 +65,36 @@ new `list_schedules_for_calendar_month` RPC binding is in
 - **Lighthouse CI run** — no `lhci` infrastructure in the tree; SC-001
   is proxied by the bundle-size budget per plan §VI.
 - **Playwright e2e** — no playwright runner wired for this gate.
+
+## Keyboard nav — FR-013 partial coverage (deferred follow-up)
+
+`<EventCalendar>` ships in v1 with **Tab / Shift-Tab between event
+pills** as the only keyboard navigation model. This is a partial
+satisfaction of FR-013, which says "Tab into the grid, **Arrow keys
+to move focus between days**, Enter / Space to activate the focused
+event marker, Tab to reach the navigation controls." The Arrow /
+Home / End cell-level navigation that the per-schedule
+`<MonthCalendar>` provides is **not** wired up here.
+
+**Rationale for the gap:**
+
+1. The semantics differ from `<MonthCalendar>`. There, each cell is
+   one focusable button with one status — Arrow keys map cleanly to
+   "cycle focus between days". Here, cells contain N focusable pills,
+   so "Arrow Right" has at least three reasonable meanings (next
+   pill in this cell, first pill of next cell, focus the next-day
+   cell as a whole) and any of them changes the surrounding tab
+   model.
+2. Tab navigation already reaches every event marker in DOM order,
+   which satisfies the strict accessibility floor — keyboard users
+   *can* reach and activate every event.
+
+**Follow-up plan:** introduce roving cell-level focus on the cell
+container, with Enter on a focused cell opening
+`<DayEventsPopover>` regardless of N. Pills become non-tab-stoppable
+(`tabIndex={-1}`) but stay click-targetable for mouse / touch. This
+splits the keyboard model cleanly between cells (Arrow keys) and
+events (popover-mediated). Track separately when prioritised.
+
+**T032 keyboard audit** (above) should document the as-shipped
+behavior so the gap is visible to whoever runs the manual sweep.

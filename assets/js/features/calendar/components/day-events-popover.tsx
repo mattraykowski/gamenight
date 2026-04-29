@@ -63,7 +63,7 @@ export function DayEventsPopover({
         <p className="px-2 py-1 text-sm font-semibold">{formatDate(date)}</p>
         <ul className="mt-1 flex flex-col gap-1">
           {events.map((event) => (
-            <li key={event.scheduleId}>
+            <li key={`${date}-${event.scheduleId}`}>
               <button
                 type="button"
                 onClick={() => handleSelect(event)}

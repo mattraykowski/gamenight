@@ -36,6 +36,20 @@ function normalizeRow(row: Record<string, unknown>): CalendarEventDay {
   };
 }
 
+/**
+ * The five feature-003 mutation hooks
+ * (`useUpdateScheduleFinalDay`, `useUpdateScheduleFinalDaysBatch`,
+ * `useUpdateScheduleFinalDaysAndNotify`, `usePostSchedule`,
+ * `useDeleteSchedule`) invalidate `calendarKeys.all` rather than
+ * `calendarKeys.forActor(actorId)`. That's intentional: the
+ * QueryClient is per-tab / per-session, and `clearAuth()` (sign-out)
+ * destroys it before the next user signs in — multiple actors never
+ * share a cache. Threading `actorId` through every mutation's args
+ * just to satisfy `forActor` would couple every schedule hook to the
+ * auth surface for a scoping benefit that doesn't materialise in
+ * practice. If we ever introduce shared / multi-actor caching, switch
+ * to the `forActor` variant.
+ */
 export const calendarKeys = {
   all: ["schedules", "calendar"] as const,
   byMonth: (actorId: string, year: number, month: number) =>

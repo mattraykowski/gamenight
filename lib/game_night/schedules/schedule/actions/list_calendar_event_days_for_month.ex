@@ -28,24 +28,43 @@ defmodule GameNight.Schedules.Schedule.Actions.ListCalendarEventDaysForMonth do
   defp do_run(_year, _month, nil), do: {:ok, []}
 
   defp do_run(year, month, actor) do
-    schedules =
-      GameNight.Schedules.Schedule
-      |> Ash.Query.filter(
-        year == ^year and
-          month == ^month and
-          status == :posted and
-          (game.owner_id == ^actor.id or
-             exists(participants, player.user_id == ^actor.id and np_only == false))
-      )
-      |> Ash.Query.load([:schedule_days, :game, participants: [:player]])
-      |> Ash.read!(authorize?: false)
+    metadata = %{actor_id: actor.id, year: year, month: month}
 
-    rows =
-      schedules
-      |> Enum.flat_map(&rows_for_schedule(&1, actor))
-      |> Enum.sort_by(fn row -> {row.date, row.game_title} end)
+    :telemetry.span(
+      [:game_night, :schedules, :list_calendar_event_days_for_month],
+      metadata,
+      fn ->
+        # `authorize?: false` is intentional: the explicit per-actor
+        # filter below IS the authorisation gate, and we deliberately
+        # bypass the resource policies here because (a) running with
+        # `actor: actor` would also apply the Game resource's read
+        # policy to the relationship load, which is owner-only and
+        # would null out `schedule.game` for a player participant; and
+        # (b) the action returns a derived projection — not raw
+        # Schedule rows — so the resource policy isn't the right
+        # boundary anyway. The action's own policy
+        # (`policy action(:list_calendar_event_days_for_month)`) is
+        # the public boundary; this filter is the data scope.
+        schedules =
+          GameNight.Schedules.Schedule
+          |> Ash.Query.filter(
+            year == ^year and
+              month == ^month and
+              status == :posted and
+              (game.owner_id == ^actor.id or
+                 exists(participants, player.user_id == ^actor.id and np_only == false))
+          )
+          |> Ash.Query.load([:schedule_days, :game, participants: [:player]])
+          |> Ash.read!(authorize?: false)
 
-    {:ok, rows}
+        rows =
+          schedules
+          |> Enum.flat_map(&rows_for_schedule(&1, actor))
+          |> Enum.sort_by(fn row -> {row.date, row.game_title} end)
+
+        {{:ok, rows}, Map.put(metadata, :row_count, length(rows))}
+      end
+    )
   end
 
   defp rows_for_schedule(schedule, actor) do

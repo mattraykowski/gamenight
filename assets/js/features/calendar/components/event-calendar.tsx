@@ -49,8 +49,14 @@ export interface EventCalendarProps {
 /**
  * Cross-schedule month calendar for feature 004. Renders one pill
  * per `CalendarEventDay` on the matching cell, capped at 3 visible
- * pills with a `+N more` chip for overflow (US3 hooks the chip into
- * a popover; v1 of US1 just renders the chip as a button).
+ * pills with a `+N more` chip for overflow.
+ *
+ * Keyboard model (FR-013, partial v1): each event pill is a Tab
+ * stop, so keyboard users can reach every event via Tab / Shift-Tab.
+ * Roving cell-level Arrow / Home / End navigation (matching the
+ * per-schedule `<MonthCalendar>` interaction) is a deliberate gap
+ * for v1 — see specs/004-full-calendar/notes.md §"Keyboard nav"
+ * for the rationale and the follow-up plan.
  */
 export function EventCalendar({
   year,
@@ -95,9 +101,9 @@ export function EventCalendar({
             <div className="flex flex-1 flex-col gap-1 overflow-hidden">
               {visible.map((event) => (
                 <button
-                  key={event.scheduleId}
+                  key={`${dateKey}-${event.scheduleId}`}
                   type="button"
-                  data-testid={`event-pill-${event.scheduleId}`}
+                  data-testid={`event-pill-${dateKey}-${event.scheduleId}`}
                   aria-label={`${monthName} ${day}, ${event.gameTitle}, ${ROLE_LABEL[event.role]}`}
                   title={event.gameTitle}
                   onClick={() => onOpenEvent(event)}

@@ -64,7 +64,7 @@ Rows are sorted ascending by `date`, then by `game_title`.
 
 | Caller | Result |
 | --- | --- |
-| Anonymous (`actor: nil`) | Empty list (policy denies; defence in depth — FR-017 also blocks at the route level). |
+| Anonymous (`actor: nil`) | Empty list (action body short-circuits before any DB read; defence in depth alongside FR-017's route-level redirect). |
 | Authenticated, no posted schedules in (year, month) for any game they're connected to | Empty list (200, valid empty result). |
 | Authenticated, GM on at least one game with a posted schedule in (year, month) | One row per Final-A day on each such schedule. |
 | Authenticated, non-NP participant on at least one schedule in (year, month) | One row per Final-A day on each such schedule. |

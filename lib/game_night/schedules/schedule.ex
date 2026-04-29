@@ -520,10 +520,17 @@ defmodule GameNight.Schedules.Schedule do
       authorize_if {GameNight.Schedules.Schedule.Checks.GameOwner, []}
     end
 
-    # Feature 004 — generic action that returns a derived projection.
-    # Authorization happens inside the action body (filters by actor);
-    # the policy admits any caller, including anonymous, because the
-    # body returns [] for nil actor. See data-model.md §4.
+    # Feature 004 — generic action that returns a derived projection,
+    # not raw Schedule rows. Authorization is split: the action body
+    # filters by actor and short-circuits with [] for `nil`; this
+    # policy is the public boundary and admits any caller (including
+    # anonymous → empty list). A row-bound `expr()` here would not
+    # work because generic actions are not row-scoped. The Game
+    # resource's read policy is also bypassed inside the body so the
+    # `:game` relationship loads for participant actors who otherwise
+    # can't read the Game directly.
+    #
+    # See specs/004-full-calendar/data-model.md §4.
     policy action(:list_calendar_event_days_for_month) do
       authorize_if always()
     end

@@ -92,22 +92,44 @@ to the GM's IANA zone in the source data.
 
 ## §4. Authorization
 
-The action's policy is the only gate:
+Authorisation is split between the action's policy (the boundary)
+and the action body (the data scope):
 
 ```elixir
+# The boundary. Permissive — the body returns [] for nil actor and
+# filters by actor for everyone else, so the policy doesn't need to
+# evaluate row-bound `expr()` it can't run on a generic action.
 policy action(:list_calendar_event_days_for_month) do
-  authorize_if expr(game.owner_id == ^actor(:id))
-  authorize_if expr(
-    exists(participants, player.user_id == ^actor(:id) and np_only == false)
-  )
+  authorize_if always()
 end
 ```
+
+The action body then performs the per-actor filter explicitly:
+
+```elixir
+GameNight.Schedules.Schedule
+|> Ash.Query.filter(
+  year == ^year and month == ^month and status == :posted and
+    (game.owner_id == ^actor.id or
+       exists(participants, player.user_id == ^actor.id and np_only == false))
+)
+|> Ash.Query.load([:schedule_days, :game, participants: [:player]])
+|> Ash.read!(authorize?: false)
+```
+
+`authorize?: false` is intentional here — the per-actor filter is
+the data-scoping gate, and running with `actor: actor` would also
+apply Game's resource-level `:read` policy to the relationship load,
+which is owner-only and would null out `schedule.game` for a player
+participant. The action returns a derived projection (not raw
+Schedule rows), so the resource policy isn't the right boundary.
 
 Read further: the existing per-resource bypass for the system actor
 (`actor_attribute_equals(:_internal?, true)`) still applies — relevant
 for tests / fixtures.
 
-**Anonymous** actor → both `authorize_if` clauses fail → empty list,
+**Anonymous** actor → policy admits, but body short-circuits with
+`{:ok, []}` before any DB read. Returns an empty list,
 indistinguishable from "no events this month". The route itself
 already redirects anonymous to sign-in (FR-017), so this is a
 defence-in-depth posture.
