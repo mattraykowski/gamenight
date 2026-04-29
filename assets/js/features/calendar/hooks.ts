@@ -19,6 +19,23 @@ export type CalendarEventDay = {
   targetRoute: string;
 };
 
+function normalizeRow(row: Record<string, unknown>): CalendarEventDay {
+  const get = (camel: string, snake: string): unknown =>
+    row[camel] !== undefined ? row[camel] : row[snake];
+  return {
+    date: String(get("date", "date") ?? ""),
+    scheduleId: String(get("scheduleId", "schedule_id") ?? ""),
+    gameId: String(get("gameId", "game_id") ?? ""),
+    gameTitle: String(get("gameTitle", "game_title") ?? ""),
+    timeSlotLabel: String(get("timeSlotLabel", "time_slot_label") ?? ""),
+    role: get("role", "role") as "gm" | "player",
+    characterId:
+      (get("characterId", "character_id") as string | null | undefined) ??
+      null,
+    targetRoute: String(get("targetRoute", "target_route") ?? ""),
+  };
+}
+
 export const calendarKeys = {
   all: ["schedules", "calendar"] as const,
   byMonth: (actorId: string, year: number, month: number) =>
@@ -50,7 +67,12 @@ export function useListCalendarEventDays(
         ...(customFetch !== undefined ? { customFetch } : {}),
       });
       if (!result.success) throw narrowApiError(result.errors);
-      return result.data as CalendarEventDay[];
+      // Server returns the projection with snake_case keys (generic
+      // action returning `{:array, :map}` doesn't go through the
+      // camelCase-on-wire converter that resource attributes do).
+      return (result.data as Array<Record<string, unknown>>).map(
+        normalizeRow,
+      );
     },
     enabled: actorId.length > 0,
   });

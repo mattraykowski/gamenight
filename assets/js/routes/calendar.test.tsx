@@ -79,18 +79,8 @@ const sampleEvent = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-function camelize(rows: Array<Record<string, unknown>>) {
-  return rows.map((row) => ({
-    date: row.date,
-    scheduleId: row.schedule_id,
-    gameId: row.game_id,
-    gameTitle: row.game_title,
-    timeSlotLabel: row.time_slot_label,
-    role: row.role,
-    characterId: row.character_id,
-    targetRoute: row.target_route,
-  }));
-}
+// (kept for compatibility; the wire format is snake_case so we
+// pass rows straight through without rewriting them.)
 
 function renderCalendarAt(
   initialPath = "/calendar",
@@ -208,7 +198,7 @@ describe("/calendar route (T011 / US1)", () => {
       game_title: "Lost Mines",
     });
     calendarResponses.listSchedulesForCalendarMonth = () =>
-      HttpResponse.json({ success: true, data: camelize([event]) });
+      HttpResponse.json({ success: true, data: [event] });
 
     renderCalendarAt();
 

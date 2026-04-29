@@ -99,15 +99,20 @@ export function EventCalendar({
                   type="button"
                   data-testid={`event-pill-${event.scheduleId}`}
                   aria-label={`${monthName} ${day}, ${event.gameTitle}, ${ROLE_LABEL[event.role]}`}
+                  title={event.gameTitle}
                   onClick={() => onOpenEvent(event)}
                   className={cn(
-                    "flex min-h-7 items-center gap-1 truncate rounded border px-1.5 py-0.5 text-left text-xs font-medium transition-colors",
+                    "flex min-h-7 w-full items-center gap-1 rounded border px-1.5 py-0.5 text-left text-xs font-medium transition-colors",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
                     ROLE_PILL_CLASS[event.role],
                   )}
                 >
-                  <span aria-hidden="true">{ROLE_ICON[event.role]}</span>
-                  <span className="truncate">{event.gameTitle}</span>
+                  <span aria-hidden="true" className="shrink-0">
+                    {ROLE_ICON[event.role]}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate">
+                    {event.gameTitle}
+                  </span>
                 </button>
               ))}
               {overflow > 0 ? (
