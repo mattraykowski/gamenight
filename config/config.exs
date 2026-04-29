@@ -7,6 +7,11 @@
 # General application configuration
 import Config
 
+# Feature 003 — IANA time-zone database for the Schedules domain
+# (capture GM tz, validate, and compute current-month-in-tz for the
+# past-month rejection on `Schedule.initiate`).
+config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+
 config :bun,
   version: "1.2.16",
   assets: [args: [], cd: Path.expand("../assets", __DIR__)],
@@ -95,7 +100,13 @@ config :spark,
 config :game_night,
   ecto_repos: [GameNight.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [GameNight.Accounts, GameNight.Games, GameNight.Notifications, GameNight.Telemetry],
+  ash_domains: [
+    GameNight.Accounts,
+    GameNight.Games,
+    GameNight.Notifications,
+    GameNight.Schedules,
+    GameNight.Telemetry
+  ],
   ash_authentication: [return_error_on_invalid_magic_link_token?: true]
 
 # Configure the endpoint

@@ -208,7 +208,12 @@
   --destructive: oklch(0.6368 0.2078 25.3313);
   --destructive-foreground: oklch(1.0000 0 0);
   --border: oklch(0.8452 0 0);
-  --input: oklch(0.9700 0.0029 264.5420);
+  /* --input was oklch(0.97), near-invisible against the white field
+     fill. Align with --border so input outlines have the same weight
+     as other thin borders across the UI. WCAG 1.4.11 / Constitution
+     Principle IV — UI component boundaries need clear contrast
+     against adjacent colors. */
+  --input: oklch(0.8452 0 0);
   --ring: oklch(0.6397 0.1720 36.4421);
   --chart-1: oklch(0.6693 0.0706 248.9230);
   --chart-2: oklch(0.6678 0.1546 41.6200);
@@ -266,7 +271,10 @@
   --destructive: oklch(0.6368 0.2078 25.3313);
   --destructive-foreground: oklch(1.0000 0 0);
   --border: oklch(0.3290 0 0);
-  --input: oklch(0.3092 0 0);
+  /* Align with --border in dark mode for the same reason as light
+     mode — keep input outlines visually consistent with other
+     borders. */
+  --input: oklch(0.3290 0 0);
   --ring: oklch(0.6397 0.1720 36.4421);
   --chart-1: oklch(0.7124 0.0606 248.6896);
   --chart-2: oklch(0.6678 0.1546 41.6200);

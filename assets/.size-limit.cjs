@@ -99,6 +99,27 @@ const featureRouteEntries = [
     routeKey: "js/routes/notifications.tsx",
     limit: "8 KB",
   },
+  // Feature 003 — Schedules. Budgets per plan §VI / T155.
+  {
+    name: "Route chunk: GM schedule detail (gzipped)",
+    routeKey: "js/routes/games.$gameId.schedules.$scheduleId.tsx",
+    limit: "22 KB",
+  },
+  {
+    name: "Route chunk: GM schedules list (gzipped)",
+    routeKey: "js/routes/games.$gameId.schedules.index.tsx",
+    limit: "8 KB",
+  },
+  {
+    name: "Route chunk: character schedules list (gzipped)",
+    routeKey: "js/routes/characters.$characterId.schedules.index.tsx",
+    limit: "12 KB",
+  },
+  {
+    name: "Route chunk: character schedule detail (gzipped)",
+    routeKey: "js/routes/characters.$characterId.schedules.$scheduleId.tsx",
+    limit: "16 KB",
+  },
 ]
   .map(({ name, routeKey, limit }) => {
     const filePath = maybeRouteChunkFile(routeKey);

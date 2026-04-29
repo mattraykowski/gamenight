@@ -190,6 +190,57 @@ defmodule GameNight.Notifications.NotificationTest do
     end
   end
 
+  describe "feature 003 — schedule notification kinds (T007)" do
+    test "all four schedule kinds are accepted by :create_for_invitation" do
+      {:ok, user} = create_user()
+      subject_id = Ash.UUID.generate()
+
+      for kind <- [
+            :schedule_ready_for_availability,
+            :schedule_posted,
+            :schedule_updated,
+            :schedule_reminder
+          ] do
+        result =
+          Notification
+          |> Ash.Changeset.for_create(
+            :create_for_invitation,
+            %{
+              user_id: user.id,
+              kind: kind,
+              subject_type: "schedule",
+              subject_id: subject_id
+            },
+            actor: NotificationsSystem.actor()
+          )
+          |> Ash.create()
+
+        assert {:ok, %Notification{kind: ^kind}} = result,
+               "expected kind #{inspect(kind)} to be accepted, got: #{inspect(result)}"
+      end
+    end
+
+    test "an unknown kind is rejected by the constraint" do
+      {:ok, user} = create_user()
+
+      result =
+        Notification
+        |> Ash.Changeset.for_create(
+          :create_for_invitation,
+          %{
+            user_id: user.id,
+            kind: :totally_invalid_kind,
+            subject_type: "schedule",
+            subject_id: Ash.UUID.generate()
+          },
+          actor: NotificationsSystem.actor()
+        )
+        |> Ash.create()
+
+      assert {:error, %Ash.Error.Invalid{}} = result
+    end
+  end
+
   defp create_user do
     email = "notif-test-#{System.unique_integer([:positive])}@example.test"
     password = "notif-test-password-1"

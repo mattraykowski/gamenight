@@ -3,6 +3,7 @@
 
 
 
+export type Time = string;
 export type UUID = string;
 export type UtcDateTimeUsec = string;
 
@@ -101,7 +102,7 @@ export type NotificationResourceSchema = {
   __type: "Resource";
   __primitiveFields: "id" | "kind" | "subjectType" | "subjectId" | "readAt" | "resolvedAt" | "insertedAt" | "updatedAt";
   id: UUID;
-  kind: "game_invitation";
+  kind: "game_invitation" | "schedule_ready_for_availability" | "schedule_posted" | "schedule_updated" | "schedule_reminder";
   subjectType: string;
   subjectId: UUID;
   readAt: UtcDateTimeUsec | null;
@@ -116,13 +117,152 @@ export type NotificationAttributesOnlySchema = {
   __type: "Resource";
   __primitiveFields: "id" | "kind" | "subjectType" | "subjectId" | "readAt" | "resolvedAt" | "insertedAt" | "updatedAt";
   id: UUID;
-  kind: "game_invitation";
+  kind: "game_invitation" | "schedule_ready_for_availability" | "schedule_posted" | "schedule_updated" | "schedule_reminder";
   subjectType: string;
   subjectId: UUID;
   readAt: UtcDateTimeUsec | null;
   resolvedAt: UtcDateTimeUsec | null;
   insertedAt: UtcDateTimeUsec;
   updatedAt: UtcDateTimeUsec;
+};
+
+
+// ParticipantDay Schema
+export type ParticipantDayResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "day" | "status" | "insertedAt" | "updatedAt" | "participantId" | "scheduleId";
+  id: UUID;
+  day: number;
+  status: "NA" | "I" | "A" | "IF" | "NP";
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+  participantId: UUID;
+  scheduleId: UUID;
+  participant: { __type: "Relationship"; __resource: ScheduleParticipantResourceSchema; };
+  schedule: { __type: "Relationship"; __resource: ScheduleResourceSchema; };
+};
+
+
+
+export type ParticipantDayAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "day" | "status" | "insertedAt" | "updatedAt" | "participantId" | "scheduleId";
+  id: UUID;
+  day: number;
+  status: "NA" | "I" | "A" | "IF" | "NP";
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+  participantId: UUID;
+  scheduleId: UUID;
+};
+
+
+// Schedule Schema
+export type ScheduleResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "month" | "year" | "startTime" | "endTime" | "timeZone" | "status" | "postedAt" | "insertedAt" | "updatedAt" | "gameId" | "name" | "participantCount" | "submissionCount";
+  id: UUID;
+  month: number;
+  year: number;
+  startTime: Time;
+  endTime: Time;
+  timeZone: string;
+  status: "preparing" | "ready_for_availability" | "posted";
+  postedAt: UtcDateTimeUsec | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+  gameId: UUID;
+  name: string | null;
+  participantCount: number | null;
+  submissionCount: number | null;
+  game: { __type: "Relationship"; __resource: GameResourceSchema; };
+  scheduleDays: { __type: "Relationship"; __array: true; __resource: ScheduleDayResourceSchema; };
+  participants: { __type: "Relationship"; __array: true; __resource: ScheduleParticipantResourceSchema; };
+};
+
+
+
+export type ScheduleAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "month" | "year" | "startTime" | "endTime" | "timeZone" | "status" | "postedAt" | "insertedAt" | "updatedAt" | "gameId";
+  id: UUID;
+  month: number;
+  year: number;
+  startTime: Time;
+  endTime: Time;
+  timeZone: string;
+  status: "preparing" | "ready_for_availability" | "posted";
+  postedAt: UtcDateTimeUsec | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+  gameId: UUID;
+};
+
+
+// ScheduleDay Schema
+export type ScheduleDayResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "day" | "gmStatus" | "finalStatus" | "insertedAt" | "updatedAt" | "scheduleId" | "gmLockedNa" | "finalNoteKind" | "finalNoteLabel";
+  id: UUID;
+  day: number;
+  gmStatus: "NA" | "I" | "A" | "IF";
+  finalStatus: "NA" | "A" | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+  scheduleId: UUID;
+  gmLockedNa: boolean | null;
+  finalNoteKind: string | null;
+  finalNoteLabel: string | null;
+  schedule: { __type: "Relationship"; __resource: ScheduleResourceSchema; };
+};
+
+
+
+export type ScheduleDayAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "day" | "gmStatus" | "finalStatus" | "insertedAt" | "updatedAt" | "scheduleId";
+  id: UUID;
+  day: number;
+  gmStatus: "NA" | "I" | "A" | "IF";
+  finalStatus: "NA" | "A" | null;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+  scheduleId: UUID;
+};
+
+
+// ScheduleParticipant Schema
+export type ScheduleParticipantResourceSchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "isLateJoin" | "npOnly" | "submittedAt" | "joinedAt" | "insertedAt" | "updatedAt" | "scheduleId" | "playerId";
+  id: UUID;
+  isLateJoin: boolean;
+  npOnly: boolean;
+  submittedAt: UtcDateTimeUsec | null;
+  joinedAt: UtcDateTimeUsec;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+  scheduleId: UUID;
+  playerId: UUID;
+  schedule: { __type: "Relationship"; __resource: ScheduleResourceSchema; };
+  player: { __type: "Relationship"; __resource: PlayerResourceSchema; };
+  participantDays: { __type: "Relationship"; __array: true; __resource: ParticipantDayResourceSchema; };
+};
+
+
+
+export type ScheduleParticipantAttributesOnlySchema = {
+  __type: "Resource";
+  __primitiveFields: "id" | "isLateJoin" | "npOnly" | "submittedAt" | "joinedAt" | "insertedAt" | "updatedAt" | "scheduleId" | "playerId";
+  id: UUID;
+  isLateJoin: boolean;
+  npOnly: boolean;
+  submittedAt: UtcDateTimeUsec | null;
+  joinedAt: UtcDateTimeUsec;
+  insertedAt: UtcDateTimeUsec;
+  updatedAt: UtcDateTimeUsec;
+  scheduleId: UUID;
+  playerId: UUID;
 };
 
 
@@ -286,9 +426,9 @@ export type NotificationFilterInput = {
   };
 
   kind?: {
-    eq?: "game_invitation";
-    notEq?: "game_invitation";
-    in?: Array<"game_invitation">;
+    eq?: "game_invitation" | "schedule_ready_for_availability" | "schedule_posted" | "schedule_updated" | "schedule_reminder";
+    notEq?: "game_invitation" | "schedule_ready_for_availability" | "schedule_posted" | "schedule_updated" | "schedule_reminder";
+    in?: Array<"game_invitation" | "schedule_ready_for_availability" | "schedule_posted" | "schedule_updated" | "schedule_reminder">;
   };
 
   subjectType?: {
@@ -348,6 +488,366 @@ export type NotificationFilterInput = {
 
 
 };
+export type ParticipantDayFilterInput = {
+  and?: Array<ParticipantDayFilterInput>;
+  or?: Array<ParticipantDayFilterInput>;
+  not?: Array<ParticipantDayFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  day?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  status?: {
+    eq?: "NA" | "I" | "A" | "IF" | "NP";
+    notEq?: "NA" | "I" | "A" | "IF" | "NP";
+    in?: Array<"NA" | "I" | "A" | "IF" | "NP">;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  updatedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  participantId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  scheduleId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+
+  participant?: ScheduleParticipantFilterInput;
+
+  schedule?: ScheduleFilterInput;
+
+};
+export type ScheduleFilterInput = {
+  and?: Array<ScheduleFilterInput>;
+  or?: Array<ScheduleFilterInput>;
+  not?: Array<ScheduleFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  month?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  year?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  startTime?: {
+    eq?: Time;
+    notEq?: Time;
+    in?: Array<Time>;
+  };
+
+  endTime?: {
+    eq?: Time;
+    notEq?: Time;
+    in?: Array<Time>;
+  };
+
+  timeZone?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+  };
+
+  status?: {
+    eq?: "preparing" | "ready_for_availability" | "posted";
+    notEq?: "preparing" | "ready_for_availability" | "posted";
+    in?: Array<"preparing" | "ready_for_availability" | "posted">;
+  };
+
+  postedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+    isNil?: boolean;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  updatedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  gameId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  name?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+    isNil?: boolean;
+  };
+
+  participantCount?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+    isNil?: boolean;
+  };
+
+  submissionCount?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+    isNil?: boolean;
+  };
+
+
+  game?: GameFilterInput;
+
+  scheduleDays?: ScheduleDayFilterInput;
+
+  participants?: ScheduleParticipantFilterInput;
+
+};
+export type ScheduleDayFilterInput = {
+  and?: Array<ScheduleDayFilterInput>;
+  or?: Array<ScheduleDayFilterInput>;
+  not?: Array<ScheduleDayFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  day?: {
+    eq?: number;
+    notEq?: number;
+    greaterThan?: number;
+    greaterThanOrEqual?: number;
+    lessThan?: number;
+    lessThanOrEqual?: number;
+    in?: Array<number>;
+  };
+
+  gmStatus?: {
+    eq?: "NA" | "I" | "A" | "IF";
+    notEq?: "NA" | "I" | "A" | "IF";
+    in?: Array<"NA" | "I" | "A" | "IF">;
+  };
+
+  finalStatus?: {
+    eq?: "NA" | "A";
+    notEq?: "NA" | "A";
+    in?: Array<"NA" | "A">;
+    isNil?: boolean;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  updatedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  scheduleId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  gmLockedNa?: {
+    eq?: boolean;
+    notEq?: boolean;
+    isNil?: boolean;
+  };
+
+  finalNoteKind?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+    isNil?: boolean;
+  };
+
+  finalNoteLabel?: {
+    eq?: string;
+    notEq?: string;
+    in?: Array<string>;
+    isNil?: boolean;
+  };
+
+
+  schedule?: ScheduleFilterInput;
+
+};
+export type ScheduleParticipantFilterInput = {
+  and?: Array<ScheduleParticipantFilterInput>;
+  or?: Array<ScheduleParticipantFilterInput>;
+  not?: Array<ScheduleParticipantFilterInput>;
+
+  id?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  isLateJoin?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  npOnly?: {
+    eq?: boolean;
+    notEq?: boolean;
+  };
+
+  submittedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+    isNil?: boolean;
+  };
+
+  joinedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  insertedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  updatedAt?: {
+    eq?: UtcDateTimeUsec;
+    notEq?: UtcDateTimeUsec;
+    greaterThan?: UtcDateTimeUsec;
+    greaterThanOrEqual?: UtcDateTimeUsec;
+    lessThan?: UtcDateTimeUsec;
+    lessThanOrEqual?: UtcDateTimeUsec;
+    in?: Array<UtcDateTimeUsec>;
+  };
+
+  scheduleId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+  playerId?: {
+    eq?: UUID;
+    notEq?: UUID;
+    in?: Array<UUID>;
+  };
+
+
+  schedule?: ScheduleFilterInput;
+
+  player?: PlayerFilterInput;
+
+  participantDays?: ParticipantDayFilterInput;
+
+};
 
 
 export const userFilterFields = ["id", "email"] as const;
@@ -365,6 +865,18 @@ export type PlayerFilterField = (typeof playerFilterFields)[number];
 export const notificationFilterFields = ["id", "kind", "subjectType", "subjectId", "readAt", "resolvedAt", "insertedAt", "updatedAt"] as const;
 export type NotificationFilterField = (typeof notificationFilterFields)[number];
 
+export const participantDayFilterFields = ["id", "day", "status", "insertedAt", "updatedAt", "participantId", "scheduleId", "participant", "schedule"] as const;
+export type ParticipantDayFilterField = (typeof participantDayFilterFields)[number];
+
+export const scheduleFilterFields = ["id", "month", "year", "startTime", "endTime", "timeZone", "status", "postedAt", "insertedAt", "updatedAt", "gameId", "name", "participantCount", "submissionCount", "game", "scheduleDays", "participants"] as const;
+export type ScheduleFilterField = (typeof scheduleFilterFields)[number];
+
+export const scheduleDayFilterFields = ["id", "day", "gmStatus", "finalStatus", "insertedAt", "updatedAt", "scheduleId", "gmLockedNa", "finalNoteKind", "finalNoteLabel", "schedule"] as const;
+export type ScheduleDayFilterField = (typeof scheduleDayFilterFields)[number];
+
+export const scheduleParticipantFilterFields = ["id", "isLateJoin", "npOnly", "submittedAt", "joinedAt", "insertedAt", "updatedAt", "scheduleId", "playerId", "schedule", "player", "participantDays"] as const;
+export type ScheduleParticipantFilterField = (typeof scheduleParticipantFilterFields)[number];
+
 
 export const userSortFields = ["id", "email"] as const;
 export type UserSortField = (typeof userSortFields)[number];
@@ -380,6 +892,18 @@ export type PlayerSortField = (typeof playerSortFields)[number];
 
 export const notificationSortFields = ["id", "kind", "subjectType", "subjectId", "readAt", "resolvedAt", "insertedAt", "updatedAt"] as const;
 export type NotificationSortField = (typeof notificationSortFields)[number];
+
+export const participantDaySortFields = ["id", "day", "status", "insertedAt", "updatedAt", "participantId", "scheduleId"] as const;
+export type ParticipantDaySortField = (typeof participantDaySortFields)[number];
+
+export const scheduleSortFields = ["id", "month", "year", "startTime", "endTime", "timeZone", "status", "postedAt", "insertedAt", "updatedAt", "gameId", "name", "participantCount", "submissionCount"] as const;
+export type ScheduleSortField = (typeof scheduleSortFields)[number];
+
+export const scheduleDaySortFields = ["id", "day", "gmStatus", "finalStatus", "insertedAt", "updatedAt", "scheduleId", "gmLockedNa", "finalNoteKind", "finalNoteLabel"] as const;
+export type ScheduleDaySortField = (typeof scheduleDaySortFields)[number];
+
+export const scheduleParticipantSortFields = ["id", "isLateJoin", "npOnly", "submittedAt", "joinedAt", "insertedAt", "updatedAt", "scheduleId", "playerId"] as const;
+export type ScheduleParticipantSortField = (typeof scheduleParticipantSortFields)[number];
 
 
 // Utility Types

@@ -15,17 +15,23 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MagicLinkRouteImport } from './routes/magic-link'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as CharactersRouteImport } from './routes/characters'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InvitationsIndexRouteImport } from './routes/invitations.index'
 import { Route as GamesIndexRouteImport } from './routes/games.index'
+import { Route as CharactersIndexRouteImport } from './routes/characters.index'
 import { Route as PasswordResetTokenRouteImport } from './routes/password-reset.$token'
 import { Route as Magic_linkTokenRouteImport } from './routes/magic_link.$token'
 import { Route as InvitationsTokenRouteImport } from './routes/invitations.$token'
 import { Route as GamesNewRouteImport } from './routes/games.new'
 import { Route as Confirm_new_userTokenRouteImport } from './routes/confirm_new_user.$token'
 import { Route as GamesIdIndexRouteImport } from './routes/games.$id.index'
+import { Route as CharactersIdIndexRouteImport } from './routes/characters.$id.index'
 import { Route as GamesIdEditRouteImport } from './routes/games.$id.edit'
+import { Route as GamesGameIdSchedulesIndexRouteImport } from './routes/games.$gameId.schedules.index'
+import { Route as CharactersCharacterIdSchedulesIndexRouteImport } from './routes/characters.$characterId.schedules.index'
+import { Route as GamesGameIdSchedulesScheduleIdRouteImport } from './routes/games.$gameId.schedules.$scheduleId'
+import { Route as CharactersCharacterIdSchedulesScheduleIdRouteImport } from './routes/characters.$characterId.schedules.$scheduleId'
+import { Route as GamesGameIdSchedulesScheduleIdSchedulingRouteImport } from './routes/games.$gameId.schedules.$scheduleId_.scheduling'
 
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
@@ -57,11 +63,6 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CharactersRoute = CharactersRouteImport.update({
-  id: '/characters',
-  path: '/characters',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -75,6 +76,11 @@ const InvitationsIndexRoute = InvitationsIndexRouteImport.update({
 const GamesIndexRoute = GamesIndexRouteImport.update({
   id: '/games/',
   path: '/games/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CharactersIndexRoute = CharactersIndexRouteImport.update({
+  id: '/characters/',
+  path: '/characters/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PasswordResetTokenRoute = PasswordResetTokenRouteImport.update({
@@ -107,15 +113,49 @@ const GamesIdIndexRoute = GamesIdIndexRouteImport.update({
   path: '/games/$id/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CharactersIdIndexRoute = CharactersIdIndexRouteImport.update({
+  id: '/characters/$id/',
+  path: '/characters/$id/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GamesIdEditRoute = GamesIdEditRouteImport.update({
   id: '/games/$id/edit',
   path: '/games/$id/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GamesGameIdSchedulesIndexRoute =
+  GamesGameIdSchedulesIndexRouteImport.update({
+    id: '/games/$gameId/schedules/',
+    path: '/games/$gameId/schedules/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const CharactersCharacterIdSchedulesIndexRoute =
+  CharactersCharacterIdSchedulesIndexRouteImport.update({
+    id: '/characters/$characterId/schedules/',
+    path: '/characters/$characterId/schedules/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const GamesGameIdSchedulesScheduleIdRoute =
+  GamesGameIdSchedulesScheduleIdRouteImport.update({
+    id: '/games/$gameId/schedules/$scheduleId',
+    path: '/games/$gameId/schedules/$scheduleId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const CharactersCharacterIdSchedulesScheduleIdRoute =
+  CharactersCharacterIdSchedulesScheduleIdRouteImport.update({
+    id: '/characters/$characterId/schedules/$scheduleId',
+    path: '/characters/$characterId/schedules/$scheduleId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const GamesGameIdSchedulesScheduleIdSchedulingRoute =
+  GamesGameIdSchedulesScheduleIdSchedulingRouteImport.update({
+    id: '/games/$gameId/schedules/$scheduleId_/scheduling',
+    path: '/games/$gameId/schedules/$scheduleId/scheduling',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/characters': typeof CharactersRoute
   '/dashboard': typeof DashboardRoute
   '/magic-link': typeof MagicLinkRoute
   '/notifications': typeof NotificationsRoute
@@ -127,14 +167,20 @@ export interface FileRoutesByFullPath {
   '/invitations/$token': typeof InvitationsTokenRoute
   '/magic_link/$token': typeof Magic_linkTokenRoute
   '/password-reset/$token': typeof PasswordResetTokenRoute
+  '/characters/': typeof CharactersIndexRoute
   '/games/': typeof GamesIndexRoute
   '/invitations/': typeof InvitationsIndexRoute
   '/games/$id/edit': typeof GamesIdEditRoute
+  '/characters/$id/': typeof CharactersIdIndexRoute
   '/games/$id/': typeof GamesIdIndexRoute
+  '/characters/$characterId/schedules/$scheduleId': typeof CharactersCharacterIdSchedulesScheduleIdRoute
+  '/games/$gameId/schedules/$scheduleId': typeof GamesGameIdSchedulesScheduleIdRoute
+  '/characters/$characterId/schedules/': typeof CharactersCharacterIdSchedulesIndexRoute
+  '/games/$gameId/schedules/': typeof GamesGameIdSchedulesIndexRoute
+  '/games/$gameId/schedules/$scheduleId/scheduling': typeof GamesGameIdSchedulesScheduleIdSchedulingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/characters': typeof CharactersRoute
   '/dashboard': typeof DashboardRoute
   '/magic-link': typeof MagicLinkRoute
   '/notifications': typeof NotificationsRoute
@@ -146,15 +192,21 @@ export interface FileRoutesByTo {
   '/invitations/$token': typeof InvitationsTokenRoute
   '/magic_link/$token': typeof Magic_linkTokenRoute
   '/password-reset/$token': typeof PasswordResetTokenRoute
+  '/characters': typeof CharactersIndexRoute
   '/games': typeof GamesIndexRoute
   '/invitations': typeof InvitationsIndexRoute
   '/games/$id/edit': typeof GamesIdEditRoute
+  '/characters/$id': typeof CharactersIdIndexRoute
   '/games/$id': typeof GamesIdIndexRoute
+  '/characters/$characterId/schedules/$scheduleId': typeof CharactersCharacterIdSchedulesScheduleIdRoute
+  '/games/$gameId/schedules/$scheduleId': typeof GamesGameIdSchedulesScheduleIdRoute
+  '/characters/$characterId/schedules': typeof CharactersCharacterIdSchedulesIndexRoute
+  '/games/$gameId/schedules': typeof GamesGameIdSchedulesIndexRoute
+  '/games/$gameId/schedules/$scheduleId/scheduling': typeof GamesGameIdSchedulesScheduleIdSchedulingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/characters': typeof CharactersRoute
   '/dashboard': typeof DashboardRoute
   '/magic-link': typeof MagicLinkRoute
   '/notifications': typeof NotificationsRoute
@@ -166,16 +218,22 @@ export interface FileRoutesById {
   '/invitations/$token': typeof InvitationsTokenRoute
   '/magic_link/$token': typeof Magic_linkTokenRoute
   '/password-reset/$token': typeof PasswordResetTokenRoute
+  '/characters/': typeof CharactersIndexRoute
   '/games/': typeof GamesIndexRoute
   '/invitations/': typeof InvitationsIndexRoute
   '/games/$id/edit': typeof GamesIdEditRoute
+  '/characters/$id/': typeof CharactersIdIndexRoute
   '/games/$id/': typeof GamesIdIndexRoute
+  '/characters/$characterId/schedules/$scheduleId': typeof CharactersCharacterIdSchedulesScheduleIdRoute
+  '/games/$gameId/schedules/$scheduleId': typeof GamesGameIdSchedulesScheduleIdRoute
+  '/characters/$characterId/schedules/': typeof CharactersCharacterIdSchedulesIndexRoute
+  '/games/$gameId/schedules/': typeof GamesGameIdSchedulesIndexRoute
+  '/games/$gameId/schedules/$scheduleId_/scheduling': typeof GamesGameIdSchedulesScheduleIdSchedulingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/characters'
     | '/dashboard'
     | '/magic-link'
     | '/notifications'
@@ -187,14 +245,20 @@ export interface FileRouteTypes {
     | '/invitations/$token'
     | '/magic_link/$token'
     | '/password-reset/$token'
+    | '/characters/'
     | '/games/'
     | '/invitations/'
     | '/games/$id/edit'
+    | '/characters/$id/'
     | '/games/$id/'
+    | '/characters/$characterId/schedules/$scheduleId'
+    | '/games/$gameId/schedules/$scheduleId'
+    | '/characters/$characterId/schedules/'
+    | '/games/$gameId/schedules/'
+    | '/games/$gameId/schedules/$scheduleId/scheduling'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/characters'
     | '/dashboard'
     | '/magic-link'
     | '/notifications'
@@ -206,14 +270,20 @@ export interface FileRouteTypes {
     | '/invitations/$token'
     | '/magic_link/$token'
     | '/password-reset/$token'
+    | '/characters'
     | '/games'
     | '/invitations'
     | '/games/$id/edit'
+    | '/characters/$id'
     | '/games/$id'
+    | '/characters/$characterId/schedules/$scheduleId'
+    | '/games/$gameId/schedules/$scheduleId'
+    | '/characters/$characterId/schedules'
+    | '/games/$gameId/schedules'
+    | '/games/$gameId/schedules/$scheduleId/scheduling'
   id:
     | '__root__'
     | '/'
-    | '/characters'
     | '/dashboard'
     | '/magic-link'
     | '/notifications'
@@ -225,15 +295,21 @@ export interface FileRouteTypes {
     | '/invitations/$token'
     | '/magic_link/$token'
     | '/password-reset/$token'
+    | '/characters/'
     | '/games/'
     | '/invitations/'
     | '/games/$id/edit'
+    | '/characters/$id/'
     | '/games/$id/'
+    | '/characters/$characterId/schedules/$scheduleId'
+    | '/games/$gameId/schedules/$scheduleId'
+    | '/characters/$characterId/schedules/'
+    | '/games/$gameId/schedules/'
+    | '/games/$gameId/schedules/$scheduleId_/scheduling'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CharactersRoute: typeof CharactersRoute
   DashboardRoute: typeof DashboardRoute
   MagicLinkRoute: typeof MagicLinkRoute
   NotificationsRoute: typeof NotificationsRoute
@@ -245,10 +321,17 @@ export interface RootRouteChildren {
   InvitationsTokenRoute: typeof InvitationsTokenRoute
   Magic_linkTokenRoute: typeof Magic_linkTokenRoute
   PasswordResetTokenRoute: typeof PasswordResetTokenRoute
+  CharactersIndexRoute: typeof CharactersIndexRoute
   GamesIndexRoute: typeof GamesIndexRoute
   InvitationsIndexRoute: typeof InvitationsIndexRoute
   GamesIdEditRoute: typeof GamesIdEditRoute
+  CharactersIdIndexRoute: typeof CharactersIdIndexRoute
   GamesIdIndexRoute: typeof GamesIdIndexRoute
+  CharactersCharacterIdSchedulesScheduleIdRoute: typeof CharactersCharacterIdSchedulesScheduleIdRoute
+  GamesGameIdSchedulesScheduleIdRoute: typeof GamesGameIdSchedulesScheduleIdRoute
+  CharactersCharacterIdSchedulesIndexRoute: typeof CharactersCharacterIdSchedulesIndexRoute
+  GamesGameIdSchedulesIndexRoute: typeof GamesGameIdSchedulesIndexRoute
+  GamesGameIdSchedulesScheduleIdSchedulingRoute: typeof GamesGameIdSchedulesScheduleIdSchedulingRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -295,13 +378,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/characters': {
-      id: '/characters'
-      path: '/characters'
-      fullPath: '/characters'
-      preLoaderRoute: typeof CharactersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -321,6 +397,13 @@ declare module '@tanstack/react-router' {
       path: '/games'
       fullPath: '/games/'
       preLoaderRoute: typeof GamesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/characters/': {
+      id: '/characters/'
+      path: '/characters'
+      fullPath: '/characters/'
+      preLoaderRoute: typeof CharactersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/password-reset/$token': {
@@ -365,6 +448,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GamesIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/characters/$id/': {
+      id: '/characters/$id/'
+      path: '/characters/$id'
+      fullPath: '/characters/$id/'
+      preLoaderRoute: typeof CharactersIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/games/$id/edit': {
       id: '/games/$id/edit'
       path: '/games/$id/edit'
@@ -372,12 +462,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GamesIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/games/$gameId/schedules/': {
+      id: '/games/$gameId/schedules/'
+      path: '/games/$gameId/schedules'
+      fullPath: '/games/$gameId/schedules/'
+      preLoaderRoute: typeof GamesGameIdSchedulesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/characters/$characterId/schedules/': {
+      id: '/characters/$characterId/schedules/'
+      path: '/characters/$characterId/schedules'
+      fullPath: '/characters/$characterId/schedules/'
+      preLoaderRoute: typeof CharactersCharacterIdSchedulesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games/$gameId/schedules/$scheduleId': {
+      id: '/games/$gameId/schedules/$scheduleId'
+      path: '/games/$gameId/schedules/$scheduleId'
+      fullPath: '/games/$gameId/schedules/$scheduleId'
+      preLoaderRoute: typeof GamesGameIdSchedulesScheduleIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/characters/$characterId/schedules/$scheduleId': {
+      id: '/characters/$characterId/schedules/$scheduleId'
+      path: '/characters/$characterId/schedules/$scheduleId'
+      fullPath: '/characters/$characterId/schedules/$scheduleId'
+      preLoaderRoute: typeof CharactersCharacterIdSchedulesScheduleIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games/$gameId/schedules/$scheduleId_/scheduling': {
+      id: '/games/$gameId/schedules/$scheduleId_/scheduling'
+      path: '/games/$gameId/schedules/$scheduleId/scheduling'
+      fullPath: '/games/$gameId/schedules/$scheduleId/scheduling'
+      preLoaderRoute: typeof GamesGameIdSchedulesScheduleIdSchedulingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CharactersRoute: CharactersRoute,
   DashboardRoute: DashboardRoute,
   MagicLinkRoute: MagicLinkRoute,
   NotificationsRoute: NotificationsRoute,
@@ -389,10 +513,20 @@ const rootRouteChildren: RootRouteChildren = {
   InvitationsTokenRoute: InvitationsTokenRoute,
   Magic_linkTokenRoute: Magic_linkTokenRoute,
   PasswordResetTokenRoute: PasswordResetTokenRoute,
+  CharactersIndexRoute: CharactersIndexRoute,
   GamesIndexRoute: GamesIndexRoute,
   InvitationsIndexRoute: InvitationsIndexRoute,
   GamesIdEditRoute: GamesIdEditRoute,
+  CharactersIdIndexRoute: CharactersIdIndexRoute,
   GamesIdIndexRoute: GamesIdIndexRoute,
+  CharactersCharacterIdSchedulesScheduleIdRoute:
+    CharactersCharacterIdSchedulesScheduleIdRoute,
+  GamesGameIdSchedulesScheduleIdRoute: GamesGameIdSchedulesScheduleIdRoute,
+  CharactersCharacterIdSchedulesIndexRoute:
+    CharactersCharacterIdSchedulesIndexRoute,
+  GamesGameIdSchedulesIndexRoute: GamesGameIdSchedulesIndexRoute,
+  GamesGameIdSchedulesScheduleIdSchedulingRoute:
+    GamesGameIdSchedulesScheduleIdSchedulingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

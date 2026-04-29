@@ -57,6 +57,10 @@ defmodule GameNight.MixProject do
     [
       {:phoenix_vite, "~> 0.4"},
       {:bcrypt_elixir, "~> 3.0"},
+      # Feature 003 — IANA timezone database for schedule
+      # initialisation (capture GM tz, validate against zone list,
+      # compute current month-in-tz for past-month rejection).
+      {:tzdata, "~> 1.1"},
       {:picosat_elixir, "~> 0.2"},
       {:sourceror, "~> 1.8", only: [:dev, :test]},
       {:open_api_spex, "~> 3.0"},

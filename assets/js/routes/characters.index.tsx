@@ -1,15 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useListMyCharacters, type Player } from "@/features/players/hooks";
+import { useListMyCharacters } from "@/features/players/hooks";
+import { CharacterCard } from "@/features/players/components/character-card";
 import { CharactersEmptyState } from "@/features/players/components/characters-empty-state";
-import type { PlayerStatus } from "@/features/players/schemas";
 
-const STATUS_LABELS: Record<PlayerStatus, string> = {
-  active: "Active",
-  inactive: "Inactive",
-  done: "Done",
-};
-
-export const Route = createFileRoute("/characters")({
+export const Route = createFileRoute("/characters/")({
   beforeLoad: ({ context, location }) => {
     if (!context.auth?.isAuthenticated) {
       throw redirect({
@@ -53,7 +47,11 @@ export function CharactersRoute() {
             data-testid="all-characters-list"
           >
             {characters.data.map((player) => (
-              <CharacterRow key={player.id} player={player} />
+              <CharacterCard
+                key={player.id}
+                player={player}
+                testIdPrefix="all-characters-row"
+              />
             ))}
           </ul>
         ) : (
@@ -61,34 +59,5 @@ export function CharactersRoute() {
         )}
       </div>
     </main>
-  );
-}
-
-function CharacterRow({ player }: { player: Player }) {
-  return (
-    <li
-      className="flex items-start justify-between gap-3 p-4"
-      data-testid={`all-characters-row-${player.id}`}
-    >
-      <div className="min-w-0">
-        <p className="font-medium text-foreground" data-testid="all-characters-name">
-          {player.characterName}
-        </p>
-        {player.characterSummary ? (
-          <p
-            className="mt-1 text-sm text-muted-foreground"
-            data-testid="all-characters-summary"
-          >
-            {player.characterSummary}
-          </p>
-        ) : null}
-      </div>
-      <span
-        className="shrink-0 text-xs uppercase tracking-wide text-muted-foreground"
-        data-testid="all-characters-status"
-      >
-        {STATUS_LABELS[player.status as PlayerStatus] ?? player.status}
-      </span>
-    </li>
   );
 }

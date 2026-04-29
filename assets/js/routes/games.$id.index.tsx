@@ -17,6 +17,14 @@ import {
   type InvitationFormValues,
 } from "@/features/invitations/schemas";
 import { PlayersTable } from "@/features/players/components/players-table";
+import { CharacterSchedulesSection } from "@/features/schedules/components/character-schedules-section";
+import { InitiateScheduleDialog } from "@/features/schedules/components/initiate-schedule-dialog";
+import { SchedulesTable } from "@/features/schedules/components/schedules-table";
+import {
+  useInitiateSchedule,
+  useListSchedulesForGameTopSix,
+} from "@/features/schedules/hooks";
+import type { InitiateScheduleInput } from "@/ash_rpc";
 import { PlayerEditDialog } from "@/features/players/components/player-edit-dialog";
 import {
   useListPlayersForGame,
@@ -67,6 +75,8 @@ export function GameDetailRoute() {
   const playerRoster = useListPlayersForGame(id);
   const gmRoster = useListPlayersForGm(id);
   const pendingInvites = useListPendingInvitationsForGame(id);
+  const schedulesTopSix = useListSchedulesForGameTopSix(id);
+  const initiateSchedule = useInitiateSchedule();
 
   async function onDelete() {
     try {
@@ -100,6 +110,22 @@ export function GameDetailRoute() {
     } catch {
       push({
         title: "Could not revoke the invitation. Please try again.",
+        variant: "error",
+      });
+    }
+  }
+
+  async function onInitiateSchedule(input: InitiateScheduleInput) {
+    try {
+      const created = await initiateSchedule.mutateAsync(input);
+      push({ title: "Schedule initiated.", variant: "success" });
+      await navigate({
+        to: "/games/$gameId/schedules/$scheduleId",
+        params: { gameId: id, scheduleId: created.id },
+      });
+    } catch {
+      push({
+        title: "Could not initiate the schedule. Please try again.",
         variant: "error",
       });
     }
@@ -162,7 +188,7 @@ export function GameDetailRoute() {
   const { data: entry } = game;
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-5xl px-6 py-12">
       <div className="flex items-start justify-between gap-4">
         <h1
           data-route-heading
@@ -196,25 +222,48 @@ export function GameDetailRoute() {
         ) : null}
       </div>
 
-      <div className="mt-8 space-y-6">
-        <GameFieldRow id="title" label="Title">
-          <p className="text-base" data-testid="game-detail-title">
-            {entry.title}
-          </p>
-        </GameFieldRow>
-        <GameFieldRow id="description" label="Description">
-          <p
-            className="whitespace-pre-wrap text-base text-muted-foreground"
-            data-testid="game-detail-description"
-          >
-            {entry.description && entry.description.length > 0 ? entry.description : "—"}
-          </p>
-        </GameFieldRow>
-        <GameFieldRow id="status" label="Status">
-          <p className="text-base" data-testid="game-detail-status">
-            {STATUS_LABELS[entry.status] ?? entry.status}
-          </p>
-        </GameFieldRow>
+      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
+        <div className="space-y-6">
+          <GameFieldRow id="title" label="Title">
+            <p className="text-base" data-testid="game-detail-title">
+              {entry.title}
+            </p>
+          </GameFieldRow>
+          <GameFieldRow id="description" label="Description">
+            <p
+              className="whitespace-pre-wrap text-base text-muted-foreground"
+              data-testid="game-detail-description"
+            >
+              {entry.description && entry.description.length > 0 ? entry.description : "—"}
+            </p>
+          </GameFieldRow>
+          <GameFieldRow id="status" label="Status">
+            <p className="text-base" data-testid="game-detail-status">
+              {STATUS_LABELS[entry.status] ?? entry.status}
+            </p>
+          </GameFieldRow>
+        </div>
+
+        {isOwner ? (
+          <aside aria-label="Upcoming schedule overview">
+            {schedulesTopSix.isPending ? (
+              <p className="text-sm text-muted-foreground">Loading schedules…</p>
+            ) : schedulesTopSix.isError ? (
+              <p
+                className="rounded-md border border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                role="alert"
+              >
+                We couldn&apos;t load schedules. Please refresh.
+              </p>
+            ) : (
+              <CharacterSchedulesSection
+                audience={{ kind: "game", gameId: id }}
+                schedules={schedulesTopSix.data ?? []}
+                hideHeader
+              />
+            )}
+          </aside>
+        ) : null}
       </div>
 
       <section
@@ -346,6 +395,66 @@ export function GameDetailRoute() {
                     </Button>
                   </RevokeInvitationDialog>
                 )}
+              />
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {isOwner ? (
+        <section className="mt-12" aria-labelledby="schedules-heading">
+          <div className="flex items-center justify-between">
+            <h2
+              id="schedules-heading"
+              className="text-xl font-semibold tracking-tight"
+            >
+              Schedules
+            </h2>
+            <div className="flex items-center gap-2">
+              <InitiateScheduleDialog
+                gameId={id}
+                onSubmit={onInitiateSchedule}
+                isPending={initiateSchedule.isPending}
+              >
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  data-testid="initiate-schedule-trigger"
+                >
+                  Initiate schedule
+                </Button>
+              </InitiateScheduleDialog>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                data-testid="view-all-schedules"
+                onClick={() =>
+                  void navigate({
+                    to: "/games/$gameId/schedules",
+                    params: { gameId: id },
+                  })
+                }
+              >
+                View all schedules
+              </Button>
+            </div>
+          </div>
+          <div className="mt-4">
+            {schedulesTopSix.isPending ? (
+              <p>Loading schedules…</p>
+            ) : schedulesTopSix.isError ? (
+              <p
+                className="rounded-md border border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                role="alert"
+              >
+                We couldn&apos;t load schedules. Please refresh.
+              </p>
+            ) : (
+              <SchedulesTable
+                schedules={schedulesTopSix.data ?? []}
+                gameId={id}
               />
             )}
           </div>

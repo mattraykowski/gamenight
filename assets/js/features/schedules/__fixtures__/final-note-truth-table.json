@@ -1,0 +1,77 @@
+{
+  "$comment": "Mirror of test/support/fixtures/schedule_final_note_fixtures.ex. Both files MUST stay byte-identical in semantics — a parity test imports both and asserts equivalence.",
+  "rows": [
+    {
+      "name": "no participants, GM available",
+      "gm": "A",
+      "participants": [],
+      "if_player_names": [],
+      "expected_kind": "good_day",
+      "expected_label": "Good Day"
+    },
+    {
+      "name": "GM NA blocks the day → host unavailable",
+      "gm": "NA",
+      "participants": ["A", "A", "A"],
+      "if_player_names": [],
+      "expected_kind": "host_unavailable",
+      "expected_label": "Host Unavailable"
+    },
+    {
+      "name": "everyone available",
+      "gm": "A",
+      "participants": ["A", "A", "A", "A", "A"],
+      "if_player_names": [],
+      "expected_kind": "good_day",
+      "expected_label": "Good Day"
+    },
+    {
+      "name": "one of five NA — within the one-fifth threshold",
+      "gm": "A",
+      "participants": ["A", "NA", "A", "A", "A"],
+      "if_player_names": [],
+      "expected_kind": "maybe",
+      "expected_label": "Maybe"
+    },
+    {
+      "name": "two of five NA — past the one-fifth threshold",
+      "gm": "A",
+      "participants": ["A", "NA", "NA", "A", "A"],
+      "if_player_names": [],
+      "expected_kind": "bad_day",
+      "expected_label": "Bad Day"
+    },
+    {
+      "name": "any IF triggers maybe_with_if regardless of count",
+      "gm": "A",
+      "participants": ["A", "IF", "A", "A", "A"],
+      "if_player_names": ["Anne"],
+      "expected_kind": "maybe_with_if",
+      "expected_label": "Maybe, talk to Anne"
+    },
+    {
+      "name": "single-player NA — strict one-fifth = 0, so 1 > 0 = bad",
+      "gm": "A",
+      "participants": ["NA"],
+      "if_player_names": [],
+      "expected_kind": "bad_day",
+      "expected_label": "Bad Day"
+    },
+    {
+      "name": "GM Ideal + all participants Ideal = good day",
+      "gm": "I",
+      "participants": ["I", "A", "I"],
+      "if_player_names": [],
+      "expected_kind": "good_day",
+      "expected_label": "Good Day"
+    },
+    {
+      "name": "GM IF counts toward IF detection (no participants are IF)",
+      "gm": "IF",
+      "participants": ["A", "A", "A"],
+      "if_player_names": [],
+      "expected_kind": "maybe_with_if",
+      "expected_label": "Maybe, talk to GM"
+    }
+  ]
+}
