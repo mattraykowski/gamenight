@@ -25,7 +25,7 @@ export function AllGamesRoute() {
         <h1
           data-route-heading
           tabIndex={-1}
-          className="text-4xl font-bold tracking-tight"
+          className="font-serif text-4xl font-bold tracking-tight"
         >
           All Games
         </h1>

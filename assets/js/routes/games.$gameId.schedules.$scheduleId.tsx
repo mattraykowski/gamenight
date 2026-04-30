@@ -126,7 +126,7 @@ function ScheduleDetailRoute() {
   if (schedule.isError || !schedule.data) {
     return (
       <main className="container mx-auto py-8" id="main-content">
-        <h1 data-route-heading className="text-2xl font-semibold">
+        <h1 data-route-heading className="font-serif text-2xl font-semibold">
           Schedule not found
         </h1>
         <p className="mt-2 text-muted-foreground">
@@ -151,7 +151,7 @@ function ScheduleDetailRoute() {
     <main className="container mx-auto max-w-5xl py-8" id="main-content">
       <header className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold" data-route-heading>
+          <h1 className="font-serif text-2xl font-semibold" data-route-heading>
             {data.name}
           </h1>
           <div className="mt-2 flex items-center gap-3">

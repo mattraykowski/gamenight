@@ -50,7 +50,7 @@ export function GameEditRoute() {
         <h1
           data-route-heading
           tabIndex={-1}
-          className="text-3xl font-bold tracking-tight"
+          className="font-serif text-3xl font-bold tracking-tight"
         >
           Loading game…
         </h1>
@@ -64,7 +64,7 @@ export function GameEditRoute() {
         <h1
           data-route-heading
           tabIndex={-1}
-          className="text-3xl font-bold tracking-tight"
+          className="font-serif text-3xl font-bold tracking-tight"
         >
           Game not found
         </h1>
@@ -92,7 +92,7 @@ export function GameEditRoute() {
         <h1
           data-route-heading
           tabIndex={-1}
-          className="text-3xl font-bold tracking-tight"
+          className="font-serif text-3xl font-bold tracking-tight"
         >
           Edit: {entry.title}
         </h1>

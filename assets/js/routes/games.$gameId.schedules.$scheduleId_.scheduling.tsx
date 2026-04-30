@@ -198,7 +198,7 @@ function SchedulingViewRoute() {
   if (schedule.isError || !schedule.data || !matrix) {
     return (
       <main className="container mx-auto py-8" id="main-content">
-        <h1 className="text-2xl font-semibold" data-route-heading>
+        <h1 className="font-serif text-2xl font-semibold" data-route-heading>
           Schedule not found
         </h1>
         <Button
@@ -231,7 +231,7 @@ function SchedulingViewRoute() {
     <main className="container mx-auto max-w-6xl py-8" id="main-content">
       <header className="mb-6 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold" data-route-heading>
+          <h1 className="font-serif text-2xl font-semibold" data-route-heading>
             Scheduling View — {data.name}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">

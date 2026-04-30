@@ -106,7 +106,7 @@ export function CharacterSchedulesSection({
         <header className="flex items-end justify-between gap-4">
           <h2
             id="character-schedules-heading"
-            className="text-xl font-semibold tracking-tight"
+            className="font-serif text-xl font-semibold tracking-tight"
           >
             Posted schedules
           </h2>

@@ -107,7 +107,7 @@ function CalendarRoute() {
         <h1
           data-route-heading
           tabIndex={-1}
-          className="text-2xl font-semibold"
+          className="font-serif text-2xl font-semibold"
         >
           {monthName} {year}
         </h1>

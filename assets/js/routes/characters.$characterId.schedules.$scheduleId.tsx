@@ -149,7 +149,7 @@ function CharacterScheduleRoute() {
   if (schedule.isError || !schedule.data) {
     return (
       <main className="mx-auto max-w-5xl px-6 py-12" id="main-content">
-        <h1 data-route-heading className="text-3xl font-bold tracking-tight">
+        <h1 data-route-heading className="font-serif text-3xl font-bold tracking-tight">
           Schedule not found
         </h1>
         <Button asChild variant="outline" className="mt-4">
@@ -170,7 +170,7 @@ function CharacterScheduleRoute() {
           <h1
             data-route-heading
             tabIndex={-1}
-            className="text-3xl font-bold tracking-tight"
+            className="font-serif text-3xl font-bold tracking-tight"
           >
             {data.name}
           </h1>

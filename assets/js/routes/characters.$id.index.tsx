@@ -36,7 +36,7 @@ function CharacterDetailRoute() {
   if (!character) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-12">
-        <h1 className="text-3xl font-bold tracking-tight" data-route-heading>
+        <h1 className="font-serif text-3xl font-bold tracking-tight" data-route-heading>
           Character not found
         </h1>
         <p className="mt-2 text-muted-foreground">
@@ -56,7 +56,7 @@ function CharacterDetailRoute() {
           <h1
             data-route-heading
             tabIndex={-1}
-            className="text-3xl font-bold tracking-tight"
+            className="font-serif text-3xl font-bold tracking-tight"
           >
             {character.characterName}
           </h1>

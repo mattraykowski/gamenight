@@ -152,7 +152,7 @@ export function GameDetailRoute() {
         <h1
           data-route-heading
           tabIndex={-1}
-          className="text-3xl font-bold tracking-tight"
+          className="font-serif text-3xl font-bold tracking-tight"
         >
           Loading game…
         </h1>
@@ -166,7 +166,7 @@ export function GameDetailRoute() {
         <h1
           data-route-heading
           tabIndex={-1}
-          className="text-3xl font-bold tracking-tight"
+          className="font-serif text-3xl font-bold tracking-tight"
         >
           Game not found
         </h1>
@@ -193,7 +193,7 @@ export function GameDetailRoute() {
         <h1
           data-route-heading
           tabIndex={-1}
-          className="text-3xl font-bold tracking-tight"
+          className="font-serif text-3xl font-bold tracking-tight"
         >
           {entry.title}
         </h1>
@@ -271,7 +271,7 @@ export function GameDetailRoute() {
         aria-labelledby="players-roster-heading"
       >
         <div className="flex items-center justify-between gap-4">
-          <h2 id="players-roster-heading" className="text-2xl font-semibold tracking-tight">
+          <h2 id="players-roster-heading" className="font-serif text-2xl font-semibold tracking-tight">
             Players
           </h2>
           {isOwner ? (
@@ -353,7 +353,7 @@ export function GameDetailRoute() {
         >
           <h2
             id="pending-invitations-heading"
-            className="text-2xl font-semibold tracking-tight"
+            className="font-serif text-2xl font-semibold tracking-tight"
           >
             Pending invitations
           </h2>

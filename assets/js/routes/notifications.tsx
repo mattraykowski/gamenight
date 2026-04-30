@@ -19,7 +19,7 @@ export function NotificationsRoute() {
       <h1
         data-route-heading
         tabIndex={-1}
-        className="text-4xl font-bold tracking-tight"
+        className="font-serif text-4xl font-bold tracking-tight"
       >
         Notifications
       </h1>

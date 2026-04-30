@@ -43,7 +43,7 @@ export function RegisterGameRoute() {
       <h1
         data-route-heading
         tabIndex={-1}
-        className="text-3xl font-bold tracking-tight"
+        className="font-serif text-3xl font-bold tracking-tight"
       >
         Register a new game
       </h1>

@@ -21,7 +21,7 @@ function SchedulesIndexRoute() {
     <main className="container mx-auto py-8" id="main-content">
       <header className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold" data-route-heading>
+          <h1 className="font-serif text-2xl font-semibold" data-route-heading>
             All schedules
           </h1>
           <p className="text-sm text-muted-foreground">

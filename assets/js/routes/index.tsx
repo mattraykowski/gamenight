@@ -12,7 +12,7 @@ function HomeRoute() {
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1 data-route-heading tabIndex={-1} className="text-4xl font-bold tracking-tight">
+      <h1 data-route-heading tabIndex={-1} className="font-serif text-4xl font-bold tracking-tight">
         GameNight
       </h1>
       <p className="mt-4 text-lg text-muted-foreground">

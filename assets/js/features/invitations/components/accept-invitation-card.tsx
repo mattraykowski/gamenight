@@ -43,7 +43,7 @@ export function AcceptInvitationCard({
       data-testid="accept-invitation-card"
     >
       <div className="rounded-md border bg-card p-6 shadow-sm">
-        <h2 id="accept-invitation-summary" className="text-xl font-semibold tracking-tight">
+        <h2 id="accept-invitation-summary" className="font-serif text-xl font-semibold tracking-tight">
           {preview.gameTitle}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
