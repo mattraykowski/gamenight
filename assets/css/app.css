@@ -130,10 +130,15 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-  /* Tertiary (gold) palette — exposed so utilities like
-     `text-tertiary-fixed-dim` work for decorative accents (the brand
-     wordmark, premium-feature tags, "rare" UI states per the design
-     brief). */
+  /* M3-flavoured "container" + tertiary tokens exposed as Tailwind
+     utilities. Lets callers write `bg-primary-container`,
+     `text-tertiary-fixed-dim`, etc. for tactile / decorative
+     surfaces (sidebar active-state stamp, wax-seal accents,
+     "rare" premium features per the design brief). */
+  --color-primary-container: var(--gn-primary-container);
+  --color-on-primary-container: var(--gn-on-primary-container);
+  --color-secondary-container: var(--gn-secondary-container);
+  --color-on-secondary-container: var(--gn-on-secondary-container);
   --color-tertiary: var(--gn-tertiary);
   --color-tertiary-container: var(--gn-tertiary-container);
   --color-tertiary-fixed: var(--gn-tertiary-fixed);

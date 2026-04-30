@@ -30,7 +30,7 @@ export function AppSidebar() {
 
   return (
     <aside
-      className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-64 shrink-0 flex-col border-r border-border bg-sidebar text-sidebar-foreground md:flex"
+      className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-64 shrink-0 flex-col border-r-2 border-secondary/30 bg-sidebar py-2 text-sidebar-foreground md:flex"
       data-testid="app-sidebar"
     >
       <div className="px-6 pt-8">
@@ -70,9 +70,13 @@ export function AppSidebar() {
             to={link.to}
             search={link.to === "/dashboard" ? {} : undefined}
             className={cn(
-              "flex items-center gap-3 rounded-md px-4 py-2.5 font-serif text-sm transition-colors",
+              "flex items-center gap-3 rounded-md px-4 py-2.5 font-serif text-sm text-foreground transition-colors",
               "hover:bg-accent hover:text-accent-foreground",
-              "aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground",
+              // Active state stamps the link onto the page like a
+              // wax seal pressed into parchment: forest-green bg,
+              // gilded gold text, inset shadow for the "pressed-in"
+              // depth.
+              "aria-[current=page]:bg-primary-container aria-[current=page]:text-tertiary-container aria-[current=page]:shadow-inner aria-[current=page]:hover:text-tertiary-container",
             )}
             activeProps={{ "aria-current": "page" }}
             data-testid={`app-sidebar-link-${link.to.replace(/\//g, "-").replace(/^-/, "")}`}
