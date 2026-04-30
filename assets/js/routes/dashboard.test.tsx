@@ -142,17 +142,19 @@ function renderDashboardAt(initialPath = "/dashboard") {
 }
 
 describe("/dashboard route", () => {
-  it("renders 'Welcome, {email}' after the RPC resolves", async () => {
+  it("renders 'Welcome back, {name}' after the RPC resolves", async () => {
     const { container } = renderDashboardAt();
 
     await waitFor(() => {
+      // Friendly display name is derived from the local-part of the
+      // email (the part before the @).
       expect(screen.getByTestId("current-user-email")).toHaveTextContent(
-        "player@example.com",
+        "player",
       );
     });
 
     expect(
-      screen.getByRole("heading", { level: 1, name: /dashboard/i }),
+      screen.getByRole("heading", { level: 1, name: /welcome back, player/i }),
     ).toBeInTheDocument();
     await expectNoAxeViolations(container);
   });
@@ -168,8 +170,13 @@ describe("/dashboard route", () => {
   it("has a focusable h1 carrying the data-route-heading contract", async () => {
     renderDashboardAt();
 
-    await waitFor(() => screen.getByRole("heading", { level: 1, name: /dashboard/i }));
-    const heading = screen.getByRole("heading", { level: 1, name: /dashboard/i });
+    await waitFor(() =>
+      screen.getByRole("heading", { level: 1, name: /welcome back/i }),
+    );
+    const heading = screen.getByRole("heading", {
+      level: 1,
+      name: /welcome back/i,
+    });
     expect(heading).toHaveAttribute("data-route-heading");
     expect(heading).toHaveAttribute("tabIndex", "-1");
   });
@@ -252,7 +259,9 @@ describe("/dashboard route", () => {
   it("does not render a toast for unknown ?toast= values", async () => {
     renderDashboardAt("/dashboard?toast=shenanigans");
 
-    await waitFor(() => screen.getByRole("heading", { level: 1, name: /dashboard/i }));
+    await waitFor(() =>
+      screen.getByRole("heading", { level: 1, name: /welcome back/i }),
+    );
     expect(screen.queryByTestId("toast-viewport")).not.toBeInTheDocument();
   });
 });

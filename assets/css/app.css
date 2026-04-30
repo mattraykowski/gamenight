@@ -496,3 +496,45 @@
     background-color: var(--foreground);
   }
 }
+
+/* ---------------------------------------------------------------- */
+/* Adventurer's Journal — tactile texture + ornament utilities.       */
+/*                                                                    */
+/* `paper-texture`  Subtle micro-noise grain (5% opacity) for primary*/
+/*                  buttons / hero cards / anything that should read */
+/*                  as physical media rather than glass. Implemented */
+/*                  as an inline SVG fractalNoise filter — no extra  */
+/*                  HTTP request, no asset pipeline plumbing.        */
+/*                                                                    */
+/* `wax-seal`      Dimensional stamped-seal styling for status       */
+/*                  indicators and decorative corner ornaments. The  */
+/*                  inset shadow + ::after rim give the seal its     */
+/*                  raised "pressed wax" silhouette.                 */
+/*                                                                    */
+/* Both classes pair with the `<Badge variant="waxSeal">` and any    */
+/* future `<CornerOrnament>`-style component. Source spec inlined    */
+/* in the Stitch HTML at docs/stitch-designs/dashboard-fantasy/      */
+/* screen.html.                                                      */
+/* ---------------------------------------------------------------- */
+
+.paper-texture {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-blend-mode: multiply;
+  opacity: 0.05;
+}
+
+.wax-seal {
+  position: relative;
+  box-shadow:
+    inset -2px -2px 4px rgba(0, 0, 0, 0.3),
+    2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.wax-seal::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+  pointer-events: none;
+}

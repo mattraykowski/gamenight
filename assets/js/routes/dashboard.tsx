@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { Sparkles } from "lucide-react";
 import { z } from "zod";
 import { useCurrentUser } from "@/features/current-user/hooks";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -36,34 +37,50 @@ export function DashboardRoute() {
   useConsumeToastParam(search.toast);
 
   const displayName = data?.email ?? auth.user?.email ?? "";
+  const friendlyName = displayName.split("@")[0] || "Adventurer";
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
-      <div className="flex items-start justify-between gap-4">
+      {/* Hero — serif headline + descriptive subtitle, with a corner
+         wax-seal ornament in the top-left for the tactile flourish
+         called out in the design brief ("decorative borders ...
+         occasionally breaking the border with a gold ornament"). */}
+      <header
+        aria-labelledby="dashboard-heading"
+        className="relative mb-12 border-b border-border pb-6"
+      >
+        <span
+          aria-hidden="true"
+          className="wax-seal absolute -top-4 -left-4 flex size-12 -rotate-12 items-center justify-center rounded-full bg-secondary text-secondary-foreground"
+        >
+          <Sparkles className="size-5" />
+        </span>
         <h1
+          id="dashboard-heading"
           data-route-heading
           tabIndex={-1}
-          className="text-4xl font-bold tracking-tight"
+          className="font-serif text-3xl font-bold tracking-tight sm:text-4xl"
         >
-          Dashboard
+          {isPending ? (
+            "Welcome back."
+          ) : (
+            <>
+              Welcome back,{" "}
+              <span data-testid="current-user-email">{friendlyName}</span>.
+            </>
+          )}
         </h1>
-      </div>
-      {isPending ? (
-        <p className="mt-4 text-muted-foreground" aria-live="polite">
-          Loading your account…
+        <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+          {isPending
+            ? "Loading your account…"
+            : isError
+              ? `We couldn't load your account (${error.kind}).`
+              : "The candles are lit, the dice are cold, and your fellowship awaits your command."}
         </p>
-      ) : isError ? (
-        <p className="mt-4 text-destructive" role="alert">
-          We couldn&apos;t load your account ({error.kind}).
-        </p>
-      ) : (
-        <p className="mt-4 text-lg text-muted-foreground">
-          Welcome, <span data-testid="current-user-email">{displayName}</span>.
-        </p>
-      )}
+      </header>
 
       <div
-        className="mt-12 grid grid-cols-1 gap-12 lg:grid-cols-2"
+        className="grid grid-cols-1 gap-12 lg:grid-cols-2"
         data-testid="dashboard-columns"
       >
         <MyCharactersColumn />
