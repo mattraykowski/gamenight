@@ -283,7 +283,12 @@
      `outline-variant` is for decorative dividers only. */
   --border: var(--gn-outline);
   --input: var(--gn-outline);
-  --ring: var(--gn-surface-tint);
+  /* `--ring` (focus indicator) routes to burnt-orange `--gn-secondary`
+     per the design brief: "Focus states should transition the stroke
+     to Burnt Orange." Secondary doubles as the system's
+     attention-color so the same ring lights up buttons, links, etc.
+     consistently. */
+  --ring: var(--gn-secondary);
   --chart-1: var(--gn-primary);
   --chart-2: var(--gn-secondary);
   --chart-3: var(--gn-tertiary);
@@ -297,7 +302,7 @@
   --sidebar-accent: var(--gn-surface-container);
   --sidebar-accent-foreground: var(--gn-on-surface);
   --sidebar-border: var(--gn-outline-variant);
-  --sidebar-ring: var(--gn-surface-tint);
+  --sidebar-ring: var(--gn-secondary);
   --font-sans: "Be Vietnam Pro", sans-serif;
   --font-serif: "Noto Serif", serif;
   --font-mono: "Fira Code", monospace;
@@ -356,7 +361,10 @@
   --destructive-foreground: #690005;
   --border: #5b5949;
   --input: #5b5949;
-  --ring: var(--gn-inverse-primary);
+  /* Dark mode focus ring uses `secondary-fixed-dim` (light burnt
+     orange) — burnt-orange #a14009 is too dark to read against the
+     `inverse-surface` background. */
+  --ring: var(--gn-secondary-fixed-dim);
   --chart-1: var(--gn-inverse-primary);
   --chart-2: var(--gn-secondary-fixed-dim);
   --chart-3: var(--gn-tertiary-fixed-dim);
@@ -370,7 +378,7 @@
   --sidebar-accent: var(--gn-surface-container-high);
   --sidebar-accent-foreground: var(--gn-on-surface);
   --sidebar-border: #5b5949;
-  --sidebar-ring: var(--gn-inverse-primary);
+  --sidebar-ring: var(--gn-secondary-fixed-dim);
   --font-sans: "Be Vietnam Pro", sans-serif;
   --font-serif: "Noto Serif", serif;
   --font-mono: "Fira Code", monospace;
