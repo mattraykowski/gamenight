@@ -23,7 +23,7 @@ export function CharactersRoute() {
       <h1
         data-route-heading
         tabIndex={-1}
-        className="text-4xl font-bold tracking-tight"
+        className="font-serif text-4xl font-bold tracking-tight"
       >
         My Characters
       </h1>
@@ -43,15 +43,16 @@ export function CharactersRoute() {
           </p>
         ) : characters.data && characters.data.length > 0 ? (
           <ul
-            className="divide-y rounded-md border"
+            className="flex flex-col gap-3"
             data-testid="all-characters-list"
           >
             {characters.data.map((player) => (
-              <CharacterCard
-                key={player.id}
-                player={player}
-                testIdPrefix="all-characters-row"
-              />
+              <li key={player.id}>
+                <CharacterCard
+                  player={player}
+                  testIdPrefix="all-characters-row"
+                />
+              </li>
             ))}
           </ul>
         ) : (

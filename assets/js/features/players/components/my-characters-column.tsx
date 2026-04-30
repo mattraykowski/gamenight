@@ -49,15 +49,16 @@ export function MyCharactersColumn() {
           <CharactersEmptyState />
         ) : (
           <ul
-            className="divide-y rounded-md border"
+            className="flex flex-col gap-3"
             data-testid="my-characters-list"
           >
             {dashboardRoster.map((player) => (
-              <CharacterCard
-                key={player.id}
-                player={player}
-                testIdPrefix="my-characters-row"
-              />
+              <li key={player.id}>
+                <CharacterCard
+                  player={player}
+                  testIdPrefix="my-characters-row"
+                />
+              </li>
             ))}
           </ul>
         )}
