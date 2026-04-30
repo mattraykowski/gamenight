@@ -17,6 +17,13 @@ const badgeVariants = cva(
           "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        // Adventurer's Journal — "wax seal" status indicator. Pill
+        // shape with a rim border to look stamped. Use for small
+        // status strings (e.g. "Active", "Posted"). The consumer
+        // sets the bg + text color via className overrides so each
+        // status keeps its own palette.
+        waxSeal:
+          "rounded-full px-2.5 py-0.5 border-2 text-[0.6875rem] font-semibold uppercase tracking-wider shadow-sm",
       },
     },
     defaultVariants: {

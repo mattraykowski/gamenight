@@ -446,3 +446,37 @@
   line-height: 1;
   letter-spacing: 0.05em;
 }
+
+/* ---------------------------------------------------------------- */
+/* Adventurer's Journal — custom scrollbars.                          */
+/*                                                                    */
+/* The brief calls for "thin wooden or brass rods" so the thematic   */
+/* immersion isn't broken by default OS scrollbars. Implementation   */
+/* uses Tailwind's foreground/border tokens so the scrollbars adapt  */
+/* to light/dark automatically. WebKit + Firefox (`scrollbar-color`) */
+/* both supported. Touch-screen overflow scrolling stays the OS      */
+/* default — these styles only apply to mouse-driven scrollbars.     */
+/* ---------------------------------------------------------------- */
+@layer base {
+  * {
+    /* Firefox: thin track, foreground-tinted thumb. */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--foreground);
+  }
+}
