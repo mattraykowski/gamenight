@@ -139,17 +139,24 @@ describe("<CharacterSchedulesSection> (T111)", () => {
   });
 
   it("renders a prominent 'Next Game' callout above the This month list", async () => {
+    // Pick a Final-A day that's guaranteed to be on-or-after today and
+    // still inside the current month — needs to work at any month-end.
     const todayDay = TODAY.getDate();
-    const nextDay = Math.min(todayDay + 2, 28);
+    const lastDayOfMonth = new Date(
+      CURRENT_YEAR,
+      CURRENT_MONTH,
+      0,
+    ).getDate();
+    const nextDay = Math.min(todayDay + 2, lastDayOfMonth);
+    const pastDay = Math.max(todayDay - 5, 1);
     const current = buildSchedule({
       id: "next-game-current",
       name: "This month with games",
       month: CURRENT_MONTH,
       year: CURRENT_YEAR,
       scheduleDays: [
-        { day: Math.max(todayDay - 5, 1), finalStatus: "A" },
+        { day: pastDay, finalStatus: "A" },
         { day: nextDay, finalStatus: "A" },
-        { day: 28, finalStatus: "NA" },
       ],
     });
     renderInRouter(

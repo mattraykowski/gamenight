@@ -1,11 +1,11 @@
 /* See the Tailwind configuration guide for advanced usage
    https://tailwindcss.com/docs/configuration */
 
-/* AstroVista theme fonts — Outfit (sans), Merriweather (serif), Fira Code
-   (mono). Combined into one request to keep the round-trip small; `swap`
-   display lets the page render in the fallback family until the variable
-   fonts load. */
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300..700&family=Merriweather:ital,wght@0,400..700;1,400..700&family=Fira+Code:wght@400..600&display=swap");
+/* Adventurer's Journal theme fonts — Be Vietnam Pro (sans / body),
+   Noto Serif (serif / headlines), Fira Code (mono). Combined into one
+   request to keep the round-trip small; `swap` display lets the page
+   render in the fallback family until the variable fonts load. */
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,400..700;1,400..700&family=Fira+Code:wght@400..600&display=swap");
 
 @import "tailwindcss" source(none);
 @source "../../deps/ash_authentication_phoenix";
@@ -133,9 +133,9 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --font-sans: Outfit, sans-serif;
-  --font-mono: Fira Code, monospace;
-  --font-serif: Merriweather, serif;
+  --font-sans: "Be Vietnam Pro", sans-serif;
+  --font-mono: "Fira Code", monospace;
+  --font-serif: "Noto Serif", serif;
   --radius: 0.5rem;
   --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
   --tracking-tight: calc(var(--tracking-normal) - 0.025em);
@@ -181,58 +181,124 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ---------------------------------------------------------------- */
+/* Adventurer's Journal — light theme.                                */
+/*                                                                    */
+/* The full M3-flavoured palette from the designer is captured under  */
+/* `--gn-*` custom properties so designers can reference any role     */
+/* directly (e.g. `bg-[var(--gn-primary-container)]`). Shadcn's       */
+/* semantic tokens (`--background`, `--primary`, …) below map onto    */
+/* the right `--gn-*` slot — the rest of the SPA reads only the       */
+/* shadcn names, so component code never needs to know the M3 vocab. */
+/*                                                                    */
+/* WCAG AA (4.5:1 body text / 3:1 UI components) — per Constitution   */
+/* Principle IV (NON-NEGOTIABLE):                                     */
+/*   foreground (#1e1c10) on background (#fff9eb)        ≈ 16:1 ✓     */
+/*   muted-foreground (#42493e) on background            ≈  9:1 ✓     */
+/*   primary-foreground white on primary (#154212)       ≈ 12:1 ✓     */
+/*   secondary-foreground white on secondary (#a14009)   ≈  6:1 ✓     */
+/*   destructive white on destructive (#ba1a1a)          ≈  5:1 ✓     */
+/*   border (#72796e/outline) on background              ≈  4:1 ✓     */
+/* `outline-variant` (#c2c9bb) is decorative-only (≈1.4:1, fails 3:1) */
+/* so we do NOT route it to `--input` or `--border`; it stays         */
+/* available as `--gn-outline-variant` for ornamental borders.        */
+/* ---------------------------------------------------------------- */
 :root {
-  --background: oklch(0.9383 0.0042 236.4993);
-  --foreground: oklch(0.3211 0 0);
-  --card: oklch(1.0000 0 0);
-  --card-foreground: oklch(0.3211 0 0);
-  --popover: oklch(1.0000 0 0);
-  --popover-foreground: oklch(0.3211 0 0);
-  /* AstroVista ships primary at L=0.642 which fails WCAG AA both as
-     text on the background (2.99:1) and as a button surface with
-     white text (3.58:1). Dropping to L=0.53 preserves the warm
-     orange hue while clearing the 4.5:1 threshold (constitution
-     Principle IV, NON-NEGOTIABLE). */
-  --primary: oklch(0.53 0.17 38.5815);
-  --primary-foreground: oklch(1.0000 0 0);
-  --secondary: oklch(0.4138 0.0846 259.8759);
-  --secondary-foreground: oklch(1.0000 0 0);
-  --muted: oklch(0.9846 0.0017 247.8389);
-  /* AstroVista ships muted-foreground at L=0.551 which hits 4.03:1
-     against its background — fails WCAG 2 AA (constitution
-     Principle IV, NON-NEGOTIABLE). Darkening to L=0.46 restores
-     compliance while preserving the hue. */
-  --muted-foreground: oklch(0.46 0.0234 264.3637);
-  --accent: oklch(0.9119 0.0222 243.8174);
-  --accent-foreground: oklch(0.3791 0.1378 265.5222);
-  --destructive: oklch(0.6368 0.2078 25.3313);
-  --destructive-foreground: oklch(1.0000 0 0);
-  --border: oklch(0.8452 0 0);
-  /* --input was oklch(0.97), near-invisible against the white field
-     fill. Align with --border so input outlines have the same weight
-     as other thin borders across the UI. WCAG 1.4.11 / Constitution
-     Principle IV — UI component boundaries need clear contrast
-     against adjacent colors. */
-  --input: oklch(0.8452 0 0);
-  --ring: oklch(0.6397 0.1720 36.4421);
-  --chart-1: oklch(0.6693 0.0706 248.9230);
-  --chart-2: oklch(0.6678 0.1546 41.6200);
-  --chart-3: oklch(0.5957 0.1807 19.9763);
-  --chart-4: oklch(0.7859 0.1342 83.6986);
-  --chart-5: oklch(0.4227 0.0732 267.3899);
+  /* Adventurer's Journal palette — designer source of truth. */
+  --gn-surface: #fff9eb;
+  --gn-surface-dim: #e0dac7;
+  --gn-surface-bright: #fff9eb;
+  --gn-surface-container-lowest: #ffffff;
+  --gn-surface-container-low: #faf3e0;
+  --gn-surface-container: #f4eedb;
+  --gn-surface-container-high: #efe8d5;
+  --gn-surface-container-highest: #e9e2d0;
+  --gn-on-surface: #1e1c10;
+  --gn-on-surface-variant: #42493e;
+  --gn-inverse-surface: #333024;
+  --gn-inverse-on-surface: #f7f0de;
+  --gn-outline: #72796e;
+  --gn-outline-variant: #c2c9bb;
+  --gn-surface-tint: #3b6934;
+  --gn-primary: #154212;
+  --gn-on-primary: #ffffff;
+  --gn-primary-container: #2d5a27;
+  --gn-on-primary-container: #9dd090;
+  --gn-inverse-primary: #a1d494;
+  --gn-secondary: #a14009;
+  --gn-on-secondary: #ffffff;
+  --gn-secondary-container: #fd844c;
+  --gn-on-secondary-container: #6a2500;
+  --gn-tertiary: #735c00;
+  --gn-on-tertiary: #ffffff;
+  --gn-tertiary-container: #cca730;
+  --gn-on-tertiary-container: #4f3d00;
+  --gn-error: #ba1a1a;
+  --gn-on-error: #ffffff;
+  --gn-error-container: #ffdad6;
+  --gn-on-error-container: #93000a;
+  --gn-primary-fixed: #bcf0ae;
+  --gn-primary-fixed-dim: #a1d494;
+  --gn-on-primary-fixed: #002201;
+  --gn-on-primary-fixed-variant: #23501e;
+  --gn-secondary-fixed: #ffdbcd;
+  --gn-secondary-fixed-dim: #ffb596;
+  --gn-on-secondary-fixed: #360f00;
+  --gn-on-secondary-fixed-variant: #7d2d00;
+  --gn-tertiary-fixed: #ffe088;
+  --gn-tertiary-fixed-dim: #e9c349;
+  --gn-on-tertiary-fixed: #241a00;
+  --gn-on-tertiary-fixed-variant: #574500;
+  --gn-background: #fff9eb;
+  --gn-on-background: #1e1c10;
+  --gn-surface-variant: #e9e2d0;
+
+  /* Shadcn semantic tokens — these are what the SPA components read. */
+  --background: var(--gn-surface);
+  --foreground: var(--gn-on-surface);
+  --card: var(--gn-surface-container-lowest);
+  --card-foreground: var(--gn-on-surface);
+  --popover: var(--gn-surface-container-lowest);
+  --popover-foreground: var(--gn-on-surface);
+  --primary: var(--gn-primary);
+  --primary-foreground: var(--gn-on-primary);
+  --secondary: var(--gn-secondary);
+  --secondary-foreground: var(--gn-on-secondary);
+  --muted: var(--gn-surface-container-low);
+  --muted-foreground: var(--gn-on-surface-variant);
+  --accent: var(--gn-surface-container);
+  --accent-foreground: var(--gn-on-surface);
+  --destructive: var(--gn-error);
+  --destructive-foreground: var(--gn-on-error);
+  /* Border + input both use `outline` (not `outline-variant`) so UI
+     component boundaries clear WCAG 1.4.11's 3:1 floor. The softer
+     `outline-variant` is for decorative dividers only. */
+  --border: var(--gn-outline);
+  --input: var(--gn-outline);
+  --ring: var(--gn-surface-tint);
+  --chart-1: var(--gn-primary);
+  --chart-2: var(--gn-secondary);
+  --chart-3: var(--gn-tertiary);
+  --chart-4: var(--gn-primary-container);
+  --chart-5: var(--gn-secondary-container);
   --radius: 0.5rem;
-  --sidebar: oklch(0.9030 0.0046 258.3257);
-  --sidebar-foreground: oklch(0.3211 0 0);
-  --sidebar-primary: oklch(0.6397 0.1720 36.4421);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.9119 0.0222 243.8174);
-  --sidebar-accent-foreground: oklch(0.3791 0.1378 265.5222);
-  --sidebar-border: oklch(0.9276 0.0058 264.5313);
-  --sidebar-ring: oklch(0.6397 0.1720 36.4421);
-  --font-sans: Outfit, sans-serif;
-  --font-serif: Merriweather, serif;
-  --font-mono: Fira Code, monospace;
-  --shadow-color: #1a1a1a;
+  --sidebar: var(--gn-surface-container-low);
+  --sidebar-foreground: var(--gn-on-surface);
+  --sidebar-primary: var(--gn-primary);
+  --sidebar-primary-foreground: var(--gn-on-primary);
+  --sidebar-accent: var(--gn-surface-container);
+  --sidebar-accent-foreground: var(--gn-on-surface);
+  --sidebar-border: var(--gn-outline-variant);
+  --sidebar-ring: var(--gn-surface-tint);
+  --font-sans: "Be Vietnam Pro", sans-serif;
+  --font-serif: "Noto Serif", serif;
+  --font-mono: "Fira Code", monospace;
+
+  /* Multi-layered shadows tinted with primary green per the design
+     brief ("shadow character: shadows fall on an organic surface").
+     Opacity is low enough to preserve WCAG contrast on the underlying
+     surfaces. */
+  --shadow-color: 45 90 39; /* primary-container RGB triplet */
   --shadow-opacity: 0.1;
   --shadow-blur: 3px;
   --shadow-spread: 0px;
@@ -240,75 +306,83 @@
   --shadow-offset-y: 1px;
   --letter-spacing: 0em;
   --spacing: 0.25rem;
-  --shadow-2xs: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.05);
-  --shadow-xs: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.05);
-  --shadow-sm: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.10), 0px 1px 2px -1px hsl(0 0% 10.1961% / 0.10);
-  --shadow: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.10), 0px 1px 2px -1px hsl(0 0% 10.1961% / 0.10);
-  --shadow-md: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.10), 0px 2px 4px -1px hsl(0 0% 10.1961% / 0.10);
-  --shadow-lg: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.10), 0px 4px 6px -1px hsl(0 0% 10.1961% / 0.10);
-  --shadow-xl: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.10), 0px 8px 10px -1px hsl(0 0% 10.1961% / 0.10);
-  --shadow-2xl: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.25);
+  --shadow-2xs: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.05);
+  --shadow-xs: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.05);
+  --shadow-sm: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.10), 0px 1px 2px -1px rgb(var(--shadow-color) / 0.10);
+  --shadow: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.10), 0px 1px 2px -1px rgb(var(--shadow-color) / 0.10);
+  --shadow-md: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.10), 0px 2px 4px -1px rgb(var(--shadow-color) / 0.10);
+  --shadow-lg: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.10), 0px 4px 6px -1px rgb(var(--shadow-color) / 0.10);
+  --shadow-xl: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.10), 0px 8px 10px -1px rgb(var(--shadow-color) / 0.10);
+  --shadow-2xl: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.25);
   --tracking-normal: 0em;
 }
 
 /* This file is for your main application CSS */
 
+/* ---------------------------------------------------------------- */
+/* Adventurer's Journal — dark theme.                                 */
+/*                                                                    */
+/* Built from the designer's `inverse-*` palette, treating it as the  */
+/* "candle-lit tavern" counterpart to the parchment day theme.        */
+/* `inverse-primary` (a desaturated forest green) is the dark         */
+/* primary so it stays legible against the inverse-surface base.      */
+/* ---------------------------------------------------------------- */
 .dark {
-  --background: oklch(0.2178 0 0);
-  --foreground: oklch(0.9219 0 0);
-  --card: oklch(0.2435 0 0);
-  --card-foreground: oklch(0.9219 0 0);
-  --popover: oklch(0.2435 0 0);
-  --popover-foreground: oklch(0.9219 0 0);
-  --primary: oklch(0.6420 0.1691 38.5815);
-  --primary-foreground: oklch(1.0000 0 0);
-  --secondary: oklch(0.3743 0.0726 258.5213);
-  --secondary-foreground: oklch(0.9219 0 0);
-  --muted: oklch(0.2850 0 0);
-  --muted-foreground: oklch(0.5999 0 0);
-  --accent: oklch(0.3380 0.0589 267.5867);
-  --accent-foreground: oklch(0.8823 0.0571 254.1284);
-  --destructive: oklch(0.6368 0.2078 25.3313);
-  --destructive-foreground: oklch(1.0000 0 0);
-  --border: oklch(0.3290 0 0);
-  /* Align with --border in dark mode for the same reason as light
-     mode — keep input outlines visually consistent with other
-     borders. */
-  --input: oklch(0.3290 0 0);
-  --ring: oklch(0.6397 0.1720 36.4421);
-  --chart-1: oklch(0.7124 0.0606 248.6896);
-  --chart-2: oklch(0.6678 0.1546 41.6200);
-  --chart-3: oklch(0.5957 0.1807 19.9763);
-  --chart-4: oklch(0.7859 0.1342 83.6986);
-  --chart-5: oklch(0.4227 0.0732 267.3899);
+  --background: var(--gn-inverse-surface);
+  --foreground: var(--gn-inverse-on-surface);
+  --card: #28261b;
+  --card-foreground: var(--gn-inverse-on-surface);
+  --popover: #28261b;
+  --popover-foreground: var(--gn-inverse-on-surface);
+  /* `inverse-primary` (#a1d494) is light green; pair with the dark
+     `on-primary-fixed` (#002201) for AA contrast on green buttons. */
+  --primary: var(--gn-inverse-primary);
+  --primary-foreground: var(--gn-on-primary-fixed);
+  --secondary: var(--gn-secondary-fixed-dim);
+  --secondary-foreground: var(--gn-on-secondary-fixed);
+  --muted: #2c2a1d;
+  --muted-foreground: #c9c2a8;
+  --accent: var(--gn-surface-container-high);
+  --accent-foreground: var(--gn-on-surface);
+  --destructive: #ffb4ab;
+  --destructive-foreground: #690005;
+  --border: #5b5949;
+  --input: #5b5949;
+  --ring: var(--gn-inverse-primary);
+  --chart-1: var(--gn-inverse-primary);
+  --chart-2: var(--gn-secondary-fixed-dim);
+  --chart-3: var(--gn-tertiary-fixed-dim);
+  --chart-4: var(--gn-primary-container);
+  --chart-5: var(--gn-secondary-container);
   --radius: 0.5rem;
-  --sidebar: oklch(0.2393 0 0);
-  --sidebar-foreground: oklch(0.9219 0 0);
-  --sidebar-primary: oklch(0.6397 0.1720 36.4421);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.3380 0.0589 267.5867);
-  --sidebar-accent-foreground: oklch(0.8823 0.0571 254.1284);
-  --sidebar-border: oklch(0.3290 0 0);
-  --sidebar-ring: oklch(0.6397 0.1720 36.4421);
-  --font-sans: Outfit, sans-serif;
-  --font-serif: Merriweather, serif;
-  --font-mono: Fira Code, monospace;
-  --shadow-color: #1a1a1a;
-  --shadow-opacity: 0.1;
+  --sidebar: #28261b;
+  --sidebar-foreground: var(--gn-inverse-on-surface);
+  --sidebar-primary: var(--gn-inverse-primary);
+  --sidebar-primary-foreground: var(--gn-on-primary-fixed);
+  --sidebar-accent: var(--gn-surface-container-high);
+  --sidebar-accent-foreground: var(--gn-on-surface);
+  --sidebar-border: #5b5949;
+  --sidebar-ring: var(--gn-inverse-primary);
+  --font-sans: "Be Vietnam Pro", sans-serif;
+  --font-serif: "Noto Serif", serif;
+  --font-mono: "Fira Code", monospace;
+  /* Tinted shadows in dark mode use a darker primary base. */
+  --shadow-color: 21 66 18; /* gn-primary RGB triplet */
+  --shadow-opacity: 0.4;
   --shadow-blur: 3px;
   --shadow-spread: 0px;
   --shadow-offset-x: 0px;
   --shadow-offset-y: 1px;
   --letter-spacing: 0em;
   --spacing: 0.25rem;
-  --shadow-2xs: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.05);
-  --shadow-xs: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.05);
-  --shadow-sm: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.10), 0px 1px 2px -1px hsl(0 0% 10.1961% / 0.10);
-  --shadow: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.10), 0px 1px 2px -1px hsl(0 0% 10.1961% / 0.10);
-  --shadow-md: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.10), 0px 2px 4px -1px hsl(0 0% 10.1961% / 0.10);
-  --shadow-lg: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.10), 0px 4px 6px -1px hsl(0 0% 10.1961% / 0.10);
-  --shadow-xl: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.10), 0px 8px 10px -1px hsl(0 0% 10.1961% / 0.10);
-  --shadow-2xl: 0px 1px 3px 0px hsl(0 0% 10.1961% / 0.25);
+  --shadow-2xs: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.20);
+  --shadow-xs: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.20);
+  --shadow-sm: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.30), 0px 1px 2px -1px rgb(var(--shadow-color) / 0.30);
+  --shadow: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.30), 0px 1px 2px -1px rgb(var(--shadow-color) / 0.30);
+  --shadow-md: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.30), 0px 2px 4px -1px rgb(var(--shadow-color) / 0.30);
+  --shadow-lg: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.30), 0px 4px 6px -1px rgb(var(--shadow-color) / 0.30);
+  --shadow-xl: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.30), 0px 8px 10px -1px rgb(var(--shadow-color) / 0.30);
+  --shadow-2xl: 0px 1px 3px 0px rgb(var(--shadow-color) / 0.50);
 }
 
 @layer base {
