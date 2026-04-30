@@ -16,6 +16,12 @@ export interface CalendarGridProps {
   /** Optional override for blank leading / trailing slots. The default
    *  renders a muted, aria-hidden cell. */
   renderBlank?: (key: string) => ReactNode;
+  /** Optional renderer for prior/next-month dates that visually fill
+   *  the leading / trailing slots. When provided, those slots are
+   *  populated with real `Date` objects from the adjacent months and
+   *  this callback owns their rendering. Takes precedence over
+   *  `renderBlank`. */
+  renderOutOfMonth?: (date: Date) => ReactNode;
 }
 
 /**
@@ -32,17 +38,24 @@ export function CalendarGrid({
   ariaLabel,
   renderCell,
   renderBlank,
+  renderOutOfMonth,
 }: CalendarGridProps) {
-  const weeks = useMemo(() => buildWeeks(year, month), [year, month]);
+  const weeks = useMemo(
+    () => buildWeeks(year, month, renderOutOfMonth !== undefined),
+    [year, month, renderOutOfMonth],
+  );
 
   return (
     <div role="grid" aria-label={ariaLabel} className="w-full">
-      <div role="row" className="grid grid-cols-7">
+      <div
+        role="row"
+        className="mb-4 grid grid-cols-7 border-b border-border pb-2"
+      >
         {DAY_HEADERS.map((label) => (
           <div
             key={label}
             role="columnheader"
-            className="p-1 text-center text-xs font-semibold uppercase text-muted-foreground"
+            className="text-center font-serif text-sm font-bold uppercase text-secondary"
           >
             {label}
           </div>
@@ -50,8 +63,8 @@ export function CalendarGrid({
       </div>
       {weeks.map((week, weekIdx) => (
         <div key={weekIdx} role="row" className="grid grid-cols-7">
-          {week.map((date, dayIdx) => {
-            if (date === null) {
+          {week.map((cell, dayIdx) => {
+            if (cell === null) {
               const key = `blank-${weekIdx}-${dayIdx}`;
               if (renderBlank) {
                 return <Fragment key={key}>{renderBlank(key)}</Fragment>;
@@ -66,11 +79,15 @@ export function CalendarGrid({
                 />
               );
             }
-            return (
-              <Fragment key={`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`}>
-                {renderCell(date)}
-              </Fragment>
-            );
+            const dateKey = `${cell.date.getFullYear()}-${cell.date.getMonth()}-${cell.date.getDate()}`;
+            if (cell.outOfMonth) {
+              return (
+                <Fragment key={`oom-${dateKey}`}>
+                  {renderOutOfMonth!(cell.date)}
+                </Fragment>
+              );
+            }
+            return <Fragment key={dateKey}>{renderCell(cell.date)}</Fragment>;
           })}
         </div>
       ))}
@@ -82,20 +99,35 @@ function Fragment({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-function buildWeeks(year: number, month: number): Array<Array<Date | null>> {
+type WeekCell = { date: Date; outOfMonth: boolean } | null;
+
+function buildWeeks(
+  year: number,
+  month: number,
+  fillOutOfMonth: boolean,
+): WeekCell[][] {
   // 0 = Sunday, 6 = Saturday — JS Date.getDay() convention, which
   // matches our Sunday-first layout exactly.
   const firstDayWeekday = new Date(year, month - 1, 1).getDay();
   const daysInMonth = new Date(year, month, 0).getDate();
+  const prevMonthDays = new Date(year, month - 1, 0).getDate();
 
-  const weeks: Array<Array<Date | null>> = [];
-  let currentWeek: Array<Date | null> = Array.from(
-    { length: firstDayWeekday },
-    () => null,
-  );
+  const weeks: WeekCell[][] = [];
+  let currentWeek: WeekCell[] = [];
+  for (let i = 0; i < firstDayWeekday; i += 1) {
+    if (fillOutOfMonth) {
+      const day = prevMonthDays - firstDayWeekday + 1 + i;
+      currentWeek.push({
+        date: new Date(year, month - 2, day),
+        outOfMonth: true,
+      });
+    } else {
+      currentWeek.push(null);
+    }
+  }
 
   for (let day = 1; day <= daysInMonth; day += 1) {
-    currentWeek.push(new Date(year, month - 1, day));
+    currentWeek.push({ date: new Date(year, month - 1, day), outOfMonth: false });
     if (currentWeek.length === 7) {
       weeks.push(currentWeek);
       currentWeek = [];
@@ -103,7 +135,18 @@ function buildWeeks(year: number, month: number): Array<Array<Date | null>> {
   }
 
   if (currentWeek.length > 0) {
-    while (currentWeek.length < 7) currentWeek.push(null);
+    let nextDay = 1;
+    while (currentWeek.length < 7) {
+      if (fillOutOfMonth) {
+        currentWeek.push({
+          date: new Date(year, month, nextDay),
+          outOfMonth: true,
+        });
+        nextDay += 1;
+      } else {
+        currentWeek.push(null);
+      }
+    }
     weeks.push(currentWeek);
   }
 

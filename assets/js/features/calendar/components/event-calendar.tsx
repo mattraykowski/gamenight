@@ -82,6 +82,18 @@ export function EventCalendar({
       year={year}
       month={month}
       ariaLabel={ariaLabel}
+      renderOutOfMonth={(date) => (
+        <div
+          role="presentation"
+          aria-hidden="true"
+          data-testid={`event-calendar-cell-out-${formatDateKey(date)}`}
+          className="flex h-24 flex-col gap-1 border border-border/40 bg-card p-1.5 opacity-50"
+        >
+          <span className="text-xs font-semibold text-muted-foreground">
+            {date.getDate()}
+          </span>
+        </div>
+      )}
       renderCell={(date) => {
         const dateKey = formatDateKey(date);
         const dayEvents = eventsByDate.get(dateKey) ?? [];
@@ -93,7 +105,7 @@ export function EventCalendar({
           <div
             role="gridcell"
             data-testid={`event-calendar-cell-${dateKey}`}
-            className="flex h-24 flex-col gap-1 border border-border/60 bg-background p-1.5"
+            className="flex h-24 flex-col gap-1 border border-border/60 bg-card p-1.5"
           >
             <span className="text-xs font-semibold text-muted-foreground">
               {day}

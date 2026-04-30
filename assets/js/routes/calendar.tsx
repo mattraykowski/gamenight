@@ -137,28 +137,36 @@ function CalendarRoute() {
             </div>
           ) : null}
 
-          <Card className="gap-6 px-6 py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+          <Card className="gap-6 border-2 bg-[var(--gn-surface-container-low)] px-8 py-8 shadow-xl">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-1 items-center justify-center gap-6">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   aria-label="Previous month"
                   onClick={() => gotoMonth(-1)}
                   data-testid="calendar-prev-month"
+                  className="rounded-full px-2 text-primary hover:bg-accent"
                 >
-                  <ChevronLeft className="size-4" />
+                  <ChevronLeft className="size-5" />
                 </Button>
+                <span
+                  data-testid="calendar-card-month-label"
+                  className="font-serif text-2xl font-semibold text-foreground"
+                >
+                  {monthName} {year}
+                </span>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   aria-label="Next month"
                   onClick={() => gotoMonth(1)}
                   data-testid="calendar-next-month"
+                  className="rounded-full px-2 text-primary hover:bg-accent"
                 >
-                  <ChevronRight className="size-4" />
+                  <ChevronRight className="size-5" />
                 </Button>
               </div>
               {!isCurrent ? (
