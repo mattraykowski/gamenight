@@ -101,7 +101,7 @@ describe("<NavBar>", () => {
     const { container } = renderNavAt("/", null);
 
     await waitFor(() => screen.getByTestId("nav-brand"));
-    expect(screen.getByTestId("nav-brand")).toHaveTextContent(/gamenight/i);
+    expect(screen.getByTestId("nav-brand")).toHaveTextContent(/game night/i);
     expect(screen.getByTestId("nav-sign-in")).toBeInTheDocument();
     expect(screen.getByTestId("nav-register")).toBeInTheDocument();
     expect(screen.queryByTestId("user-menu-trigger")).not.toBeInTheDocument();
@@ -119,7 +119,7 @@ describe("<NavBar>", () => {
     );
   });
 
-  it("renders the authenticated variant with primary links + user menu", async () => {
+  it("renders the authenticated variant with the user menu (primary nav lives in <AppSidebar>)", async () => {
     const { container } = renderNavAt("/dashboard", {
       id: "u1",
       email: "player@example.com",
@@ -129,22 +129,13 @@ describe("<NavBar>", () => {
     expect(screen.getByTestId("user-menu-trigger")).toHaveTextContent(
       "player@example.com",
     );
-    expect(screen.getByTestId("nav-link-dashboard")).toBeInTheDocument();
-    expect(screen.getByTestId("nav-link-games")).toBeInTheDocument();
+    // Primary navigation moved to the left sidebar — the header now
+    // only carries brand + bell + user menu (Phase 7 of feature 005).
+    expect(screen.queryByTestId("nav-link-dashboard")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("nav-link-games")).not.toBeInTheDocument();
     expect(screen.queryByTestId("nav-sign-in")).not.toBeInTheDocument();
 
     await expectNoAxeViolations(container);
-  });
-
-  it("marks the current route's nav link with aria-current=page", async () => {
-    renderNavAt("/dashboard", { id: "u1", email: "player@example.com" });
-
-    await waitFor(() => screen.getByTestId("nav-link-dashboard"));
-    expect(screen.getByTestId("nav-link-dashboard")).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
-    expect(screen.getByTestId("nav-link-games")).not.toHaveAttribute("aria-current");
   });
 
   it("signs the user out when the user menu's Sign out item is clicked", async () => {
