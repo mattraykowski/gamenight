@@ -21,7 +21,10 @@ export function MyCharactersColumn() {
   return (
     <section aria-labelledby="my-characters-heading">
       <header className="flex items-end justify-between gap-4">
-        <h2 id="my-characters-heading" className="text-2xl font-semibold tracking-tight">
+        <h2
+          id="my-characters-heading"
+          className="font-serif text-2xl font-semibold tracking-tight"
+        >
           My Characters
         </h2>
         <Link

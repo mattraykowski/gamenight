@@ -28,8 +28,11 @@ export function MyGamesColumn() {
   return (
     <section aria-labelledby="my-games-heading">
       <header className="flex items-end justify-between gap-4">
-        <h2 id="my-games-heading" className="text-2xl font-semibold tracking-tight">
-          My Games
+        <h2
+          id="my-games-heading"
+          className="font-serif text-2xl font-semibold tracking-tight"
+        >
+          Campaigns I Lead
         </h2>
         <div className="flex items-center gap-3">
           <Link
@@ -40,7 +43,7 @@ export function MyGamesColumn() {
             View All Games
           </Link>
           <Button asChild size="sm" data-testid="dashboard-create-game">
-            <Link to="/games/new">Create new game</Link>
+            <Link to="/games/new">New Campaign</Link>
           </Button>
         </div>
       </header>

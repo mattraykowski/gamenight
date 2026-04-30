@@ -203,7 +203,7 @@ describe("/dashboard route", () => {
       screen.getByRole("heading", { level: 2, name: /my characters/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { level: 2, name: /my games/i }),
+      screen.getByRole("heading", { level: 2, name: /campaigns i lead/i }),
     ).toBeInTheDocument();
   });
 
