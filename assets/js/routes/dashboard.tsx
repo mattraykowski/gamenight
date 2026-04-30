@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
 import { z } from "zod";
+import { CornerOrnament } from "@/components/ui/corner-ornament";
 import { useCurrentUser } from "@/features/current-user/hooks";
 import { useAuth } from "@/lib/auth/auth-context";
 import { MyGamesColumn } from "@/features/games/components/my-games-column";
@@ -49,12 +50,7 @@ export function DashboardRoute() {
         aria-labelledby="dashboard-heading"
         className="relative mb-12 border-b border-border pb-6"
       >
-        <span
-          aria-hidden="true"
-          className="wax-seal absolute -top-4 -left-4 flex size-12 -rotate-12 items-center justify-center rounded-full bg-secondary text-secondary-foreground"
-        >
-          <Sparkles className="size-5" />
-        </span>
+        <CornerOrnament icon={Sparkles} />
         <h1
           id="dashboard-heading"
           data-route-heading

@@ -1,7 +1,9 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { CalendarClock } from "lucide-react";
 import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
+import { CornerOrnament } from "@/components/ui/corner-ornament";
 import { DeleteScheduleDialog } from "@/features/schedules/components/delete-schedule-dialog";
 import { MonthCalendar, type DayCell } from "@/features/schedules/components/month-calendar";
 import { ScheduleStatusBadge } from "@/features/schedules/components/schedule-status-badge";
@@ -149,7 +151,8 @@ function ScheduleDetailRoute() {
 
   return (
     <main className="container mx-auto max-w-5xl py-8" id="main-content">
-      <header className="mb-6 flex items-center justify-between">
+      <header className="relative mb-6 flex items-center justify-between">
+        <CornerOrnament icon={CalendarClock} tone="primary" />
         <div>
           <h1 className="font-serif text-2xl font-semibold" data-route-heading>
             {data.name}

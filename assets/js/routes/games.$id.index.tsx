@@ -1,5 +1,7 @@
 import { createFileRoute, redirect, Link, useNavigate } from "@tanstack/react-router";
+import { Dices } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CornerOrnament } from "@/components/ui/corner-ornament";
 import { GameFieldRow } from "@/features/games/components/game-field-row";
 import { DeleteGameDialog } from "@/features/games/components/delete-game-dialog";
 import { useDestroyGame, useGame } from "@/features/games/hooks";
@@ -189,7 +191,8 @@ export function GameDetailRoute() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
-      <div className="flex items-start justify-between gap-4">
+      <div className="relative flex items-start justify-between gap-4">
+        <CornerOrnament icon={Dices} tone="primary" />
         <h1
           data-route-heading
           tabIndex={-1}
