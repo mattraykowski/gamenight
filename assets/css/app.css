@@ -517,10 +517,16 @@
 /* screen.html.                                                      */
 /* ---------------------------------------------------------------- */
 
+/* `.paper-texture` is applied directly to elements with content
+   (e.g. primary buttons). The 5% opacity baked into the SVG `rect`
+   means the parent stays fully opaque — child text reads at 100%
+   contrast — while the noise pattern multiplies subtly over the
+   element's background-color. To use as a separate overlay layer
+   (e.g. on a hero card), pair with `relative` and apply via a
+   `::before` pseudo-element. */
 .paper-texture {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
   background-blend-mode: multiply;
-  opacity: 0.05;
 }
 
 .wax-seal {
