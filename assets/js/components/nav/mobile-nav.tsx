@@ -12,7 +12,7 @@ import {
 
 export interface MobileNavLink {
   label: string;
-  to: "/dashboard" | "/games";
+  to: "/dashboard" | "/games" | "/calendar";
 }
 
 export interface MobileNavProps {

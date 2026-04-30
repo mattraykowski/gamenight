@@ -120,6 +120,12 @@ const featureRouteEntries = [
     routeKey: "js/routes/characters.$characterId.schedules.$scheduleId.tsx",
     limit: "16 KB",
   },
+  // Feature 004 — Full Calendar. Budget per plan §VI / T030.
+  {
+    name: "Route chunk: /calendar (gzipped)",
+    routeKey: "js/routes/calendar.tsx",
+    limit: "8 KB",
+  },
 ]
   .map(({ name, routeKey, limit }) => {
     const filePath = maybeRouteChunkFile(routeKey);

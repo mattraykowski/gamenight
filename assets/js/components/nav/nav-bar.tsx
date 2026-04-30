@@ -7,6 +7,7 @@ import { MobileNav, type MobileNavLink } from "./mobile-nav";
 
 const AUTHED_LINKS: ReadonlyArray<MobileNavLink> = [
   { label: "Dashboard", to: "/dashboard" },
+  { label: "Calendar", to: "/calendar" },
   { label: "All Games", to: "/games" },
 ];
 

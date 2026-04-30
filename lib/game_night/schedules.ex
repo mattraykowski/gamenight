@@ -58,6 +58,8 @@ defmodule GameNight.Schedules do
       rpc_action :update_schedule_final_days_and_notify, :update_final_days_and_notify
       # US8 (T142).
       rpc_action :delete_schedule, :delete
+      # Feature 004 (T014).
+      rpc_action :list_schedules_for_calendar_month, :list_calendar_event_days_for_month
     end
 
     # Registered for type generation only.

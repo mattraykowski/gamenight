@@ -981,6 +981,250 @@ defmodule GameNight.Schedules.ScheduleTest do
     end
   end
 
+  describe ":list_calendar_event_days_for_month action (T006 / US1 — feature 004)" do
+    setup do
+      {:ok, gm} = create_user()
+      {:ok, game} = register_game(gm)
+      {:ok, m1} = create_user()
+      _ = seed_player!(game, m1)
+
+      # Build a posted schedule for October 2099 with Final-A on day 5
+      # and Final-NA on day 6.
+      {:ok, schedule} = initiate(gm, game, %{month: 10, year: 2099})
+
+      {:ok, schedule} =
+        schedule
+        |> Ash.Changeset.for_update(:set_gm_day, %{day: 5, status: :A}, actor: gm)
+        |> Ash.update()
+
+      {:ok, ready} =
+        schedule
+        |> Ash.Changeset.for_update(:transition_to_ready_for_availability, %{}, actor: gm)
+        |> Ash.update()
+
+      [participant] =
+        GameNight.Schedules.ScheduleParticipant
+        |> Ash.Query.filter(schedule_id == ^ready.id and player.user_id == ^m1.id)
+        |> Ash.read!(authorize?: false)
+
+      day_5_pd =
+        GameNight.Schedules.ParticipantDay
+        |> Ash.Query.filter(participant_id == ^participant.id and day == 5)
+        |> Ash.read_one!(authorize?: false)
+
+      {:ok, _} =
+        day_5_pd
+        |> Ash.Changeset.for_update(:set_status, %{status: :A}, actor: m1)
+        |> Ash.update()
+
+      {:ok, posted} =
+        ready
+        |> Ash.Changeset.for_update(:post, %{}, actor: gm)
+        |> Ash.update()
+
+      {:ok, gm: gm, game: game, schedule: posted, m1: m1}
+    end
+
+    test "GM sees one row per Final-A day", %{gm: gm, schedule: schedule, game: game} do
+      assert {:ok, rows} =
+               Schedule
+               |> Ash.ActionInput.for_action(
+                 :list_calendar_event_days_for_month,
+                 %{year: 2099, month: 10},
+                 actor: gm
+               )
+               |> Ash.run_action()
+
+      # Day 5 is Final-A (GM-A + participant-A). All other days are
+      # Final-NA by default (GM-NA + participant-NA).
+      assert [row] = rows
+      assert row.date == ~D[2099-10-05]
+      assert row.schedule_id == schedule.id
+      assert row.game_id == game.id
+      assert row.game_title == game.title
+      assert row.role == :gm
+      assert row.character_id == nil
+      assert row.target_route == "/games/$gameId/schedules/$scheduleId"
+      assert row.time_slot_label == "7:00 PM – 11:00 PM"
+    end
+
+    test "player sees one row per Final-A day with role=:player and character_id set", %{
+      schedule: schedule,
+      m1: m1,
+      game: game
+    } do
+      [participant] =
+        GameNight.Schedules.ScheduleParticipant
+        |> Ash.Query.filter(schedule_id == ^schedule.id and player.user_id == ^m1.id)
+        |> Ash.read!(authorize?: false)
+
+      assert {:ok, [row]} =
+               Schedule
+               |> Ash.ActionInput.for_action(
+                 :list_calendar_event_days_for_month,
+                 %{year: 2099, month: 10},
+                 actor: m1
+               )
+               |> Ash.run_action()
+
+      assert row.date == ~D[2099-10-05]
+      assert row.schedule_id == schedule.id
+      assert row.game_id == game.id
+      assert row.role == :player
+      assert row.character_id == participant.player_id
+      assert row.target_route == "/characters/$characterId/schedules/$scheduleId"
+    end
+
+    test ":preparing schedules contribute zero rows" do
+      {:ok, gm2} = create_user()
+      {:ok, game2} = register_game(gm2)
+      {:ok, _preparing} = initiate(gm2, game2, %{month: 11, year: 2099})
+
+      assert {:ok, []} =
+               Schedule
+               |> Ash.ActionInput.for_action(
+                 :list_calendar_event_days_for_month,
+                 %{year: 2099, month: 11},
+                 actor: gm2
+               )
+               |> Ash.run_action()
+    end
+
+    test ":ready_for_availability schedules contribute zero rows" do
+      {:ok, gm2} = create_user()
+      {:ok, game2} = register_game(gm2)
+      {:ok, m2} = create_user()
+      _ = seed_player!(game2, m2)
+      {:ok, sch} = initiate(gm2, game2, %{month: 11, year: 2099})
+      {:ok, sch} = set_gm_day(gm2, sch, 7, :A)
+
+      {:ok, _ready} =
+        sch
+        |> Ash.Changeset.for_update(:transition_to_ready_for_availability, %{}, actor: gm2)
+        |> Ash.update()
+
+      assert {:ok, []} =
+               Schedule
+               |> Ash.ActionInput.for_action(
+                 :list_calendar_event_days_for_month,
+                 %{year: 2099, month: 11},
+                 actor: gm2
+               )
+               |> Ash.run_action()
+    end
+
+    test "Final-NA days contribute zero rows", %{gm: gm} do
+      # Posted schedule has only one Final-A day (5). Day 6 should not
+      # appear.
+      {:ok, rows} =
+        Schedule
+        |> Ash.ActionInput.for_action(
+          :list_calendar_event_days_for_month,
+          %{year: 2099, month: 10},
+          actor: gm
+        )
+        |> Ash.run_action()
+
+      refute Enum.any?(rows, fn r -> r.date == ~D[2099-10-06] end)
+    end
+
+    test "np_only late-joiner participants are excluded", %{schedule: schedule, gm: gm} do
+      # Add a late-joining player AFTER the post. add_late_joiner
+      # creates an np_only participant with every day :NP.
+      {:ok, late_member} = create_user()
+      _late_player = seed_player!(schedule.game_id |> get_game(), late_member)
+
+      assert {:ok, []} =
+               Schedule
+               |> Ash.ActionInput.for_action(
+                 :list_calendar_event_days_for_month,
+                 %{year: 2099, month: 10},
+                 actor: late_member
+               )
+               |> Ash.run_action()
+
+      # GM still sees their own row.
+      {:ok, rows} =
+        Schedule
+        |> Ash.ActionInput.for_action(
+          :list_calendar_event_days_for_month,
+          %{year: 2099, month: 10},
+          actor: gm
+        )
+        |> Ash.run_action()
+
+      assert length(rows) == 1
+    end
+
+    test "game status (:cancelled / :paused / :completed) does NOT filter (FR-019)", %{
+      gm: gm,
+      game: game
+    } do
+      # Mark the game cancelled.
+      {:ok, _} =
+        game
+        |> Ash.Changeset.for_update(:update, %{status: :cancelled}, actor: gm)
+        |> Ash.update()
+
+      assert {:ok, [row]} =
+               Schedule
+               |> Ash.ActionInput.for_action(
+                 :list_calendar_event_days_for_month,
+                 %{year: 2099, month: 10},
+                 actor: gm
+               )
+               |> Ash.run_action()
+
+      assert row.date == ~D[2099-10-05]
+    end
+  end
+
+  describe ":list_calendar_event_days_for_month policy (T007 / US1)" do
+    setup do
+      {:ok, gm} = create_user()
+      {:ok, game} = register_game(gm)
+      {:ok, m1} = create_user()
+      _ = seed_player!(game, m1)
+      {:ok, schedule} = initiate(gm, game, %{month: 10, year: 2099})
+      {:ok, schedule} = set_gm_day(gm, schedule, 5, :A)
+
+      {:ok, ready} =
+        schedule
+        |> Ash.Changeset.for_update(:transition_to_ready_for_availability, %{}, actor: gm)
+        |> Ash.update()
+
+      {:ok, posted} =
+        ready
+        |> Ash.Changeset.for_update(:post, %{}, actor: gm)
+        |> Ash.update()
+
+      {:ok, gm: gm, schedule: posted, m1: m1}
+    end
+
+    test "anonymous actor returns an empty list (no leak)" do
+      assert {:ok, []} =
+               Schedule
+               |> Ash.ActionInput.for_action(
+                 :list_calendar_event_days_for_month,
+                 %{year: 2099, month: 10}
+               )
+               |> Ash.run_action()
+    end
+
+    test "non-owner / non-participant returns an empty list" do
+      {:ok, intruder} = create_user()
+
+      assert {:ok, []} =
+               Schedule
+               |> Ash.ActionInput.for_action(
+                 :list_calendar_event_days_for_month,
+                 %{year: 2099, month: 10},
+                 actor: intruder
+               )
+               |> Ash.run_action()
+    end
+  end
+
   defp set_gm_day(actor, schedule, day, status) do
     schedule
     |> Ash.Changeset.for_update(:set_gm_day, %{day: day, status: status}, actor: actor)
@@ -997,5 +1241,9 @@ defmodule GameNight.Schedules.ScheduleTest do
     list_schedule_days(schedule)
     |> Enum.find(&(&1.day == day))
     |> Map.get(:gm_status)
+  end
+
+  defp get_game(game_id) do
+    Game |> Ash.get!(game_id, authorize?: false)
   end
 end
