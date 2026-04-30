@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { useListMine, useListMineActive } from "../hooks";
-import { GamesTable } from "./games-table";
+import { CampaignCard } from "./campaign-card";
 import { GamesEmptyState } from "./empty-state";
 
 /**
@@ -58,7 +58,16 @@ export function MyGamesColumn() {
             We couldn&apos;t load your games ({activeGames.error.kind}). Please refresh.
           </p>
         ) : activeGames.data.length > 0 ? (
-          <GamesTable games={activeGames.data} />
+          <ul
+            className="flex flex-col gap-3"
+            data-testid="campaigns-list"
+          >
+            {activeGames.data.map((game) => (
+              <li key={game.id}>
+                <CampaignCard game={game} />
+              </li>
+            ))}
+          </ul>
         ) : totalCount > 0 ? (
           <GamesEmptyState kind="no_active_games" totalCount={totalCount} />
         ) : (
