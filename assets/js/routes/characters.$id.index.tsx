@@ -1,6 +1,8 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { UserRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { CornerOrnament } from "@/components/ui/corner-ornament";
 import { CharacterSchedulesSection } from "@/features/schedules/components/character-schedules-section";
 import { ScheduleStatusBadge } from "@/features/schedules/components/schedule-status-badge";
 import { useListSchedulesForCharacter } from "@/features/schedules/hooks";
@@ -51,7 +53,8 @@ function CharacterDetailRoute() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-12" id="main-content">
-      <header className="flex items-start justify-between gap-4">
+      <header className="relative flex items-start justify-between gap-4">
+        <CornerOrnament icon={UserRound} tone="secondary" />
         <div>
           <h1
             data-route-heading

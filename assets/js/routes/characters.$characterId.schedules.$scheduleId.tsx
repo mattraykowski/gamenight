@@ -1,7 +1,9 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { CalendarClock } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { CornerOrnament } from "@/components/ui/corner-ornament";
 import {
   MonthCalendar,
   type DayCell,
@@ -165,7 +167,8 @@ function CharacterScheduleRoute() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12" id="main-content">
-      <header className="mb-6 flex items-start justify-between gap-4">
+      <header className="relative mb-6 flex items-start justify-between gap-4">
+        <CornerOrnament icon={CalendarClock} tone="primary" />
         <div>
           <h1
             data-route-heading
