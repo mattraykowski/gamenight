@@ -1,7 +1,9 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { Stamp } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { CornerOrnament } from "@/components/ui/corner-ornament";
 import {
   DayMatrixTable,
   type DayMatrixDay,
@@ -229,7 +231,8 @@ function SchedulingViewRoute() {
 
   return (
     <main className="container mx-auto max-w-6xl py-8" id="main-content">
-      <header className="mb-6 flex items-start justify-between gap-4">
+      <header className="relative mb-6 flex items-start justify-between gap-4">
+        <CornerOrnament icon={Stamp} tone="secondary" />
         <div>
           <h1 className="font-serif text-2xl font-semibold" data-route-heading>
             Scheduling View — {data.name}
