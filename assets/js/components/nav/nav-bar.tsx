@@ -32,7 +32,7 @@ export function NavBar() {
 
   return (
     <header
-      className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+      className="sticky top-0 z-40 border-b-2 border-secondary/30 bg-background shadow-[4px_4px_0px_rgba(45,90,39,0.1)]"
       data-testid="nav-bar"
     >
       <div className="flex h-14 items-center gap-4 px-4 sm:px-6">
@@ -43,7 +43,7 @@ export function NavBar() {
         <Link
           to={isAuthenticated ? "/dashboard" : "/"}
           search={isAuthenticated ? {} : undefined}
-          className="font-serif text-2xl italic tracking-tight text-secondary hover:text-secondary/80"
+          className="font-serif text-2xl italic tracking-tight text-tertiary-container hover:opacity-80"
           data-testid="nav-brand"
         >
           Game Night

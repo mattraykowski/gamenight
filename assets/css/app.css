@@ -130,6 +130,17 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  /* Tertiary (gold) palette — exposed so utilities like
+     `text-tertiary-fixed-dim` work for decorative accents (the brand
+     wordmark, premium-feature tags, "rare" UI states per the design
+     brief). */
+  --color-tertiary: var(--gn-tertiary);
+  --color-tertiary-container: var(--gn-tertiary-container);
+  --color-tertiary-fixed: var(--gn-tertiary-fixed);
+  --color-tertiary-fixed-dim: var(--gn-tertiary-fixed-dim);
+  --color-on-tertiary: var(--gn-on-tertiary);
+  --color-on-tertiary-container: var(--gn-on-tertiary-container);
+  --color-on-tertiary-fixed: var(--gn-on-tertiary-fixed);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
