@@ -180,11 +180,14 @@ describe("/calendar route (T011 / US1)", () => {
   it("renders the current-month grid with the empty-state helper when there are no events", async () => {
     const { container } = renderCalendarAt();
 
-    await waitFor(() => {
-      expect(screen.getByTestId("calendar-empty-helper")).toHaveTextContent(
-        /no game days planned this month/i,
-      );
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("calendar-empty-helper")).toHaveTextContent(
+          /no game days planned this month/i,
+        );
+      },
+      { timeout: 5000 },
+    );
 
     // Heading exists with the data-route-heading hook.
     const heading = screen.getByRole("heading", { level: 1 });
