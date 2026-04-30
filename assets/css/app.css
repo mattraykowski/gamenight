@@ -172,13 +172,21 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  /* Radius scale matches the "Game Night" design system in Stitch
+     (project 7276677696696946035 — design system "Game Night"):
+       sm   0.25rem   (4px)  — small inline elements
+       DEF  0.5rem    (8px)  — base for buttons / inputs (= --radius)
+       md   0.75rem   (12px) — secondary containers
+       lg   1rem      (16px) — main containers and modals
+       xl   1.5rem    (24px) — feature surfaces
+       full 9999px    — pills / wax-seal badges */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-3xl: 2.5rem;
+  --radius-4xl: 3rem;
 }
 
 /* ---------------------------------------------------------------- */
