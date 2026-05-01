@@ -9,14 +9,15 @@
 # materialised from the project's `priv/`. The buildpack has
 # also already done a best-effort `npm install` here.
 #
-# Our job:
-#   1. Install bun pinned to .tool-versions.
-#   2. Replace npm's node_modules with `bun install --frozen-lockfile`.
-#   3. Run `bun vite build` so priv/static/.vite/manifest.json exists.
-#   4. Re-run `mix compile` so the manifest is copied into
-#      _build/prod/lib/game_night/priv/static/, where
-#      PhoenixVite.cache_static_manifest_latest/1 looks for it
-#      at boot.
+# `mix compile --force` regenerates the
+# /tmp/phoenix-colocated-{used,unused}/game_night stubs that
+# phoenix_live_view's compiler writes for `colocated_hook` (and
+# friends). assets/js/app.js imports them via a vite plugin; if
+# they're missing, `bun vite build` fails with
+#   [vite:load-fallback] Could not load /tmp/phoenix-colocated-unused/game_night
+# We don't know whether /tmp gets swept between buildpacks or
+# whether mix's incremental cache skips the generation step the
+# second time around — `--force` makes both questions moot.
 
 set -euo pipefail
 
@@ -37,8 +38,8 @@ echo "-----> Replacing node_modules with bun install"
   bun install --frozen-lockfile
 )
 
+echo "-----> Forcing mix compile to regenerate phoenix-colocated stubs"
+mix compile --force
+
 echo "-----> Building SPA bundle (bun vite build)"
 bun --cwd=assets vite build
-
-echo "-----> Re-running mix compile to refresh _build priv"
-mix compile
