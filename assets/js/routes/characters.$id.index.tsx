@@ -29,7 +29,7 @@ function CharacterDetailRoute() {
 
   if (characters.isPending) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-12">
+      <main className="mx-auto max-w-3xl px-6 py-12 2xl:max-w-5xl">
         <p>Loading character…</p>
       </main>
     );
@@ -37,7 +37,7 @@ function CharacterDetailRoute() {
 
   if (!character) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-12">
+      <main className="mx-auto max-w-3xl px-6 py-12 2xl:max-w-5xl">
         <h1 className="font-serif text-3xl font-bold tracking-tight" data-route-heading>
           Character not found
         </h1>
@@ -52,7 +52,7 @@ function CharacterDetailRoute() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12" id="main-content">
+    <main className="mx-auto max-w-3xl px-6 py-12 2xl:max-w-5xl" id="main-content">
       <header className="relative flex items-start justify-between gap-4">
         <CornerOrnament icon={UserRound} tone="secondary" />
         <div>

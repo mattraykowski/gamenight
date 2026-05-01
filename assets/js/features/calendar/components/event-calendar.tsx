@@ -77,9 +77,6 @@ export function EventCalendar({
     }
     return map;
   }, [events]);
-
-  // bg-surface-container-lowest min-h-[120px] p-2 opacity-50 grayscale-[0.5]
-  // text-label-sm font-label-sm text-stone-400
   
   return (
     <CalendarGrid

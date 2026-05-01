@@ -166,7 +166,7 @@ function CharacterScheduleRoute() {
   const data = schedule.data;
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12" id="main-content">
+    <main className="mx-auto max-w-5xl px-6 py-12 2xl:max-w-[88rem]" id="main-content">
       <header className="relative mb-6 flex items-start justify-between gap-4">
         <CornerOrnament icon={CalendarClock} tone="primary" />
         <div>

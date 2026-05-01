@@ -1,5 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Calendar as CalendarIcon, Dices, LayoutDashboard, Plus } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  Dices,
+  LayoutDashboard,
+  Plus,
+  Users,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useOptionalAuth } from "@/lib/auth/auth-context";
@@ -7,8 +13,9 @@ import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
   { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
-  { label: "Calendar", to: "/calendar", icon: CalendarIcon },
+  { label: "My Calendar", to: "/calendar", icon: CalendarIcon },
   { label: "All Games", to: "/games", icon: Dices },
+  { label: "All Characters", to: "/characters", icon: Users },
 ] as const;
 
 /**
@@ -74,9 +81,10 @@ export function AppSidebar() {
               "hover:bg-accent hover:text-accent-foreground",
               // Active state stamps the link onto the page like a
               // wax seal pressed into parchment: forest-green bg,
-              // gilded gold text, inset shadow for the "pressed-in"
-              // depth.
-              "aria-[current=page]:bg-primary-container aria-[current=page]:text-tertiary-container aria-[current=page]:shadow-inner aria-[current=page]:hover:text-tertiary-container",
+              // white text (≈10:1 contrast on the container green —
+              // gilded gold failed AA), inset shadow for the
+              // "pressed-in" depth.
+              "aria-[current=page]:bg-primary-container aria-[current=page]:text-primary-foreground aria-[current=page]:shadow-inner aria-[current=page]:hover:text-primary-foreground",
             )}
             activeProps={{ "aria-current": "page" }}
             data-testid={`app-sidebar-link-${link.to.replace(/\//g, "-").replace(/^-/, "")}`}

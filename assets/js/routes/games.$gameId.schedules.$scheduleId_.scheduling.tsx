@@ -230,7 +230,7 @@ function SchedulingViewRoute() {
     updateFinalDaysAndNotify.isPending;
 
   return (
-    <main className="container mx-auto max-w-6xl py-8" id="main-content">
+    <main className="container mx-auto max-w-6xl py-8 2xl:max-w-[88rem]" id="main-content">
       <header className="relative mb-6 flex items-start justify-between gap-4">
         <CornerOrnament icon={Stamp} tone="secondary" />
         <div>

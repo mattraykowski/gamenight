@@ -190,7 +190,7 @@ export function GameDetailRoute() {
   const { data: entry } = game;
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
+    <main className="mx-auto max-w-5xl px-6 py-12 2xl:max-w-[88rem]">
       <div className="relative flex items-start justify-between gap-4">
         <CornerOrnament icon={Dices} tone="primary" />
         <h1

@@ -41,7 +41,7 @@ export function DashboardRoute() {
   const friendlyName = displayName.split("@")[0] || "Adventurer";
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-12">
+    <main className="mx-auto max-w-6xl px-6 py-12 2xl:max-w-[88rem]">
       {/* Hero — serif headline + descriptive subtitle, with a corner
          wax-seal ornament in the top-left for the tactile flourish
          called out in the design brief ("decorative borders ...

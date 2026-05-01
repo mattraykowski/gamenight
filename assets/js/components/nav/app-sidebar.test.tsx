@@ -45,6 +45,11 @@ function renderSidebarAt(initialPath: string, initialAuth: AuthUser | null) {
     path: "/games/new",
     component: () => <div data-testid="page-new-game">new game</div>,
   });
+  const charsRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/characters",
+    component: () => <div data-testid="page-characters">characters</div>,
+  });
 
   const router = createRouter({
     routeTree: rootRoute.addChildren([
@@ -52,6 +57,7 @@ function renderSidebarAt(initialPath: string, initialAuth: AuthUser | null) {
       calRoute,
       gamesRoute,
       newGameRoute,
+      charsRoute,
     ]),
     history: createMemoryHistory({ initialEntries: [initialPath] }),
     context: { auth: undefined, queryClient: new QueryClient() },

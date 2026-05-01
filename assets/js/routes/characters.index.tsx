@@ -19,7 +19,7 @@ export function CharactersRoute() {
   const characters = useListMyCharacters();
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-3xl px-6 py-12 2xl:max-w-5xl">
       <h1
         data-route-heading
         tabIndex={-1}

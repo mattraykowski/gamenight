@@ -61,7 +61,7 @@ function CharacterSchedulesIndexRoute() {
 
   if (schedules.isPending) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-12">
+      <main className="mx-auto max-w-3xl px-6 py-12 2xl:max-w-5xl">
         <p>Loading schedules…</p>
       </main>
     );
@@ -69,7 +69,7 @@ function CharacterSchedulesIndexRoute() {
 
   if (schedules.isError) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-12">
+      <main className="mx-auto max-w-3xl px-6 py-12 2xl:max-w-5xl">
         <p className="text-destructive" role="alert">
           We couldn&apos;t load schedules. Please refresh.
         </p>
@@ -78,7 +78,7 @@ function CharacterSchedulesIndexRoute() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-3xl px-6 py-12 2xl:max-w-5xl">
       <header className="flex items-start justify-between gap-3">
         <div>
           <h1

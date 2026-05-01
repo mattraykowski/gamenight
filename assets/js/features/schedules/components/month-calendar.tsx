@@ -1,3 +1,11 @@
+import {
+  Check,
+  CircleQuestionMark,
+  Minus,
+  Star,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 
 import { CalendarGrid } from "@/components/calendar-grid";
@@ -27,12 +35,12 @@ const STATUS_LABEL: Record<ParticipantDayStatus, string> = {
   NP: "Not Present",
 };
 
-const STATUS_ICON: Record<ParticipantDayStatus, string> = {
-  NA: "✕",
-  I: "★",
-  A: "✓",
-  IF: "?",
-  NP: "—",
+const STATUS_ICON: Record<ParticipantDayStatus, LucideIcon> = {
+  NA: X,
+  I: Star,
+  A: Check,
+  IF: CircleQuestionMark,
+  NP: Minus,
 };
 
 const STATUS_CLASS: Record<ParticipantDayStatus, string> = {
@@ -151,6 +159,17 @@ export function MonthCalendar({
       year={year}
       month={month}
       ariaLabel={ariaLabel}
+      renderOutOfMonth={(date) => (
+        <div
+          role="presentation"
+          aria-hidden="true"
+          className="flex h-24 flex-col gap-1 bg-card p-1.5 opacity-50"
+        >
+          <span className="text-xs font-semibold text-muted-foreground">
+            {date.getDate()}
+          </span>
+        </div>
+      )}
       renderCell={(date) => {
         const day = date.getDate();
         const cell = cells[day - 1] ?? { day, status: "NA" as const };
@@ -160,38 +179,41 @@ export function MonthCalendar({
           ? "Host Unavailable"
           : STATUS_LABEL[cell.status];
         const label = `${monthName} ${day}, ${statusLabel}`;
+        const Icon = STATUS_ICON[cell.status];
 
         return (
-          <button
-            ref={(node) => {
-              if (node) cellRefs.current.set(day, node);
-              else cellRefs.current.delete(day);
-            }}
-            role="gridcell"
-            type="button"
-            tabIndex={day === focusedDay && interactiveCell ? 0 : -1}
-            aria-label={label}
-            aria-disabled={!interactiveCell ? true : undefined}
-            disabled={!interactiveCell && mode !== "read-only"}
-            onClick={() => interactiveCell && onCycle?.(day)}
-            onKeyDown={(e) => interactiveCell && handleKeyDown(e, day)}
-            onFocus={() => setFocusedDay(day)}
-            className={cn(
-              "flex h-20 flex-col items-start gap-1 border p-2 text-left transition-colors",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-              interactiveCell && "hover:brightness-110 cursor-pointer",
-              !interactiveCell && "cursor-not-allowed opacity-60",
-              lockedNa
-                ? "border-muted-foreground/20 bg-muted text-muted-foreground"
-                : STATUS_CLASS[cell.status],
-            )}
-          >
-            <span className="text-sm font-semibold">{day}</span>
-            <span className="flex items-center gap-1 text-xs">
-              <span aria-hidden="true">{STATUS_ICON[cell.status]}</span>
-              <span>{statusLabel}</span>
+          <div className="flex h-24 flex-col gap-1 bg-card p-1.5">
+            <span className="text-xs font-semibold text-muted-foreground">
+              {day}
             </span>
-          </button>
+            <button
+              ref={(node) => {
+                if (node) cellRefs.current.set(day, node);
+                else cellRefs.current.delete(day);
+              }}
+              role="gridcell"
+              type="button"
+              tabIndex={day === focusedDay && interactiveCell ? 0 : -1}
+              aria-label={label}
+              aria-disabled={!interactiveCell ? true : undefined}
+              disabled={!interactiveCell && mode !== "read-only"}
+              onClick={() => interactiveCell && onCycle?.(day)}
+              onKeyDown={(e) => interactiveCell && handleKeyDown(e, day)}
+              onFocus={() => setFocusedDay(day)}
+              className={cn(
+                "flex min-h-7 w-full items-center gap-1 rounded border px-1.5 py-0.5 text-left text-xs font-medium transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                interactiveCell && "hover:brightness-110 cursor-pointer",
+                !interactiveCell && "cursor-not-allowed opacity-60",
+                lockedNa
+                  ? "border-muted-foreground/20 bg-muted text-muted-foreground"
+                  : STATUS_CLASS[cell.status],
+              )}
+            >
+              <Icon aria-hidden="true" className="size-3 shrink-0" />
+              <span className="truncate">{statusLabel}</span>
+            </button>
+          </div>
         );
       }}
     />

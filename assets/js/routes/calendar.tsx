@@ -104,7 +104,7 @@ function CalendarRoute() {
   const eventList = events.data ?? [];
 
   return (
-    <main className="container mx-auto max-w-6xl py-8" id="main-content">
+    <main className="container mx-auto max-w-6xl py-8 2xl:max-w-[88rem]" id="main-content">
       {/* Hero — eyebrow + big serif title + atmospheric subtitle.
          Matches the "Availability Scroll" pattern from the Stitch
          Schedule View. */}

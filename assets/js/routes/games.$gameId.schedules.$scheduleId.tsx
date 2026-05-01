@@ -1,8 +1,16 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
-import { CalendarClock } from "lucide-react";
+import {
+  CalendarClock,
+  Check,
+  CircleQuestionMark,
+  Sparkles,
+  Star,
+  X,
+} from "lucide-react";
 import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { CornerOrnament } from "@/components/ui/corner-ornament";
 import { DeleteScheduleDialog } from "@/features/schedules/components/delete-schedule-dialog";
 import { MonthCalendar, type DayCell } from "@/features/schedules/components/month-calendar";
@@ -150,7 +158,7 @@ function ScheduleDetailRoute() {
       : ("read-only" as const);
 
   return (
-    <main className="container mx-auto max-w-5xl py-8" id="main-content">
+    <main className="container mx-auto max-w-6xl py-8 2xl:max-w-[88rem]" id="main-content">
       <header className="relative mb-6 flex items-center justify-between">
         <CornerOrnament icon={CalendarClock} tone="primary" />
         <div>
@@ -159,9 +167,6 @@ function ScheduleDetailRoute() {
           </h1>
           <div className="mt-2 flex items-center gap-3">
             <ScheduleStatusBadge status={data.status} />
-            <span className="text-sm text-muted-foreground">
-              Click each day to cycle through Not Available → Ideal → Available → Available If.
-            </span>
           </div>
         </div>
         <Button asChild variant="outline">
@@ -171,14 +176,99 @@ function ScheduleDetailRoute() {
         </Button>
       </header>
 
-      <MonthCalendar
-        year={data.year}
-        month={data.month}
-        cells={cells}
-        mode={calendarMode}
-        onCycle={onCycle}
-        ariaLabel={`${data.name} calendar`}
-      />
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="min-w-0">
+          <Card className="relative gap-6 overflow-hidden rounded-sm border-2 border-[var(--gn-outline-variant)] bg-[var(--gn-surface-container-low)] px-8 py-8 shadow-xl">
+            {/* Decorative amber band — same flourish as the /calendar
+               card and the Stitch Schedule View reference. */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-secondary/30 to-transparent"
+            />
+            <MonthCalendar
+              year={data.year}
+              month={data.month}
+              cells={cells}
+              mode={calendarMode}
+              onCycle={onCycle}
+              ariaLabel={`${data.name} calendar`}
+            />
+          </Card>
+        </div>
+
+        <aside
+          aria-labelledby="schedule-legend-heading"
+          className="xl:sticky xl:top-20 xl:self-start"
+        >
+          <Card className="gap-4 rounded-sm border-2 border-[var(--gn-outline-variant)] bg-[var(--gn-surface-container-high)] px-6 py-6 shadow-lg">
+            <h2
+              id="schedule-legend-heading"
+              className="mb-1 flex items-center gap-2 border-b border-[var(--gn-outline-variant)] pb-2 font-serif text-base font-bold text-secondary"
+            >
+              <Sparkles aria-hidden="true" className="size-4" />
+              Legend of Symbols
+            </h2>
+            <ul className="flex flex-col gap-3 text-sm">
+              <li className="flex items-start gap-3">
+                <span
+                  aria-hidden="true"
+                  className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-emerald-500/40 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                >
+                  <Star className="size-3.5" />
+                </span>
+                <div>
+                  <p className="font-semibold">Ideal</p>
+                  <p className="text-muted-foreground">
+                    Best dates for the session.
+                  </p>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span
+                  aria-hidden="true"
+                  className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                >
+                  <Check className="size-3.5" />
+                </span>
+                <div>
+                  <p className="font-semibold">Available</p>
+                  <p className="text-muted-foreground">
+                    Works for you, even if not perfect.
+                  </p>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span
+                  aria-hidden="true"
+                  className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-amber-500/40 bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                >
+                  <CircleQuestionMark className="size-3.5" />
+                </span>
+                <div>
+                  <p className="font-semibold">Available If</p>
+                  <p className="text-muted-foreground">
+                    Possible with conditions.
+                  </p>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <span
+                  aria-hidden="true"
+                  className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-destructive/30 bg-destructive/10 text-destructive"
+                >
+                  <X className="size-3.5" />
+                </span>
+                <div>
+                  <p className="font-semibold">Not Available</p>
+                  <p className="text-muted-foreground">
+                    Can&apos;t make this day.
+                  </p>
+                </div>
+              </li>
+            </ul>
+          </Card>
+        </aside>
+      </div>
 
       {data.status !== "preparing" ? (
         <section className="mt-10" aria-labelledby="schedule-roster-heading">
