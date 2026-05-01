@@ -58,7 +58,11 @@ if config_env() == :prod do
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
   config :game_night, GameNight.Repo,
-    # ssl: true,
+    ssl: true,
+    # Gigalixir's managed Postgres uses certs not in the system trust
+    # store, so skip CA verification. The connection is still
+    # encrypted in transit; we just don't pin the issuer.
+    ssl_opts: [verify: :verify_none],
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
     # For machines with several cores, consider starting multiple pools of `pool_size`
@@ -130,21 +134,9 @@ if config_env() == :prod do
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
 
-  # ## Configuring the mailer
-  #
-  # In production you need to configure the mailer to use a different adapter.
-  # Here is an example configuration for Mailgun:
-  #
-  #     config :game_night, GameNight.Mailer,
-  #       adapter: Swoosh.Adapters.Mailgun,
-  #       api_key: System.get_env("MAILGUN_API_KEY"),
-  #       domain: System.get_env("MAILGUN_DOMAIN")
-  #
-  # Most non-SMTP adapters require an API client. Swoosh supports Req, Hackney,
-  # and Finch out-of-the-box. This configuration is typically done at
-  # compile-time in your config/prod.exs:
-  #
-  #     config :swoosh, :api_client, Swoosh.ApiClient.Req
-  #
-  # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+  # Mailer — Resend over Swoosh. The Req-based api_client is wired
+  # in at compile time in config/prod.exs.
+  config :game_night, GameNight.Mailer,
+    adapter: Resend.Swoosh.Adapter,
+    api_key: System.fetch_env!("RESEND_API_KEY")
 end

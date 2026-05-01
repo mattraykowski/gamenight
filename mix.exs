@@ -106,7 +106,8 @@ defmodule GameNight.MixProject do
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
-      {:bun, "~> 1.5 and >= 1.5.1", runtime: Mix.env() == :dev}
+      {:bun, "~> 1.5 and >= 1.5.1", runtime: Mix.env() == :dev},
+      {:resend, "~> 0.4"}
     ]
   end
 
