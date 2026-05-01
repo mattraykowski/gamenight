@@ -1,3 +1,4 @@
+import { Dices, Star, type LucideIcon } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import {
@@ -8,9 +9,9 @@ import {
 import { cn } from "@/lib/utils";
 import type { CalendarEventDay } from "../hooks";
 
-const ROLE_ICON: Record<CalendarEventDay["role"], string> = {
-  gm: "🎲",
-  player: "★",
+const ROLE_ICON: Record<CalendarEventDay["role"], LucideIcon> = {
+  gm: Dices,
+  player: Star,
 };
 
 const ROLE_LABEL: Record<CalendarEventDay["role"], string> = {
@@ -62,28 +63,31 @@ export function DayEventsPopover({
       >
         <p className="px-2 py-1 text-sm font-semibold">{formatDate(date)}</p>
         <ul className="mt-1 flex flex-col gap-1">
-          {events.map((event) => (
-            <li key={`${date}-${event.scheduleId}`}>
-              <button
-                type="button"
-                onClick={() => handleSelect(event)}
-                aria-label={`${formatDate(date)}, ${event.gameTitle}, ${ROLE_LABEL[event.role]}`}
-                className={cn(
-                  "flex w-full flex-col items-start gap-0.5 rounded px-2 py-1.5 text-left transition-colors",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-                  ROLE_PILL_CLASS[event.role],
-                )}
-              >
-                <span className="flex items-center gap-1 text-sm font-medium">
-                  <span aria-hidden="true">{ROLE_ICON[event.role]}</span>
-                  <span className="truncate">{event.gameTitle}</span>
-                </span>
-                <span className="text-xs opacity-80">
-                  {event.timeSlotLabel}
-                </span>
-              </button>
-            </li>
-          ))}
+          {events.map((event) => {
+            const Icon = ROLE_ICON[event.role];
+            return (
+              <li key={`${date}-${event.scheduleId}`}>
+                <button
+                  type="button"
+                  onClick={() => handleSelect(event)}
+                  aria-label={`${formatDate(date)}, ${event.gameTitle}, ${ROLE_LABEL[event.role]}`}
+                  className={cn(
+                    "flex w-full flex-col items-start gap-0.5 rounded px-2 py-1.5 text-left transition-colors",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                    ROLE_PILL_CLASS[event.role],
+                  )}
+                >
+                  <span className="flex items-center gap-1.5 text-sm font-medium">
+                    <Icon aria-hidden="true" className="size-3.5 shrink-0" />
+                    <span className="truncate">{event.gameTitle}</span>
+                  </span>
+                  <span className="text-xs opacity-80">
+                    {event.timeSlotLabel}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
         </ul>
       </PopoverContent>
     </Popover>

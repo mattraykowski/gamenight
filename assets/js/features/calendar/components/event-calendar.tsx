@@ -1,3 +1,4 @@
+import { Dices, Star, type LucideIcon } from "lucide-react";
 import { useMemo } from "react";
 
 import { CalendarGrid } from "@/components/calendar-grid";
@@ -20,9 +21,9 @@ const MONTH_NAMES = [
   "December",
 ] as const;
 
-const ROLE_ICON: Record<CalendarEventDay["role"], string> = {
-  gm: "🎲",
-  player: "★",
+const ROLE_ICON: Record<CalendarEventDay["role"], LucideIcon> = {
+  gm: Dices,
+  player: Star,
 };
 
 const ROLE_LABEL: Record<CalendarEventDay["role"], string> = {
@@ -77,6 +78,9 @@ export function EventCalendar({
     return map;
   }, [events]);
 
+  // bg-surface-container-lowest min-h-[120px] p-2 opacity-50 grayscale-[0.5]
+  // text-label-sm font-label-sm text-stone-400
+  
   return (
     <CalendarGrid
       year={year}
@@ -87,7 +91,7 @@ export function EventCalendar({
           role="presentation"
           aria-hidden="true"
           data-testid={`event-calendar-cell-out-${formatDateKey(date)}`}
-          className="flex h-24 flex-col gap-1 border border-border/40 bg-card p-1.5 opacity-50"
+          className="flex h-24 flex-col gap-1 bg-card p-1.5 opacity-50"
         >
           <span className="text-xs font-semibold text-muted-foreground">
             {date.getDate()}
@@ -105,34 +109,35 @@ export function EventCalendar({
           <div
             role="gridcell"
             data-testid={`event-calendar-cell-${dateKey}`}
-            className="flex h-24 flex-col gap-1 border border-border/60 bg-card p-1.5"
+            className="flex h-24 flex-col gap-1 bg-card p-1.5"
           >
             <span className="text-xs font-semibold text-muted-foreground">
               {day}
             </span>
             <div className="flex flex-1 flex-col gap-1 overflow-hidden">
-              {visible.map((event) => (
-                <button
-                  key={`${dateKey}-${event.scheduleId}`}
-                  type="button"
-                  data-testid={`event-pill-${dateKey}-${event.scheduleId}`}
-                  aria-label={`${monthName} ${day}, ${event.gameTitle}, ${ROLE_LABEL[event.role]}`}
-                  title={event.gameTitle}
-                  onClick={() => onOpenEvent(event)}
-                  className={cn(
-                    "flex min-h-7 w-full items-center gap-1 rounded border px-1.5 py-0.5 text-left text-xs font-medium transition-colors",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-                    ROLE_PILL_CLASS[event.role],
-                  )}
-                >
-                  <span aria-hidden="true" className="shrink-0">
-                    {ROLE_ICON[event.role]}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate">
-                    {event.gameTitle}
-                  </span>
-                </button>
-              ))}
+              {visible.map((event) => {
+                const Icon = ROLE_ICON[event.role];
+                return (
+                  <button
+                    key={`${dateKey}-${event.scheduleId}`}
+                    type="button"
+                    data-testid={`event-pill-${dateKey}-${event.scheduleId}`}
+                    aria-label={`${monthName} ${day}, ${event.gameTitle}, ${ROLE_LABEL[event.role]}`}
+                    title={event.gameTitle}
+                    onClick={() => onOpenEvent(event)}
+                    className={cn(
+                      "flex min-h-7 w-full items-center gap-1 rounded border px-1.5 py-0.5 text-left text-xs font-medium transition-colors",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                      ROLE_PILL_CLASS[event.role],
+                    )}
+                  >
+                    <Icon aria-hidden="true" className="size-3 shrink-0" />
+                    <span className="min-w-0 flex-1 truncate">
+                      {event.gameTitle}
+                    </span>
+                  </button>
+                );
+              })}
               {overflow > 0 ? (
                 <DayEventsPopover
                   date={dateKey}

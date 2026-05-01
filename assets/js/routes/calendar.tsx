@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Dices, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Dices, Sparkles, Star } from "lucide-react";
 import { useMemo } from "react";
 import { z } from "zod";
 
@@ -137,7 +137,14 @@ function CalendarRoute() {
             </div>
           ) : null}
 
-          <Card className="gap-6 border-2 bg-[var(--gn-surface-container-low)] px-8 py-8 shadow-xl">
+          <Card className="relative gap-6 overflow-hidden rounded-sm border-2 border-[var(--gn-outline-variant)] bg-[var(--gn-surface-container-low)] px-8 py-8 shadow-xl">
+            {/* Decorative amber band — same flourish as the Stitch
+               Schedule View card's top edge. Aria-hidden; pure
+               chrome. */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-secondary/30 to-transparent"
+            />
             <div className="flex items-center justify-between gap-4">
               <div className="flex flex-1 items-center justify-center gap-6">
                 <Button
@@ -213,11 +220,12 @@ function CalendarRoute() {
         {/* Right sidebar — Legend of Symbols. Static panel; no
            dynamic data. */}
         <aside aria-labelledby="calendar-legend-heading" className="xl:sticky xl:top-20 xl:self-start">
-          <Card className="gap-4 px-5 py-5">
+          <Card className="gap-4 rounded-sm border-2 border-[var(--gn-outline-variant)] bg-[var(--gn-surface-container-high)] px-6 py-6 shadow-lg">
             <h2
               id="calendar-legend-heading"
-              className="font-serif text-lg font-semibold"
+              className="mb-1 flex items-center gap-2 border-b border-[var(--gn-outline-variant)] pb-2 font-serif text-base font-bold text-secondary"
             >
+              <Sparkles aria-hidden="true" className="size-4" />
               Legend of Symbols
             </h2>
             <ul className="flex flex-col gap-3 text-sm">

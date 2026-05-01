@@ -61,36 +61,38 @@ export function CalendarGrid({
           </div>
         ))}
       </div>
-      {weeks.map((week, weekIdx) => (
-        <div key={weekIdx} role="row" className="grid grid-cols-7">
-          {week.map((cell, dayIdx) => {
-            if (cell === null) {
-              const key = `blank-${weekIdx}-${dayIdx}`;
-              if (renderBlank) {
-                return <Fragment key={key}>{renderBlank(key)}</Fragment>;
+      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-sm border border-[var(--gn-outline-variant)] bg-[var(--gn-outline-variant)]">
+        {weeks.map((week, weekIdx) => (
+          <div key={weekIdx} role="row" className="contents">
+            {week.map((cell, dayIdx) => {
+              if (cell === null) {
+                const key = `blank-${weekIdx}-${dayIdx}`;
+                if (renderBlank) {
+                  return <Fragment key={key}>{renderBlank(key)}</Fragment>;
+                }
+                return (
+                  <div
+                    key={key}
+                    data-testid="calendar-grid-blank"
+                    role="presentation"
+                    aria-hidden="true"
+                    className="bg-muted/30"
+                  />
+                );
               }
-              return (
-                <div
-                  key={key}
-                  data-testid="calendar-grid-blank"
-                  role="presentation"
-                  aria-hidden="true"
-                  className="border border-border/40 bg-muted/30"
-                />
-              );
-            }
-            const dateKey = `${cell.date.getFullYear()}-${cell.date.getMonth()}-${cell.date.getDate()}`;
-            if (cell.outOfMonth) {
-              return (
-                <Fragment key={`oom-${dateKey}`}>
-                  {renderOutOfMonth!(cell.date)}
-                </Fragment>
-              );
-            }
-            return <Fragment key={dateKey}>{renderCell(cell.date)}</Fragment>;
-          })}
-        </div>
-      ))}
+              const dateKey = `${cell.date.getFullYear()}-${cell.date.getMonth()}-${cell.date.getDate()}`;
+              if (cell.outOfMonth) {
+                return (
+                  <Fragment key={`oom-${dateKey}`}>
+                    {renderOutOfMonth!(cell.date)}
+                  </Fragment>
+                );
+              }
+              return <Fragment key={dateKey}>{renderCell(cell.date)}</Fragment>;
+            })}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
