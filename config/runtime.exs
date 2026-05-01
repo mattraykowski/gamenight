@@ -85,7 +85,20 @@ if config_env() == :prod do
 
   config :game_night, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
-  config :game_night, GameNightWeb.Endpoint,
+  # PhoenixVite.cache_static_manifest_latest/1 reads the Vite
+  # manifest eagerly. runtime.exs is evaluated by some Mix tasks
+  # (e.g. `mix assets.setup` via the :bun task's app.config load),
+  # *before* vite has had a chance to write the manifest — so on a
+  # cold buildpack build it would crash here. Skip the config when
+  # the file isn't on disk yet; the production deploy will have it
+  # by the time the endpoint actually starts.
+  manifest_path =
+    :game_night
+    |> :code.priv_dir()
+    |> to_string()
+    |> Path.join("static/.vite/manifest.json")
+
+  endpoint_opts = [
     url: [host: host, port: 443, scheme: "https"],
     http: [
       # Enable IPv6 and bind on all interfaces.
@@ -94,8 +107,21 @@ if config_env() == :prod do
       # for details about using IPv6 vs IPv4 and loopback vs public addresses.
       ip: {0, 0, 0, 0, 0, 0, 0, 0}
     ],
-    secret_key_base: secret_key_base,
-    cache_static_manifest_latest: PhoenixVite.cache_static_manifest_latest(:game_night)
+    secret_key_base: secret_key_base
+  ]
+
+  endpoint_opts =
+    if File.exists?(manifest_path) do
+      Keyword.put(
+        endpoint_opts,
+        :cache_static_manifest_latest,
+        PhoenixVite.cache_static_manifest_latest(:game_night)
+      )
+    else
+      endpoint_opts
+    end
+
+  config :game_night, GameNightWeb.Endpoint, endpoint_opts
 
   config :game_night,
     token_signing_secret:
