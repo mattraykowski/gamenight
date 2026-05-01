@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Custom phoenix-static buildpack compile step.
+#
+# The buildpack sources this script from inside $assets_dir
+# (= ./assets), with $phoenix_dir pointing at the project root.
+# By the time we run, the elixir buildpack has already executed
+# `mix deps.get`, `mix deps.compile`, and `mix compile` — so deps/
+# is populated and `_build/prod/lib/game_night/priv/` has been
+# materialised from the project's `priv/`. The buildpack has
+# also already done a best-effort `npm install` here.
+#
+# Our job:
+#   1. Install bun pinned to .tool-versions.
+#   2. Replace npm's node_modules with `bun install --frozen-lockfile`.
+#   3. Run `bun vite build` so priv/static/.vite/manifest.json exists.
+#   4. Re-run `mix compile` so the manifest is copied into
+#      _build/prod/lib/game_night/priv/static/, where
+#      PhoenixVite.cache_static_manifest_latest/1 looks for it
+#      at boot.
+
+set -euo pipefail
+
+BUN_VERSION="1.3.12"
+
+cd "$phoenix_dir"
+
+echo "-----> Installing bun $BUN_VERSION"
+export BUN_INSTALL="$HOME/.bun"
+curl -fsSL https://bun.sh/install | bash -s -- "bun-v${BUN_VERSION}"
+export PATH="$BUN_INSTALL/bin:$PATH"
+bun --version
+
+echo "-----> Replacing node_modules with bun install"
+(
+  cd assets
+  rm -rf node_modules
+  bun install --frozen-lockfile
+)
+
+echo "-----> Building SPA bundle (bun vite build)"
+bun --cwd=assets vite build
+
+echo "-----> Re-running mix compile to refresh _build priv"
+mix compile
