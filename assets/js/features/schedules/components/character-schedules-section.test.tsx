@@ -140,7 +140,11 @@ describe("<CharacterSchedulesSection> (T111)", () => {
 
   it("renders a prominent 'Next Game' callout above the This month list", async () => {
     // Pick a Final-A day that's guaranteed to be on-or-after today and
-    // still inside the current month — needs to work at any month-end.
+    // still inside the current month — needs to work at any month
+    // boundary. The past day (a Final-A in the same month, before
+    // today) is decoration: it verifies the impl skips past days in
+    // favour of `nextDay`. When today is the 1st there's no room for
+    // a past day in this month, so we omit it.
     const todayDay = TODAY.getDate();
     const lastDayOfMonth = new Date(
       CURRENT_YEAR,
@@ -148,16 +152,19 @@ describe("<CharacterSchedulesSection> (T111)", () => {
       0,
     ).getDate();
     const nextDay = Math.min(todayDay + 2, lastDayOfMonth);
-    const pastDay = Math.max(todayDay - 5, 1);
+    const pastDay = todayDay > 1 ? Math.max(todayDay - 5, 1) : null;
     const current = buildSchedule({
       id: "next-game-current",
       name: "This month with games",
       month: CURRENT_MONTH,
       year: CURRENT_YEAR,
-      scheduleDays: [
-        { day: pastDay, finalStatus: "A" },
-        { day: nextDay, finalStatus: "A" },
-      ],
+      scheduleDays:
+        pastDay !== null
+          ? [
+              { day: pastDay, finalStatus: "A" },
+              { day: nextDay, finalStatus: "A" },
+            ]
+          : [{ day: nextDay, finalStatus: "A" }],
     });
     renderInRouter(
       <CharacterSchedulesSection audience={{ kind: "character", characterId: "char-1" }} schedules={[current]} />,

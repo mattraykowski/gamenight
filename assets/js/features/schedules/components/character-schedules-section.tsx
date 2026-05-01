@@ -185,10 +185,13 @@ function ScheduleBucket({
   }
 
   return (
-    <div className="rounded-md border p-4" aria-labelledby={headingId}>
+    <div
+      className="rounded-sm border-2 border-[var(--gn-outline-variant)] bg-[var(--gn-surface-container-high)] p-6 shadow-lg"
+      aria-labelledby={headingId}
+    >
       <h3
         id={headingId}
-        className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"
+        className="border-b border-[var(--gn-outline-variant)] pb-2 font-serif text-base font-bold uppercase tracking-wide text-secondary"
       >
         {title}
       </h3>

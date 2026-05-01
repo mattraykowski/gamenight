@@ -6,7 +6,7 @@ import { GameFieldRow } from "@/features/games/components/game-field-row";
 import { DeleteGameDialog } from "@/features/games/components/delete-game-dialog";
 import { useDestroyGame, useGame } from "@/features/games/hooks";
 import { InvitePlayerDialog } from "@/features/invitations/components/invite-player-dialog";
-import { PendingInvitationsList } from "@/features/invitations/components/pending-invitations-list";
+import { PendingInvitationsDialog } from "@/features/invitations/components/pending-invitations-dialog";
 import { RevokeInvitationDialog } from "@/features/invitations/components/revoke-invitation-dialog";
 import {
   useCreateInvitation,
@@ -225,49 +225,49 @@ export function GameDetailRoute() {
         ) : null}
       </div>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
-        <div className="space-y-6">
-          <GameFieldRow id="title" label="Title">
+      <div className="mt-8 space-y-6">
+        <div className="flex items-start justify-between gap-4">
+          <GameFieldRow id="title" label="Title" className="flex-1">
             <p className="text-base" data-testid="game-detail-title">
               {entry.title}
             </p>
           </GameFieldRow>
-          <GameFieldRow id="description" label="Description">
-            <p
-              className="whitespace-pre-wrap text-base text-muted-foreground"
-              data-testid="game-detail-description"
-            >
-              {entry.description && entry.description.length > 0 ? entry.description : "—"}
-            </p>
-          </GameFieldRow>
-          <GameFieldRow id="status" label="Status">
+          <GameFieldRow id="status" label="Status" className="text-right">
             <p className="text-base" data-testid="game-detail-status">
               {STATUS_LABELS[entry.status] ?? entry.status}
             </p>
           </GameFieldRow>
         </div>
-
-        {isOwner ? (
-          <aside aria-label="Upcoming schedule overview">
-            {schedulesTopSix.isPending ? (
-              <p className="text-sm text-muted-foreground">Loading schedules…</p>
-            ) : schedulesTopSix.isError ? (
-              <p
-                className="rounded-md border border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive"
-                role="alert"
-              >
-                We couldn&apos;t load schedules. Please refresh.
-              </p>
-            ) : (
-              <CharacterSchedulesSection
-                audience={{ kind: "game", gameId: id }}
-                schedules={schedulesTopSix.data ?? []}
-                hideHeader
-              />
-            )}
-          </aside>
-        ) : null}
+        <GameFieldRow id="description" label="Description">
+          <p
+            className="whitespace-pre-wrap text-base text-muted-foreground"
+            data-testid="game-detail-description"
+          >
+            {entry.description && entry.description.length > 0 ? entry.description : "—"}
+          </p>
+        </GameFieldRow>
       </div>
+
+      {isOwner ? (
+        <section className="mt-12" aria-label="Upcoming schedule overview">
+          {schedulesTopSix.isPending ? (
+            <p className="text-sm text-muted-foreground">Loading schedules…</p>
+          ) : schedulesTopSix.isError ? (
+            <p
+              className="rounded-md border border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              role="alert"
+            >
+              We couldn&apos;t load schedules. Please refresh.
+            </p>
+          ) : (
+            <CharacterSchedulesSection
+              audience={{ kind: "game", gameId: id }}
+              schedules={schedulesTopSix.data ?? []}
+              hideHeader
+            />
+          )}
+        </section>
+      ) : null}
 
       <section
         className="mt-12 border-t pt-8"
@@ -278,14 +278,58 @@ export function GameDetailRoute() {
             Players
           </h2>
           {isOwner ? (
-            <InvitePlayerDialog
-              onSubmit={onInvite}
-              isPending={createInvitation.isPending}
-            >
-              <Button type="button" size="sm" data-testid="invite-player-trigger">
-                Invite player
-              </Button>
-            </InvitePlayerDialog>
+            <div className="flex items-center gap-2">
+              <PendingInvitationsDialog
+                invitations={pendingInvites.data ?? []}
+                isPending={pendingInvites.isPending}
+                isError={pendingInvites.isError}
+                renderActions={(invitation) => (
+                  <RevokeInvitationDialog
+                    invitation={{
+                      id: invitation.id,
+                      email: String(invitation.email),
+                      characterName: invitation.characterName,
+                    }}
+                    isPending={revoke.isPending}
+                    onConfirm={() => onRevoke(invitation)}
+                  >
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      data-testid={`revoke-invitation-trigger-${invitation.id}`}
+                    >
+                      Revoke
+                    </Button>
+                  </RevokeInvitationDialog>
+                )}
+              >
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  data-testid="pending-invitations-trigger"
+                >
+                  Pending invitations
+                  {(pendingInvites.data?.length ?? 0) > 0 ? (
+                    <span
+                      aria-hidden="true"
+                      className="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-secondary/15 px-1.5 text-xs font-semibold text-secondary"
+                    >
+                      {pendingInvites.data?.length}
+                    </span>
+                  ) : null}
+                </Button>
+              </PendingInvitationsDialog>
+              <InvitePlayerDialog
+                onSubmit={onInvite}
+                isPending={createInvitation.isPending}
+              >
+                <Button type="button" size="sm" data-testid="invite-player-trigger">
+                  Invite player
+                </Button>
+              </InvitePlayerDialog>
+            </div>
           ) : null}
         </div>
         <div className="mt-4">
@@ -350,61 +394,6 @@ export function GameDetailRoute() {
       </section>
 
       {isOwner ? (
-        <section
-          className="mt-12 border-t pt-8"
-          aria-labelledby="pending-invitations-heading"
-        >
-          <h2
-            id="pending-invitations-heading"
-            className="font-serif text-2xl font-semibold tracking-tight"
-          >
-            Pending invitations
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Visible only to you.
-          </p>
-          <div className="mt-4">
-            {pendingInvites.isPending ? (
-              <p className="text-sm text-muted-foreground" aria-live="polite">
-                Loading invitations…
-              </p>
-            ) : pendingInvites.isError ? (
-              <p
-                className="rounded-md border border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive"
-                role="alert"
-              >
-                We couldn&apos;t load pending invitations. Please refresh.
-              </p>
-            ) : (
-              <PendingInvitationsList
-                invitations={pendingInvites.data ?? []}
-                renderActions={(invitation) => (
-                  <RevokeInvitationDialog
-                    invitation={{
-                      id: invitation.id,
-                      email: String(invitation.email),
-                      characterName: invitation.characterName,
-                    }}
-                    isPending={revoke.isPending}
-                    onConfirm={() => onRevoke(invitation)}
-                  >
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      data-testid={`revoke-invitation-trigger-${invitation.id}`}
-                    >
-                      Revoke
-                    </Button>
-                  </RevokeInvitationDialog>
-                )}
-              />
-            )}
-          </div>
-        </section>
-      ) : null}
-
-      {isOwner ? (
         <section className="mt-12" aria-labelledby="schedules-heading">
           <div className="flex items-center justify-between">
             <h2
@@ -414,20 +403,6 @@ export function GameDetailRoute() {
               Schedules
             </h2>
             <div className="flex items-center gap-2">
-              <InitiateScheduleDialog
-                gameId={id}
-                onSubmit={onInitiateSchedule}
-                isPending={initiateSchedule.isPending}
-              >
-                <Button
-                  type="button"
-                  variant="default"
-                  size="sm"
-                  data-testid="initiate-schedule-trigger"
-                >
-                  Initiate schedule
-                </Button>
-              </InitiateScheduleDialog>
               <Button
                 type="button"
                 variant="outline"
@@ -442,6 +417,21 @@ export function GameDetailRoute() {
               >
                 View all schedules
               </Button>
+              <InitiateScheduleDialog
+                gameId={id}
+                onSubmit={onInitiateSchedule}
+                isPending={initiateSchedule.isPending}
+              >
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  data-testid="initiate-schedule-trigger"
+                >
+                  Initiate schedule
+                </Button>
+              </InitiateScheduleDialog>
+              
             </div>
           </div>
           <div className="mt-4">
