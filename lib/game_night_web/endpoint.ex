@@ -50,9 +50,15 @@ defmodule GameNightWeb.Endpoint do
     plug Phoenix.Ecto.CheckRepoStatus, otp_app: :game_night
   end
 
-  plug Phoenix.LiveDashboard.RequestLogger,
-    param_key: "request_logger",
-    cookie_key: "request_logger"
+  # LiveDashboard is mounted under /dev — only gated routes use it,
+  # so the request logger only needs to run when those routes do.
+  # Keeping this dev/test-only lets us drop :phoenix_live_dashboard
+  # from the prod release entirely.
+  if Mix.env() in [:dev, :test] do
+    plug Phoenix.LiveDashboard.RequestLogger,
+      param_key: "request_logger",
+      cookie_key: "request_logger"
+  end
 
   plug Plug.RequestId
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]

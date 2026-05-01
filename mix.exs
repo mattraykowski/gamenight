@@ -66,7 +66,10 @@ defmodule GameNight.MixProject do
       {:open_api_spex, "~> 3.0"},
       {:ash_typescript, "~> 0.17"},
       {:usage_rules, "~> 1.0", only: [:dev]},
-      {:ash_ai, "~> 0.6"},
+      # Only used by AshAi.Mcp.Dev in endpoint.ex's `code_reloading?`
+      # branch — never reached in prod. Gating to dev/test keeps the
+      # dep (and its transitive payload) out of the prod release.
+      {:ash_ai, "~> 0.6", only: [:dev, :test]},
       {:tidewave, "~> 0.5", only: [:dev]},
       {:live_debugger, "~> 0.8", only: [:dev]},
       {:ash_admin, "~> 1.0"},
@@ -85,7 +88,14 @@ defmodule GameNight.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.0"},
       {:lazy_html, ">= 0.1.0", only: :test},
-      {:phoenix_live_dashboard, "~> 0.8.3"},
+      # Only used by the dev /dashboard route + the request logger
+      # plug, both gated to dev/test. Keep the dep out of the prod
+      # release with runtime: false. Can't use only: [:dev, :test] —
+      # the router's `import Phoenix.LiveDashboard.Router` lives
+      # inside `if Application.compile_env(:game_night, :dev_routes)`,
+      # but the import macro is still parsed in prod and needs the
+      # module on disk at compile time.
+      {:phoenix_live_dashboard, "~> 0.8.3", runtime: false},
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.2.0",
