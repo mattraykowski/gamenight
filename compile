@@ -22,13 +22,39 @@
 
 set -euo pipefail
 
+BUN_VERSION="1.3.12"
+
 cd "$phoenix_dir"
 
-echo "-----> mix assets.setup (download :bun, install assets/node_modules)"
-mix assets.setup
+# Install bun ourselves rather than relying on `mix bun.install`. The
+# phoenix-static buildpack already ran `npm install` against
+# assets/package.json before this script, leaving node_modules
+# resolved by npm — not bun.lock. We need to wipe and reinstall with
+# bun --frozen-lockfile, otherwise the resolved tree drifts from
+# bun.lock and we get version-mismatch crashes (e.g. a Zod 3 API
+# call inside @tanstack/router-generator against a Zod 4 install).
+# `mix bun assets install` (the :bun Mix task) skips
+# --frozen-lockfile, so we call bun directly here.
+echo "-----> Installing bun $BUN_VERSION"
+export BUN_INSTALL="$HOME/.bun"
+curl -fsSL https://bun.sh/install | bash -s -- "bun-v${BUN_VERSION}"
+export PATH="$BUN_INSTALL/bin:$PATH"
+bun --version
+
+echo "-----> Reinstalling assets/node_modules with bun (frozen lockfile)"
+(
+  cd assets
+  rm -rf node_modules
+  bun install --frozen-lockfile
+)
 
 echo "-----> mix compile --force (refresh _build/prod/phoenix-colocated stubs)"
 mix compile --force
 
+# `mix assets.deploy` aliases to `mix bun vite build`. The :bun
+# Mix task is what sets MIX_BUILD_PATH on the bun process — that's
+# what assets/vite.config.ts reads to resolve the
+# `phoenix-colocated/<app>` import, so we still need to go through
+# Mix here even though we just installed deps with bun directly.
 echo "-----> mix assets.deploy (runs bun vite build with MIX_BUILD_PATH set)"
 mix assets.deploy
