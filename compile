@@ -9,37 +9,26 @@
 # materialised from the project's `priv/`. The buildpack has
 # also already done a best-effort `npm install` here.
 #
-# `mix compile --force` regenerates the
-# /tmp/phoenix-colocated-{used,unused}/game_night stubs that
-# phoenix_live_view's compiler writes for `colocated_hook` (and
-# friends). assets/js/app.js imports them via a vite plugin; if
-# they're missing, `bun vite build` fails with
-#   [vite:load-fallback] Could not load /tmp/phoenix-colocated-unused/game_night
-# We don't know whether /tmp gets swept between buildpacks or
-# whether mix's incremental cache skips the generation step the
-# second time around — `--force` makes both questions moot.
+# Everything below delegates to Mix aliases on purpose. The
+# `assets.build` alias resolves to `mix bun vite build`, and
+# the `:bun` config in config/config.exs sets MIX_BUILD_PATH on
+# the bun process — which is what assets/vite.config.ts reads to
+# resolve the `phoenix-colocated/game_night` import to the real
+# `_build/prod/phoenix-colocated/game_night/` directory written
+# by phoenix_live_view's compiler. Calling `bun vite build`
+# directly leaves MIX_BUILD_PATH unset and vite falls back to an
+# empty `/tmp/phoenix-colocated-unused` placeholder, which is
+# how we got here.
 
 set -euo pipefail
 
-BUN_VERSION="1.3.12"
-
 cd "$phoenix_dir"
 
-echo "-----> Installing bun $BUN_VERSION"
-export BUN_INSTALL="$HOME/.bun"
-curl -fsSL https://bun.sh/install | bash -s -- "bun-v${BUN_VERSION}"
-export PATH="$BUN_INSTALL/bin:$PATH"
-bun --version
+echo "-----> mix assets.setup (download :bun, install assets/node_modules)"
+mix assets.setup
 
-echo "-----> Replacing node_modules with bun install"
-(
-  cd assets
-  rm -rf node_modules
-  bun install --frozen-lockfile
-)
-
-echo "-----> Forcing mix compile to regenerate phoenix-colocated stubs"
+echo "-----> mix compile --force (refresh _build/prod/phoenix-colocated stubs)"
 mix compile --force
 
-echo "-----> Building SPA bundle (bun vite build)"
-bun --cwd=assets vite build
+echo "-----> mix assets.deploy (runs bun vite build with MIX_BUILD_PATH set)"
+mix assets.deploy
