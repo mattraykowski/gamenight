@@ -57,17 +57,30 @@ if config_env() == :prod do
 
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
-  config :game_night, GameNight.Repo,
-    ssl: true,
-    # Gigalixir's managed Postgres uses certs not in the system trust
-    # store, so skip CA verification. The connection is still
-    # encrypted in transit; we just don't pin the issuer.
-    ssl_opts: [verify: :verify_none],
-    url: database_url,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
-    # For machines with several cores, consider starting multiple pools of `pool_size`
-    # pool_count: 4,
-    socket_options: maybe_ipv6
+  # Gigalixir's managed Postgres requires SSL; self-hosted/local
+  # Postgres in a docker-compose stack typically doesn't speak it.
+  # Default on so the Gigalixir path keeps working without setting
+  # a new env var; opt out with DATABASE_SSL=false.
+  database_ssl? = System.get_env("DATABASE_SSL", "true") not in ~w(false 0)
+
+  repo_opts =
+    [
+      url: database_url,
+      pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+      # For machines with several cores, consider starting multiple pools of `pool_size`
+      # pool_count: 4,
+      socket_options: maybe_ipv6
+    ] ++
+      if database_ssl? do
+        # Gigalixir's managed Postgres uses certs not in the system
+        # trust store, so skip CA verification. The connection is
+        # still encrypted in transit; we just don't pin the issuer.
+        [ssl: true, ssl_opts: [verify: :verify_none]]
+      else
+        [ssl: false]
+      end
+
+  config :game_night, GameNight.Repo, repo_opts
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
@@ -81,7 +94,17 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("PHX_HOST") || "example.com"
+  # Phoenix builds asset URLs from `host` and adds the scheme itself,
+  # so PHX_HOST must be a bare hostname. Strip a stray scheme/path
+  # rather than silently producing `https://[https://example.com]/…`
+  # (Phoenix treats the colons as IPv6 and wraps the value in `[...]`).
+  host =
+    "PHX_HOST"
+    |> System.get_env("example.com")
+    |> String.replace_prefix("https://", "")
+    |> String.replace_prefix("http://", "")
+    |> String.split("/", parts: 2)
+    |> List.first()
 
   config :game_night, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 

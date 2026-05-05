@@ -117,7 +117,7 @@ function ToastViewport({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id:
   if (toasts.length === 0) return null;
   return (
     <div
-      className="pointer-events-none fixed bottom-4 right-4 z-50 flex flex-col gap-2"
+      className="pointer-events-none fixed inset-x-0 top-16 z-50 flex flex-col items-center gap-2 px-4"
       aria-live="polite"
       aria-atomic="false"
       data-testid="toast-viewport"
@@ -127,14 +127,14 @@ function ToastViewport({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id:
           key={toast.id}
           role="status"
           data-testid={`toast-${toast.variant}`}
-          className={`pointer-events-auto rounded-md border px-4 py-2 text-sm shadow-md ${variantClass(toast.variant)}`}
+          className={`pointer-events-auto w-full max-w-md rounded-md border-2 px-5 py-3 text-base font-medium shadow-xl ${variantClass(toast.variant)}`}
         >
           <div className="flex items-start gap-3">
             <span className="flex-1">{toast.title}</span>
             <button
               type="button"
               onClick={() => onDismiss(toast.id)}
-              className="text-xs underline-offset-4 hover:underline"
+              className="text-sm font-semibold underline-offset-4 hover:underline"
               aria-label="Dismiss notification"
             >
               Dismiss
@@ -149,10 +149,10 @@ function ToastViewport({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id:
 function variantClass(variant: ToastVariant): string {
   switch (variant) {
     case "success":
-      return "border-primary bg-primary/5 text-foreground";
+      return "border-primary bg-primary text-primary-foreground";
     case "error":
-      return "border-destructive bg-destructive/5 text-destructive";
+      return "border-destructive bg-destructive text-white";
     default:
-      return "border-muted bg-muted text-foreground";
+      return "border-secondary bg-secondary text-secondary-foreground";
   }
 }

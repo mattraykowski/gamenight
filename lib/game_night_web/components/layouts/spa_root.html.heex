@@ -22,11 +22,22 @@
         """) %>
       </script>
     <% end %>
+    <%!--
+      `to_url` strips the `?vsn=d` cache-buster that
+      PhoenixVite.Components.assets hard-codes onto the entry chunk's
+      <script> tag. Vite already content-hashes the filename
+      (`index-XXX.js`), so the query string is redundant — and
+      actively harmful: relative `import` and `<link rel=modulepreload>`
+      references inside the bundle resolve to the *unqueried* URL,
+      so the browser fetches the same chunk twice and instantiates
+      React twice, leaving the React Compiler runtime reading a null
+      dispatcher (`Cannot read properties of null (reading 'useMemoCache')`).
+    --%>
     <PhoenixVite.Components.assets
       names={["js/index.tsx"]}
       manifest={{:game_night, "priv/static/.vite/manifest.json"}}
       dev_server={PhoenixVite.Components.has_vite_watcher?(GameNightWeb.Endpoint)}
-      to_url={&static_url(@conn, &1)}
+      to_url={fn path -> static_url(@conn, String.replace(path, "?vsn=d", "")) end}
     />
   </head>
   <body>
