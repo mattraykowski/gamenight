@@ -18,9 +18,15 @@ export function useFocusOnRouteChange(): void {
   const announce = useAnnounce();
 
   useEffect(() => {
+    let prevHref: string | undefined = router.state.location.href;
     return router.subscribe("onResolved", () => {
-      // Defer one microtask so the new route's DOM is guaranteed to be mounted
-      // before we query for the heading.
+      // `onResolved` also fires for intent-preload settles, not just real
+      // navigations. Without this guard, hovering/focusing a `<Link>` would
+      // refocus `[data-route-heading]` and scroll the page to the top —
+      // stealing the click before it reaches the link.
+      const href = router.state.location.href;
+      if (href === prevHref) return;
+      prevHref = href;
       queueMicrotask(() => {
         const heading = document.querySelector<HTMLElement>("[data-route-heading]");
         if (!heading) return;
