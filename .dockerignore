@@ -1,0 +1,60 @@
+# Build artefacts and local caches — let the image rebuild these
+# from source so we don't ship dev/test compiled output to prod.
+_build
+deps
+.elixir_ls
+.elixir-tools
+priv/plts
+priv/static/assets
+priv/static/.vite
+.vite
+erl_crash.dump
+
+# Node / bun
+node_modules
+assets/node_modules
+assets/.vite
+assets/dist
+assets/test-results
+assets/playwright-report
+assets/coverage
+
+# Tests, e2e, fixtures
+test
+assets/e2e
+assets/test
+
+# Tooling, editor, VCS
+.git
+.github
+.gitignore
+.dialyzer_ignore.exs
+.formatter.exs
+.tool-versions
+.envrc
+.env
+.env.*
+.vscode
+.idea
+.zed
+.DS_Store
+
+# Docs / planning artefacts not needed for the image
+docs
+plans
+specs
+TODOS.md
+README.md
+AGENTS.md
+CLAUDE.md
+.agents
+.claude
+
+# Buildpack-specific configs (not used by Docker build)
+elixir_buildpack.config
+phoenix_static_buildpack.config
+compile
+
+# This file and its sibling
+Dockerfile
+.dockerignore

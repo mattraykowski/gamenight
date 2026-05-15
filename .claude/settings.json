@@ -1,0 +1,53 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.specify/scripts/bash/setup-plan.sh --json)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh --json)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks)",
+      "Bash(mix ecto.migrate)",
+      "Bash(bunx --bun @tanstack/router-cli generate)",
+      "Bash(bunx --bun @tanstack/router-cli generate --config ./vite.config.ts)",
+      "Bash(bunx --bun @tanstack/router-cli generate --routesDirectory ./js/routes --generatedRouteTree ./js/routeTree.gen.ts)",
+      "Bash(bunx --bun shadcn@latest init --template vite --base radix -p nova -y --no-monorepo --no-rtl)",
+      "Bash(bunx --bun shadcn@latest add button input label checkbox textarea table dialog --overwrite --yes)",
+      "Bash(bunx --bun shadcn@latest add select --overwrite --yes)",
+      "Bash(bun remove *)",
+      "Bash(bun vite *)",
+      "Bash(bun x *)",
+      "Bash(.specify/extensions/git/scripts/bash/auto-commit.sh after_implement)",
+      "Bash(bunx --bun defuddle --version)",
+      "Bash(bunx --bun shadcn@latest add https://tweakcn.com/r/themes/cmlk6zefr000004lbe9jygsqc --yes --overwrite)",
+      "Bash(pkill -f \"mix phx.server\")",
+      "Bash(git checkout *)",
+      "Bash(.specify/extensions/git/scripts/bash/create-new-feature.sh --json --short-name \"invite-players\" \"Invite Players\")",
+      "Bash(mkdir -p /home/mattr/Projects/game_night/specs/002-invite-players/checklists)",
+      "Bash(cp /home/mattr/Projects/game_night/.specify/templates/spec-template.md /home/mattr/Projects/game_night/specs/002-invite-players/spec.md)",
+      "Bash(git commit -m ' *)",
+      "Bash(mix --version)",
+      "Bash(mix ash.codegen create_invite_players_resources)",
+      "Bash(MIX_ENV=test mix ecto.migrate)",
+      "Bash(PGPASSWORD=postgres psql -U postgres -h localhost -d game_night_dev -c \"\\\\d tokens\")",
+      "Bash(asdf current *)",
+      "Bash(awk '/defp path_args_and_filter/,/^  end$/' /home/mattr/Projects/game_night/deps/ash_json_api/lib/ash_json_api/controllers/helpers.ex)",
+      "Bash(bunx tsr *)",
+      "Bash(bunx @tanstack/router-cli generate)",
+      "Bash(bunx vitest *)",
+      "Bash(git merge *)",
+      "Bash(.specify/extensions/git/scripts/bash/create-new-feature.sh --json --short-name \"game-schedule\" \"Initiate Schedule: GMs schedule games for a given month and time slot, players mark availability, GM posts final schedule\")",
+      "Bash(mix ash.codegen create_schedule_resources)",
+      "Bash(git stash *)",
+      "Bash(timeout 30 bun --bun node_modules/@tanstack/router-cli/dist/index.js generate)",
+      "Bash(timeout 30 bun -e 'import { generator } from \"@tanstack/router-generator\"; const result = await generator\\({ routesDirectory: \"./js/routes\", generatedRouteTree: \"./js/routeTree.gen.ts\" }\\); console.log\\(\"done\"\\);')",
+      "Bash(timeout 60 bun -e ' *)",
+      "Bash(echo \"exit=$?\")",
+      "Read(//home/mattr/Projects/game_night/assets/js/routes/**)",
+      "Bash(grep -nB 1 \"CharactersCharacterIdSchedulesScheduleIdRoute = \" js/routeTree.gen.ts)",
+      "Bash(grep -nA 5 \"GamesGameIdSchedulesScheduleId.*\\\\.update\\\\b\\\\|GamesGameIdSchedulesScheduleId.*Scheduling\" js/routeTree.gen.ts)",
+      "Bash(mix ash.codegen partial_unique_index_for_notifications)"
+    ],
+    "additionalDirectories": [
+      "/home/mattr/Projects/game_night/assets",
+      "/home/mattr/Projects/game_night"
+    ]
+  }
+}

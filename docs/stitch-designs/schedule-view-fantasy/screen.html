@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&amp;family=Be+Vietnam+Pro:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-low": "#faf3e0",
+                    "tertiary-fixed": "#ffe088",
+                    "secondary-container": "#fd844c",
+                    "primary-fixed": "#bcf0ae",
+                    "error": "#ba1a1a",
+                    "inverse-on-surface": "#f7f0de",
+                    "surface-container-highest": "#e9e2d0",
+                    "secondary-fixed-dim": "#ffb596",
+                    "surface-tint": "#3b6934",
+                    "on-secondary-fixed-variant": "#7d2d00",
+                    "background": "#fff9eb",
+                    "on-secondary-fixed": "#360f00",
+                    "surface": "#fff9eb",
+                    "outline-variant": "#c2c9bb",
+                    "on-background": "#1e1c10",
+                    "surface-container-high": "#efe8d5",
+                    "tertiary": "#735c00",
+                    "on-tertiary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed": "#241a00",
+                    "surface-container": "#f4eedb",
+                    "on-primary-container": "#9dd090",
+                    "surface-variant": "#e9e2d0",
+                    "on-tertiary-container": "#4f3d00",
+                    "on-secondary-container": "#6a2500",
+                    "inverse-primary": "#a1d494",
+                    "on-tertiary-fixed-variant": "#574500",
+                    "on-surface-variant": "#42493e",
+                    "secondary-fixed": "#ffdbcd",
+                    "on-surface": "#1e1c10",
+                    "surface-dim": "#e0dac7",
+                    "on-error-container": "#93000a",
+                    "tertiary-container": "#cca730",
+                    "primary-fixed-dim": "#a1d494",
+                    "on-primary-fixed": "#002201",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed-dim": "#e9c349",
+                    "primary": "#154212",
+                    "primary-container": "#2d5a27",
+                    "on-error": "#ffffff",
+                    "secondary": "#a14009",
+                    "on-secondary": "#ffffff",
+                    "surface-bright": "#fff9eb",
+                    "on-primary-fixed-variant": "#23501e",
+                    "inverse-surface": "#333024",
+                    "outline": "#72796e"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "8px",
+                    "gutter": "24px",
+                    "margin": "32px",
+                    "container-max": "1280px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Be Vietnam Pro"],
+                    "body-md": ["Be Vietnam Pro"],
+                    "headline-md": ["Noto Serif"],
+                    "body-lg": ["Be Vietnam Pro"],
+                    "headline-xl": ["Noto Serif"],
+                    "headline-lg": ["Noto Serif"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-xl": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.25", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.parchment-texture {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBzYGCyWgG5u_JN9nKHMjx2A__wjJHyxX8cFTcp2TDDvJ0eI4HC7-vPgvXabnZLyh8upH9RDmAA_r6X-R1ILeMeSMM77fdW6LQdWT5gxQoAkUrqfVcTXtrd5Ixb6pQcP5LM-GsjpWWeRLd0Y7Z6S1IJ7TiYN6pHG0kV_SiFpM7OE-0z-IHqXbnEEHzgvnPf0MkgUGGCwd25vaDuyTgV7t1PmSQma4udSfofJMV__ZQENOC_l36Xk7qFbe5xQ5ZAiXaAccW4Wdv089M);
+    background-repeat: repeat
+    }
+.ink-border {
+    border-image: linear-gradient(to bottom, #72796e, #42493e) 1
+    }
+.wax-seal {
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2)
+    }</style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen" style="background-color: #fff9eb;">
+<header class="bg-[#F4EBD0] dark:bg-stone-950 text-stone-900 dark:text-stone-100 docked full-width top-0 border-b-2 border-amber-700/30 dark:border-amber-900/50 shadow-[4px_4px_0px_rgba(45,90,39,0.1)] flex justify-between items-center w-full px-6 py-4 sticky z-50">
+<div class="flex items-center gap-4">
+<h1 class="font-serif italic text-amber-600 dark:text-amber-500 text-2xl tracking-tight">Game Night</h1>
+</div>
+<nav class="hidden md:flex gap-8">
+<a class="text-stone-600 dark:text-stone-400 font-serif hover:text-orange-700 dark:hover:text-orange-400 transition-colors duration-300 active:scale-95 transition-transform" href="#">Dashboard</a>
+<a class="text-stone-600 dark:text-stone-400 font-serif hover:text-orange-700 dark:hover:text-orange-400 transition-colors duration-300 active:scale-95 transition-transform" href="#">Games</a>
+<a class="text-amber-600 font-bold border-b-2 border-amber-600 font-serif hover:text-orange-700 dark:hover:text-orange-400 transition-colors duration-300 active:scale-95 transition-transform" href="#">Calendar</a>
+</nav>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-stone-700" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-stone-700" data-icon="account_circle">account_circle</span>
+</div>
+</header>
+<div class="flex">
+<aside class="bg-[#F4EBD0] dark:bg-stone-950 text-stone-800 dark:text-stone-200 fixed left-0 top-0 h-full w-64 border-r-2 border-stone-300 dark:border-stone-800 shadow-[2px_0_10px_rgba(0,0,0,0.05)] flex flex-col h-full py-8 mt-16 hidden lg:flex">
+<div class="px-6 mb-8 flex items-center gap-3">
+<img alt="Adventurer Profile" class="w-12 h-12 rounded-full border-2 border-amber-600 object-cover" data-alt="portrait of a weathered fantasy bard with a lute, warm golden lighting, oil painting style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADrnSsPgtqcR84bxCxP34UncyEeC3zQrk8uWirp5OBJxEWplXwFQ4fUyMWsbz5USKB2bAdFxfwjynBMBB989O3UOiQI8fdhR8keok5joTmU0pl0tz06U5rJwd9UmrrdTnFvtqRmcx2xdWGXGlwdxuKIbkx3rt-LPMcAg01DRfhn5W4Gy_j-2PhnxD-LHWHNIuPRh9x3-0BR7IHFVMWa4z2phE4OgFeT38UEsB1Y1C6MsfffF_rhi3u9tA0iZUmtS3JNYIHgdzTq6E"/>
+<div>
+<p class="font-serif text-amber-600 font-bold">The Keeper</p>
+<p class="text-label-sm font-label-sm text-stone-500">Level 12 Bard</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<div class="text-stone-700 dark:text-stone-400 py-3 px-4 flex items-center gap-3 hover:bg-stone-200 dark:hover:bg-stone-900 transition-all cursor-pointer hover:translate-x-1 duration-200">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-serif">Dashboard</span>
+</div>
+<div class="text-stone-700 dark:text-stone-400 py-3 px-4 flex items-center gap-3 hover:bg-stone-200 dark:hover:bg-stone-900 transition-all cursor-pointer hover:translate-x-1 duration-200">
+<span class="material-symbols-outlined" data-icon="casino">casino</span>
+<span class="font-serif">Games</span>
+</div>
+<div class="bg-green-800 text-amber-400 rounded-sm shadow-inner mx-2 py-3 px-4 flex items-center gap-3 cursor-pointer hover:translate-x-1 duration-200">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="font-serif">Calendar</span>
+</div>
+</nav>
+<div class="mt-auto px-4">
+<button class="w-full bg-primary text-on-primary font-serif py-3 rounded-sm border-b-4 border-primary-container hover:bg-primary-container transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="add_box">add_box</span>
+                    New Quest
+                </button>
+</div>
+</aside>
+<main class="flex-1 lg:ml-64 p-8 min-h-screen">
+<div class="max-w-container-max mx-auto">
+<section class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<span class="text-secondary font-serif italic mb-2 block">Campaign Logistics</span>
+<h2 class="font-headline-xl text-headline-xl text-primary">Availability Scroll</h2>
+<p class="text-on-surface-variant font-body-lg max-w-2xl">Mark your stars and align the moon. Ensure all party members are present before embarking on the Siege of Gloomhaven.</p>
+</div>
+<div class="flex gap-4">
+<div class="bg-surface-container-high p-4 rounded-lg border border-outline-variant shadow-sm flex items-center gap-4">
+<div class="flex -space-x-3">
+<img class="w-8 h-8 rounded-full border-2 border-background" data-alt="fantasy warrior character sketch avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASn2FN7MI-AOxrgt4fDEHq6ojeZsdXEDK9l8m7EuTb6sj40Nkibblnuigjb0j9p7ttqd10WkjfD5zlLsElO2umwbPCr5y6ku4fBU4uaPlyNRPtAIFmBHfJ8t7CGKuQi7QRz21__NfIojsQYOj1qbk_RCoVED4TiPWDkk5eu8sv16ZMJK6Z1ho6wqMxDlfab7eGPzcoFTEnVVOmChCgkR40UZ9X3_Gh7mcxk1wuMC9Y9W5H4LFStQMhlzgcT4a8dPyoY38KC1hw2kw"/>
+<img class="w-8 h-8 rounded-full border-2 border-background" data-alt="fantasy mage character ink drawing avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBauShqoEpzTF6_CXh8TMi7kRRHqFN1QiQc6mX9H5gdgJk_Gj8OJvgIvoLz41fCchNtQhEBcntv0rmt6Mywom2z1jc645AECL4eIy9_JjHBQ2V09T58P5g5QEtHVh5XvhN7wPNJXvnlC0aUBFRUzBq0p6pQLfzkVkvlKV4oGVX8m61wDRYvMh0aZbV9FHVfBALrIYSWxUSUhTyBDZ1XD7GfShxy1Q2z6_jfLwuZ2EeoaaL1t1fXWjyQ8loYsd_ZemaOHMCFKNwKJqQ"/>
+<img class="w-8 h-8 rounded-full border-2 border-background" data-alt="fantasy rogue character charcoal style avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-PabCpXsBr-mfUhda_a-1QiIb1xLy-BBtr8yOJM-DY4OfLjxAMlrml7AlAuVFF7G6LSk_Vdgr7a33HIfGNphhsOQ-s6uxAe0FAr-DJQAQhb8u0N2CS5Tkxw8kgNN5O0TlW6_lCJ924hvapU9XGfD0VbJaLxL1ZaghYrsREvNjcHehp0yGQGGSU0M99ldmAH_zUd-lpTxzGZggTzcshedUSF9YREWtd_htNeq7jXXcf0Q64frY3016hy2d2__ti9O7b02O4VH4x1Q"/>
+<div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center text-[10px] font-bold border-2 border-background">+2</div>
+</div>
+<p class="text-label-sm font-label-sm text-on-surface">5 ADVENTURERS JOINED</p>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 xl:grid-cols-4 gap-gutter">
+<div class="xl:col-span-3">
+<div class="bg-surface-container-low border-2 border-stone-300 rounded-sm shadow-xl p-8 overflow-hidden relative">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-600/20 to-transparent"></div>
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-6">
+<button class="p-2 hover:bg-surface-container-highest rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary" data-icon="chevron_left">chevron_left</span>
+</button>
+<h3 class="font-headline-lg text-headline-lg text-stone-900 font-serif">October, 1492 DR</h3>
+<button class="p-2 hover:bg-surface-container-highest rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+<div class="flex bg-surface-container-highest p-1 rounded-sm border border-outline-variant">
+<button class="px-4 py-1 text-label-sm font-label-sm bg-primary text-on-primary rounded-sm">MONTHLY</button>
+<button class="px-4 py-1 text-label-sm font-label-sm text-on-surface-variant hover:text-primary transition-colors">WEEKLY</button>
+</div>
+</div>
+<div class="grid grid-cols-7 mb-4 border-b border-stone-300 pb-2">
+<div class="text-center font-serif text-amber-700 font-bold text-sm">SUN</div>
+<div class="text-center font-serif text-amber-700 font-bold text-sm">MON</div>
+<div class="text-center font-serif text-amber-700 font-bold text-sm">TUE</div>
+<div class="text-center font-serif text-amber-700 font-bold text-sm">WED</div>
+<div class="text-center font-serif text-amber-700 font-bold text-sm">THU</div>
+<div class="text-center font-serif text-amber-700 font-bold text-sm">FRI</div>
+<div class="text-center font-serif text-amber-700 font-bold text-sm">SAT</div>
+</div>
+<div class="grid grid-cols-7 grid-rows-5 gap-px bg-stone-300 border border-stone-300">
+<div class="bg-surface-container-lowest min-h-[120px] p-2 opacity-50 grayscale-[0.5]">
+<span class="text-label-sm font-label-sm text-stone-400">26</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2 opacity-50 grayscale-[0.5]">
+<span class="text-label-sm font-label-sm text-stone-400">27</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2 opacity-50 grayscale-[0.5]">
+<span class="text-label-sm font-label-sm text-stone-400">28</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2 opacity-50 grayscale-[0.5]">
+<span class="text-label-sm font-label-sm text-stone-400">29</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2 opacity-50 grayscale-[0.5]">
+<span class="text-label-sm font-label-sm text-stone-400">30</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2 relative group cursor-pointer hover:bg-surface-container">
+<span class="text-label-sm font-label-sm text-stone-600">1</span>
+<div class="mt-2 flex flex-wrap gap-1">
+<div class="w-6 h-6 rounded-full bg-green-200 text-green-900 flex items-center justify-center wax-seal border border-green-700/30" title="Ideal">
+<span class="material-symbols-outlined text-[14px]" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2 relative group cursor-pointer hover:bg-surface-container">
+<span class="text-label-sm font-label-sm text-stone-600">2</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">3</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">4</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2 bg-primary-container/5">
+<span class="text-label-sm font-label-sm text-stone-600 font-bold">5</span>
+<div class="mt-2 space-y-1">
+<div class="bg-primary text-on-primary text-[10px] px-2 py-0.5 rounded-sm font-serif border-l-2 border-amber-500">QUEST: Red Dragon Incursion</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">6</span>
+<div class="mt-2 flex flex-wrap gap-1">
+<div class="w-6 h-6 rounded-full bg-orange-200 text-orange-900 flex items-center justify-center wax-seal border border-orange-700/30" title="Available">
+<span class="material-symbols-outlined text-[14px]" data-icon="check" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<div class="w-6 h-6 rounded-full bg-orange-200 text-orange-900 flex items-center justify-center wax-seal border border-orange-700/30">
+<span class="material-symbols-outlined text-[14px]" data-icon="check" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">7</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">8</span>
+<div class="mt-2 flex flex-wrap gap-1">
+<div class="w-6 h-6 rounded-full bg-green-200 text-green-900 flex items-center justify-center wax-seal border border-green-700/30">
+<span class="material-symbols-outlined text-[14px]" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="w-6 h-6 rounded-full bg-green-200 text-green-900 flex items-center justify-center wax-seal border border-green-700/30">
+<span class="material-symbols-outlined text-[14px]" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="w-6 h-6 rounded-full bg-green-200 text-green-900 flex items-center justify-center wax-seal border border-green-700/30">
+<span class="material-symbols-outlined text-[14px]" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">9</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">10</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">11</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2 bg-orange-100/30">
+<span class="text-label-sm font-label-sm text-stone-900 font-bold">12</span>
+<div class="mt-1 text-[10px] text-orange-900 font-serif italic">The Full Moon</div>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2 border-2 border-primary ring-2 ring-primary/20 z-10 shadow-lg">
+<span class="text-label-sm font-label-sm text-primary font-bold">13</span>
+<div class="mt-1 px-1 bg-primary text-on-primary text-[8px] rounded-full inline-block">TODAY</div>
+<div class="mt-2 flex flex-wrap gap-1">
+<div class="w-6 h-6 rounded-full bg-red-200 text-red-900 flex items-center justify-center wax-seal border border-red-700/30" title="Unavailable">
+<span class="material-symbols-outlined text-[14px]" data-icon="close" data-weight="fill" style="font-variation-settings: 'FILL' 1;">close</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">14</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">15</span>
+<div class="mt-2 flex flex-wrap gap-1">
+<div class="w-6 h-6 rounded-full bg-green-200 text-green-900 flex items-center justify-center wax-seal border border-green-700/30">
+<span class="material-symbols-outlined text-[14px]" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">16</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">17</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">18</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">19</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">20</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">21</span>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">22</span>
+<div class="mt-2 flex flex-wrap gap-1">
+<div class="w-6 h-6 rounded-full bg-green-200 text-green-900 flex items-center justify-center wax-seal border border-green-700/30">
+<span class="material-symbols-outlined text-[14px]" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="w-6 h-6 rounded-full bg-green-200 text-green-900 flex items-center justify-center wax-seal border border-green-700/30">
+<span class="material-symbols-outlined text-[14px]" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest min-h-[120px] p-2">
+<span class="text-label-sm font-label-sm text-stone-600">23</span>
+</div>
+</div>
+</div>
+</div>
+<div class="space-y-gutter">
+<div class="bg-surface-container-high p-6 rounded-sm border-2 border-stone-300 shadow-lg">
+<h4 class="font-serif text-amber-800 font-bold mb-4 border-b border-stone-300 pb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="auto_awesome">auto_awesome</span>
+                                Legend of Symbols
+                            </h4>
+<div class="space-y-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-green-200 text-green-900 flex items-center justify-center wax-seal border border-green-700/30">
+<span class="material-symbols-outlined text-[16px]" data-icon="star" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface">IDEAL SESSION</p>
+<p class="text-[11px] text-on-surface-variant italic">The party is fully ready.</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-orange-200 text-orange-900 flex items-center justify-center wax-seal border border-orange-700/30">
+<span class="material-symbols-outlined text-[16px]" data-icon="check" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface">AVAILABLE</p>
+<p class="text-[11px] text-on-surface-variant italic">Possible, but not perfect.</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-red-200 text-red-900 flex items-center justify-center wax-seal border border-red-700/30">
+<span class="material-symbols-outlined text-[16px]" data-icon="close" data-weight="fill" style="font-variation-settings: 'FILL' 1;">close</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface">UNAVAILABLE</p>
+<p class="text-[11px] text-on-surface-variant italic">Busy with tavern duties.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-primary text-on-primary p-6 rounded-sm border-2 border-primary shadow-xl relative overflow-hidden">
+<div class="absolute -right-4 -bottom-4 opacity-10 rotate-12">
+<span class="material-symbols-outlined text-9xl" data-icon="history_edu">history_edu</span>
+</div>
+<h4 class="font-serif text-amber-400 font-bold mb-2">Next Journey</h4>
+<p class="text-headline-md font-headline-md leading-tight mb-4">Incursion of the Scaled King</p>
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-sm" data-icon="calendar_month">calendar_month</span>
+<span class="text-label-sm font-label-sm">OCTOBER 5th, 19:00</span>
+</div>
+<button class="w-full py-2 bg-secondary text-white font-serif rounded-sm border-b-2 border-orange-900 hover:bg-on-secondary-fixed-variant transition-colors">
+                                CONFIRM ATTENDANCE
+                            </button>
+</div>
+<div class="bg-surface-container-low p-6 rounded-sm border border-outline-variant">
+<h4 class="font-serif text-stone-800 font-bold mb-4">Recent Missives</h4>
+<div class="space-y-4">
+<div class="border-l-2 border-amber-600 pl-3">
+<p class="text-[12px] text-stone-500 font-bold">GORIM IRONFIST</p>
+<p class="text-sm italic text-stone-700">"I'll be late on the 15th, mining duty calls."</p>
+</div>
+<div class="border-l-2 border-green-600 pl-3">
+<p class="text-[12px] text-stone-500 font-bold">LYRA THE SWIFT</p>
+<p class="text-sm italic text-stone-700">"The 8th looks perfect for a side quest!"</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<div class="fixed bottom-margin right-margin z-40">
+<button class="w-16 h-16 rounded-full bg-secondary text-on-secondary shadow-2xl flex items-center justify-center hover:scale-110 active:scale-90 transition-all border-4 border-orange-900/20 wax-seal">
+<span class="material-symbols-outlined text-3xl" data-icon="edit">edit</span>
+</button>
+</div>
+<footer class="lg:ml-64 p-gutter border-t-2 border-stone-300">
+<div class="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-4 opacity-60">
+<p class="font-serif text-stone-600">© 1492 DR - The Adventurer's Journal</p>
+<div class="flex gap-6 text-label-sm font-label-sm text-stone-600">
+<a class="hover:text-primary" href="#">CHARTER OF CONDUCT</a>
+<a class="hover:text-primary" href="#">MAGE'S PRIVACY</a>
+<a class="hover:text-primary" href="#">SCROLLS OF SERVICE</a>
+</div>
+</div>
+</footer>
+</body></html>
