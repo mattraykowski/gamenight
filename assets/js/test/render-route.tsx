@@ -10,6 +10,8 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ComponentType } from "react";
 import { A11yAnnouncer } from "@/lib/a11y/announcer";
+import { AuthProvider } from "@/lib/auth/auth-context";
+import type { AuthState } from "@/lib/auth/auth-state";
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -18,6 +20,13 @@ interface RouterContext {
 interface RenderRouteOptions {
   path?: string;
   initialEntries?: string[];
+  /**
+   * When provided, wraps the render in an `<AuthProvider>` seeded with
+   * this initial auth state. Tests for components that branch on
+   * `useOptionalAuth()` use this to flip between anonymous and
+   * authenticated renders without going through the JSON island.
+   */
+  authState?: AuthState;
 }
 
 /**
@@ -27,7 +36,7 @@ interface RenderRouteOptions {
  */
 export function renderRoute(
   ui: ComponentType<Record<string, unknown>>,
-  { path = "/", initialEntries = [path] }: RenderRouteOptions = {},
+  { path = "/", initialEntries = [path], authState }: RenderRouteOptions = {},
 ): RenderResult {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -58,9 +67,13 @@ export function renderRoute(
     history: createMemoryHistory({ initialEntries }),
   });
 
-  return render(
+  const tree = (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
-    </QueryClientProvider>,
+    </QueryClientProvider>
+  );
+
+  return render(
+    authState ? <AuthProvider initialState={authState}>{tree}</AuthProvider> : tree,
   );
 }

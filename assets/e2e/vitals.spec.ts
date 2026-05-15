@@ -21,7 +21,7 @@ test("SPA ships at least one /api/vitals sample on /dashboard", async ({ page })
   );
 
   await page.goto("/dashboard");
-  await page.getByRole("heading", { level: 1, name: "Dashboard" }).waitFor();
+  await page.getByRole("heading", { level: 1, name: /welcome back/i }).waitFor();
 
   // Give web-vitals time to measure LCP, then nudge the page toward
   // hidden to flush the reporter. Two routes usually fire during a

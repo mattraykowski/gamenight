@@ -44,10 +44,10 @@ export function HowItWorks() {
             return (
               <li
                 key={step.title}
-                className="group flex flex-col items-center rounded-xl border border-border bg-background p-8 text-center shadow-[4px_4px_0px_rgba(0,0,0,0.05)] transition-all hover:shadow-[6px_6px_0px_rgba(161,64,9,0.1)]"
+                className="group flex flex-col items-center rounded-xl border border-border bg-background p-8 text-center shadow-[4px_4px_0px_rgba(0,0,0,0.05)] transition-all hover:shadow-[6px_6px_0px_rgba(161,64,9,0.1)] motion-reduce:transition-none"
               >
                 <div
-                  className={`mb-6 flex h-16 w-16 items-center justify-center rounded-full border-2 border-black/10 shadow-[0_4px_0_rgba(115,92,0,0.2),inset_0_2px_4px_rgba(255,255,255,0.3)] transition-transform group-hover:scale-110 ${step.iconBg}`}
+                  className={`mb-6 flex h-16 w-16 items-center justify-center rounded-full border-2 border-black/10 shadow-[0_4px_0_rgba(115,92,0,0.2),inset_0_2px_4px_rgba(255,255,255,0.3)] transition-transform group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100 ${step.iconBg}`}
                 >
                   <Icon
                     className={`h-7 w-7 ${step.iconColor}`}

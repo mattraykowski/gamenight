@@ -50,7 +50,9 @@ test.describe("magic-link flow", () => {
     await page.getByRole("button", { name: /sign in to game night/i }).click();
 
     await expect(page).toHaveURL(/\/dashboard/);
-    await expect(page.getByTestId("current-user-email")).toHaveText(email);
+    await expect(page.getByTestId("current-user-name")).toHaveText(
+      email.split("@")[0],
+    );
     await expect(page.getByTestId("toast-success")).toContainText(/welcome back/i);
   });
 });

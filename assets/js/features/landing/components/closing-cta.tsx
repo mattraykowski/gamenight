@@ -40,7 +40,7 @@ export function ClosingCta() {
             <Link to="/register" search={(prev) => prev}>
               <span>Register</span>
               <ArrowRight
-                className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1"
+                className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0"
                 aria-hidden="true"
               />
             </Link>

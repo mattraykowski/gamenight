@@ -13,6 +13,9 @@ const signInSearchSchema = z.object({
   redirect: z.string().optional(),
   error: z.string().optional(),
   email: z.string().optional(),
+  // Threaded through from landing-page CTAs so an invitation-driven
+  // arrival (`/?invite=…`) survives the click into sign-in.
+  invite: z.string().optional(),
 });
 
 export const Route = createFileRoute("/sign-in")({

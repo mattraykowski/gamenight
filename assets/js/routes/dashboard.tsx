@@ -62,7 +62,7 @@ export function DashboardRoute() {
           ) : (
             <>
               Welcome back,{" "}
-              <span data-testid="current-user-email">{friendlyName}</span>.
+              <span data-testid="current-user-name">{friendlyName}</span>.
             </>
           )}
         </h1>

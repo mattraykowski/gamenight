@@ -52,7 +52,7 @@ export function FeatureHighlights() {
             <li
               key={h.title}
               data-testid="feature-highlight"
-              className="flex gap-5 rounded-xl border border-border bg-card/60 p-6 shadow-[4px_4px_0px_rgba(45,90,39,0.08)] transition-shadow hover:shadow-[6px_6px_0px_rgba(161,64,9,0.12)]"
+              className="flex gap-5 rounded-xl border border-border bg-card/60 p-6 shadow-[4px_4px_0px_rgba(45,90,39,0.08)] transition-shadow hover:shadow-[6px_6px_0px_rgba(161,64,9,0.12)] motion-reduce:transition-none"
             >
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-black/10 bg-primary-fixed-dim shadow-[0_4px_0_rgba(115,92,0,0.2),inset_0_2px_4px_rgba(255,255,255,0.3)]">
                 <Icon className="h-5 w-5 text-primary" aria-hidden="true" />

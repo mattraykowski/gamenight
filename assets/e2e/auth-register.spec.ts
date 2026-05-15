@@ -35,7 +35,9 @@ test.describe("register flow", () => {
     await page.getByRole("button", { name: /create account/i }).click();
 
     await expect(page).toHaveURL(/\/dashboard$/);
-    await expect(page.getByTestId("current-user-email")).toHaveText(REGISTER_EMAIL);
+    await expect(page.getByTestId("current-user-name")).toHaveText(
+      REGISTER_EMAIL.split("@")[0],
+    );
 
     const email = await latestEmailTo(request, REGISTER_EMAIL);
     expect(email).not.toBeNull();

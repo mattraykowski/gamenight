@@ -58,8 +58,10 @@ test.describe("password sign-in", () => {
     await page.getByRole("button", { name: /sign in/i }).click();
 
     await expect(page).toHaveURL(/\/dashboard$/);
-    await expect(page.getByRole("heading", { level: 1, name: /dashboard/i })).toBeVisible();
-    await expect(page.getByTestId("current-user-email")).toHaveText(TEST_EMAIL);
+    await expect(page.getByRole("heading", { level: 1, name: /welcome back/i })).toBeVisible();
+    await expect(page.getByTestId("current-user-name")).toHaveText(
+      TEST_EMAIL.split("@")[0],
+    );
   });
 
   test("an already-authenticated visit to /sign-in redirects to the redirect target", async ({
