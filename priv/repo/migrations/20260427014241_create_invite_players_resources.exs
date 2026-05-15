@@ -30,7 +30,8 @@ defmodule GameNight.Repo.Migrations.CreateInvitePlayersResources do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ), null: false
+          ),
+          null: false
 
       add :user_id,
           references(:users,
@@ -39,7 +40,8 @@ defmodule GameNight.Repo.Migrations.CreateInvitePlayersResources do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ), null: false
+          ),
+          null: false
     end
 
     create index(:players, [:game_id, :status, :updated_at],
@@ -75,7 +77,8 @@ defmodule GameNight.Repo.Migrations.CreateInvitePlayersResources do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ), null: false
+          ),
+          null: false
     end
 
     create index(:notifications, [:user_id, :resolved_at, :inserted_at],
@@ -111,7 +114,8 @@ defmodule GameNight.Repo.Migrations.CreateInvitePlayersResources do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ), null: false
+          ),
+          null: false
 
       add :inviter_id,
           references(:users,
@@ -120,7 +124,8 @@ defmodule GameNight.Repo.Migrations.CreateInvitePlayersResources do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ), null: false
+          ),
+          null: false
 
       add :accepted_player_id,
           references(:players,

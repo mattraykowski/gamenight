@@ -86,13 +86,17 @@ defmodule GameNight.Schedules.ScheduleParticipant do
       check whether any per-day rows differ from the default
       (research.md §18).
       """
+
       accept []
       require_atomic? false
 
       change fn changeset, _ctx ->
         case Ash.Changeset.get_data(changeset, :submitted_at) do
-          nil -> Ash.Changeset.force_change_attribute(changeset, :submitted_at, DateTime.utc_now())
-          _ -> changeset
+          nil ->
+            Ash.Changeset.force_change_attribute(changeset, :submitted_at, DateTime.utc_now())
+
+          _ ->
+            changeset
         end
       end
     end
@@ -105,12 +109,14 @@ defmodule GameNight.Schedules.ScheduleParticipant do
       participants. No rate limit (FR-038) — every call materialises
       another row.
       """
+
       accept []
       require_atomic? false
 
       change after_action(fn _changeset, participant, _ctx ->
                loaded =
-                 Ash.load!(participant,
+                 Ash.load!(
+                   participant,
                    [player: [:user], schedule: [game: [:owner]]],
                    authorize?: false
                  )

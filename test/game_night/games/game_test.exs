@@ -307,7 +307,9 @@ defmodule GameNight.Games.GameTest do
                |> Ash.Query.for_read(:get_mine, %{id: game.id}, actor: player_user)
                |> Ash.read_one()
 
-      refute is_nil(loaded), "expected accepted player to read the game; policy expansion missing?"
+      refute is_nil(loaded),
+             "expected accepted player to read the game; policy expansion missing?"
+
       assert loaded.id == game.id
     end
 

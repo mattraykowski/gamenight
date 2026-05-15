@@ -308,15 +308,11 @@ defmodule GameNight.Schedules.System do
   end
 
   defp ensure_loaded_for_fan_out(%{game: %Ash.NotLoaded{}} = schedule) do
-    Ash.load!(schedule, [game: [:owner], participants: [player: [:user]]],
-      authorize?: false
-    )
+    Ash.load!(schedule, [game: [:owner], participants: [player: [:user]]], authorize?: false)
   end
 
   defp ensure_loaded_for_fan_out(schedule) do
-    Ash.load!(schedule, [game: [:owner], participants: [player: [:user]]],
-      authorize?: false
-    )
+    Ash.load!(schedule, [game: [:owner], participants: [player: [:user]]], authorize?: false)
   end
 
   defp resolve_recipients(_schedule, recipients) when is_list(recipients), do: recipients

@@ -263,12 +263,7 @@ defmodule GameNight.Schedules.ScheduleTest do
       player_a = seed_player!(game, member_a)
       player_b = seed_player!(game, member_b)
 
-      {:ok,
-       gm: gm,
-       game: game,
-       schedule: schedule,
-       player_a: player_a,
-       player_b: player_b}
+      {:ok, gm: gm, game: game, schedule: schedule, player_a: player_a, player_b: player_b}
     end
 
     test "creates one ScheduleParticipant per accepted Player + flips status", %{
@@ -366,9 +361,7 @@ defmodule GameNight.Schedules.ScheduleTest do
     } do
       {:ok, results} =
         Schedule
-        |> Ash.Query.for_read(:list_for_player_character, %{player_id: player.id},
-          actor: member
-        )
+        |> Ash.Query.for_read(:list_for_player_character, %{player_id: player.id}, actor: member)
         |> Ash.read()
 
       assert Enum.map(results, & &1.id) == [schedule.id]

@@ -21,7 +21,8 @@ defmodule GameNight.Games.Invitation.Senders.SendInvitationEmail do
   Deliver the invitation email. Called from
   `Invitation.create_for_game`'s after-action change.
   """
-  @spec send(GameNight.Games.Invitation.t() | map(), String.t(), keyword()) :: :ok | {:error, term()}
+  @spec send(GameNight.Games.Invitation.t() | map(), String.t(), keyword()) ::
+          :ok | {:error, term()}
   def send(invitation, token, _opts \\ []) do
     new()
     |> from({"Game Night", from_address()})

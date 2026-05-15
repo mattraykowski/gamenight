@@ -22,9 +22,7 @@ defmodule GameNight.Notifications.Notification.Actions.CountUnread do
     case context.actor do
       %{id: actor_id} when not is_nil(actor_id) ->
         Notification
-        |> Ash.Query.filter(
-          user_id == ^actor_id and is_nil(read_at) and is_nil(resolved_at)
-        )
+        |> Ash.Query.filter(user_id == ^actor_id and is_nil(read_at) and is_nil(resolved_at))
         |> Ash.count(authorize?: false)
 
       _ ->

@@ -101,6 +101,7 @@ defmodule GameNight.Schedules.ParticipantDay do
       `Schedules.System.cascade_gm_na/3` flow when a GM flips a day
       to NA on a `:ready_for_availability` schedule.
       """
+
       accept []
       require_atomic? false
 
@@ -115,6 +116,7 @@ defmodule GameNight.Schedules.ParticipantDay do
       `ScheduleParticipant` rows on `:posted` schedules are
       preserved as np_only.
       """
+
       accept []
       require_atomic? false
 
@@ -137,6 +139,36 @@ defmodule GameNight.Schedules.ParticipantDay do
 
     policy action(:set_status) do
       authorize_if expr(participant.player.user_id == ^actor(:id))
+    end
+  end
+
+  validations do
+    # The denormalisation invariant — `participant.schedule_id`
+    # must equal the row's `schedule_id`. Story phases tighten this
+    # with explicit error messages.
+    validate fn changeset, _context ->
+      participant_id = Ash.Changeset.get_attribute(changeset, :participant_id)
+      schedule_id = Ash.Changeset.get_attribute(changeset, :schedule_id)
+
+      cond do
+        is_nil(participant_id) or is_nil(schedule_id) ->
+          :ok
+
+        true ->
+          case GameNight.Schedules.ScheduleParticipant
+               |> Ash.get(participant_id, authorize?: false) do
+            {:ok, %{schedule_id: ^schedule_id}} ->
+              :ok
+
+            {:ok, _} ->
+              {:error,
+               field: :schedule_id,
+               message: "must match participant.schedule_id (denormalisation invariant)"}
+
+            {:error, _} ->
+              {:error, field: :participant_id, message: "is invalid"}
+          end
+      end
     end
   end
 
@@ -177,10 +209,6 @@ defmodule GameNight.Schedules.ParticipantDay do
     end
   end
 
-  identities do
-    identity :unique_per_participant_day, [:participant_id, :day]
-  end
-
   @doc false
   def gm_na_for_day?(schedule_id, day) do
     require Ash.Query
@@ -193,33 +221,7 @@ defmodule GameNight.Schedules.ParticipantDay do
     end
   end
 
-  validations do
-    # The denormalisation invariant — `participant.schedule_id`
-    # must equal the row's `schedule_id`. Story phases tighten this
-    # with explicit error messages.
-    validate fn changeset, _context ->
-      participant_id = Ash.Changeset.get_attribute(changeset, :participant_id)
-      schedule_id = Ash.Changeset.get_attribute(changeset, :schedule_id)
-
-      cond do
-        is_nil(participant_id) or is_nil(schedule_id) ->
-          :ok
-
-        true ->
-          case GameNight.Schedules.ScheduleParticipant
-               |> Ash.get(participant_id, authorize?: false) do
-            {:ok, %{schedule_id: ^schedule_id}} ->
-              :ok
-
-            {:ok, _} ->
-              {:error,
-               field: :schedule_id,
-               message: "must match participant.schedule_id (denormalisation invariant)"}
-
-            {:error, _} ->
-              {:error, field: :participant_id, message: "is invalid"}
-          end
-      end
-    end
+  identities do
+    identity :unique_per_participant_day, [:participant_id, :day]
   end
 end

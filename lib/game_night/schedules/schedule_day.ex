@@ -55,6 +55,20 @@ defmodule GameNight.Schedules.ScheduleDay do
     end
   end
 
+  field_policies do
+    # gm_status is GM-only. Non-GM readers get nil; the
+    # `gm_locked_na` calculation is the supported player-side field.
+    field_policy :gm_status do
+      authorize_if expr(schedule.game.owner_id == ^actor(:id))
+    end
+
+    # Catch-all so the rest of the public surface stays readable for
+    # everyone who passes the row-level read policy above.
+    field_policy :* do
+      authorize_if always()
+    end
+  end
+
   typescript do
     type_name "ScheduleDay"
   end
@@ -69,6 +83,7 @@ defmodule GameNight.Schedules.ScheduleDay do
       cell edits) and by `Schedule.post`'s ComputeFinalDefault
       change for days the GM didn't explicitly touch.
       """
+
       accept [:final_status]
     end
   end
@@ -84,51 +99,11 @@ defmodule GameNight.Schedules.ScheduleDay do
     # `gm_locked_na` calculation is what the player view consumes.
     policy action_type(:read) do
       authorize_if expr(schedule.game.owner_id == ^actor(:id))
+
       authorize_if expr(
                      exists(schedule.participants, player.user_id == ^actor(:id)) and
                        schedule.status != :preparing
                    )
-    end
-  end
-
-  field_policies do
-    # gm_status is GM-only. Non-GM readers get nil; the
-    # `gm_locked_na` calculation is the supported player-side field.
-    field_policy :gm_status do
-      authorize_if expr(schedule.game.owner_id == ^actor(:id))
-    end
-
-    # Catch-all so the rest of the public surface stays readable for
-    # everyone who passes the row-level read policy above.
-    field_policy :* do
-      authorize_if always()
-    end
-  end
-
-  calculations do
-    # Player-safe view of the GM's per-day status — exposes only
-    # whether the day is locked NA, not the actual gm_status atom.
-    calculate :gm_locked_na, :boolean, expr(gm_status == :NA) do
-      public? true
-    end
-
-    # FR-028 — the per-day Final Note classification atom and
-    # human-readable label. Computed in the GM's Scheduling View
-    # from the GM's status + every linked, non-NP participant's
-    # status for the same day. Tested by
-    # `final_note_kind_test.exs` against the shared truth table.
-    calculate :final_note_kind,
-              :atom,
-              GameNight.Schedules.ScheduleDay.Calculations.FinalNote do
-      description "Atom classification of the day's overall availability."
-      public? true
-    end
-
-    calculate :final_note_label,
-              :string,
-              GameNight.Schedules.ScheduleDay.Calculations.FinalNoteLabel do
-      description "Human-readable label rendered next to the Final cell."
-      public? true
     end
   end
 
@@ -163,6 +138,33 @@ defmodule GameNight.Schedules.ScheduleDay do
       allow_nil? false
       public? true
       attribute_writable? true
+    end
+  end
+
+  calculations do
+    # Player-safe view of the GM's per-day status — exposes only
+    # whether the day is locked NA, not the actual gm_status atom.
+    calculate :gm_locked_na, :boolean, expr(gm_status == :NA) do
+      public? true
+    end
+
+    # FR-028 — the per-day Final Note classification atom and
+    # human-readable label. Computed in the GM's Scheduling View
+    # from the GM's status + every linked, non-NP participant's
+    # status for the same day. Tested by
+    # `final_note_kind_test.exs` against the shared truth table.
+    calculate :final_note_kind,
+              :atom,
+              GameNight.Schedules.ScheduleDay.Calculations.FinalNote do
+      description "Atom classification of the day's overall availability."
+      public? true
+    end
+
+    calculate :final_note_label,
+              :string,
+              GameNight.Schedules.ScheduleDay.Calculations.FinalNoteLabel do
+      description "Human-readable label rendered next to the Final cell."
+      public? true
     end
   end
 

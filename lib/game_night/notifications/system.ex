@@ -143,9 +143,7 @@ defmodule GameNight.Notifications.System do
   def destroy_for_subject(subject_type, subject_id)
       when is_binary(subject_type) and is_binary(subject_id) do
     Notification
-    |> Ash.Query.filter(
-      subject_type == ^subject_type and subject_id == ^subject_id
-    )
+    |> Ash.Query.filter(subject_type == ^subject_type and subject_id == ^subject_id)
     |> Ash.bulk_destroy(:destroy_for_subject, %{},
       authorize?: false,
       return_errors?: true

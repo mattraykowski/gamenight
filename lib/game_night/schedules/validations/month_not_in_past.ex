@@ -37,8 +37,7 @@ defmodule GameNight.Schedules.Validations.MonthNotInPast do
         candidate_key = year * 100 + month
 
         if candidate_key < current_key do
-          {:error,
-           field: :month, message: "You can only schedule the current month or later."}
+          {:error, field: :month, message: "You can only schedule the current month or later."}
         else
           :ok
         end

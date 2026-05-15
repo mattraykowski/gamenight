@@ -218,7 +218,9 @@ defmodule GameNight.Games.PlayerTest do
     } do
       assert {:error, %Ash.Error.Forbidden{}} =
                player
-               |> Ash.Changeset.for_update(:update, %{character_name: "self-edit"}, actor: player_user)
+               |> Ash.Changeset.for_update(:update, %{character_name: "self-edit"},
+                 actor: player_user
+               )
                |> Ash.update()
     end
 

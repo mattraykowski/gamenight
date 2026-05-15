@@ -33,7 +33,8 @@ defmodule GameNight.Repo.Migrations.CreateScheduleResources do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ), null: false
+          ),
+          null: false
     end
 
     create index(:schedules, [:game_id, :year, :month], name: "schedules_game_year_month_index")
@@ -67,7 +68,8 @@ defmodule GameNight.Repo.Migrations.CreateScheduleResources do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ), null: false
+          ),
+          null: false
 
       add :player_id,
           references(:players,
@@ -76,7 +78,8 @@ defmodule GameNight.Repo.Migrations.CreateScheduleResources do
             type: :uuid,
             prefix: "public",
             on_delete: :restrict
-          ), null: false
+          ),
+          null: false
     end
 
     create index(:schedule_participants, [:player_id, :schedule_id],
@@ -112,7 +115,8 @@ defmodule GameNight.Repo.Migrations.CreateScheduleResources do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ), null: false
+          ),
+          null: false
     end
 
     create index(:schedule_days, [:schedule_id, :day], name: "schedule_days_schedule_day_index")
@@ -141,7 +145,8 @@ defmodule GameNight.Repo.Migrations.CreateScheduleResources do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ), null: false
+          ),
+          null: false
 
       add :schedule_id,
           references(:schedules,
@@ -150,7 +155,8 @@ defmodule GameNight.Repo.Migrations.CreateScheduleResources do
             type: :uuid,
             prefix: "public",
             on_delete: :delete_all
-          ), null: false
+          ),
+          null: false
     end
 
     create index(:participant_days, [:participant_id, :day],

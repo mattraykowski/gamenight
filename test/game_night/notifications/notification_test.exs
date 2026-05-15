@@ -185,7 +185,9 @@ defmodule GameNight.Notifications.NotificationTest do
       # equivalent to "fails closed on data scope".)
       assert {:ok, 0} =
                Notification
-               |> Ash.ActionInput.for_action(:count_unread, %{}, actor: NotificationsSystem.actor())
+               |> Ash.ActionInput.for_action(:count_unread, %{},
+                 actor: NotificationsSystem.actor()
+               )
                |> Ash.run_action()
     end
   end

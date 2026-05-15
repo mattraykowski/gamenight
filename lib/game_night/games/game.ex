@@ -66,9 +66,9 @@ defmodule GameNight.Games.Game do
       # accidentally widen the dashboard right column to include
       # games the actor merely plays in.
       prepare build(
-               filter: expr(owner_id == ^actor(:id) and status == :active),
-               sort: [updated_at: :desc]
-             )
+                filter: expr(owner_id == ^actor(:id) and status == :active),
+                sort: [updated_at: :desc]
+              )
     end
 
     read :list_mine do
@@ -132,16 +132,6 @@ defmodule GameNight.Games.Game do
     end
   end
 
-  calculations do
-    # Feature 002 — convenience signal for the SPA. The game-detail
-    # route is now reachable by both the GM (full controls) and any
-    # seated player (read-only roster). `is_owner` lets the route
-    # branch UI without exposing `owner_id` directly.
-    calculate :is_owner, :boolean, expr(owner_id == ^actor(:id)) do
-      public? true
-    end
-  end
-
   attributes do
     uuid_primary_key :id
 
@@ -187,5 +177,15 @@ defmodule GameNight.Games.Game do
     # Feature 003 — drives the schedules table on the game detail page
     # and the player-side per-character schedule list.
     has_many :schedules, GameNight.Schedules.Schedule
+  end
+
+  calculations do
+    # Feature 002 — convenience signal for the SPA. The game-detail
+    # route is now reachable by both the GM (full controls) and any
+    # seated player (read-only roster). `is_owner` lets the route
+    # branch UI without exposing `owner_id` directly.
+    calculate :is_owner, :boolean, expr(owner_id == ^actor(:id)) do
+      public? true
+    end
   end
 end

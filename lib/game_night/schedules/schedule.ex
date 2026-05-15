@@ -70,11 +70,15 @@ defmodule GameNight.Schedules.Schedule do
       get :get_for_game, route: "/by-game/:game_id/:id"
       post :initiate
       patch :set_gm_day, route: "/:id/set-gm-day"
+
       patch :transition_to_ready_for_availability,
         route: "/:id/transition-to-ready-for-availability"
+
       patch :update_final_days, route: "/:id/update-final-days"
+
       patch :update_final_days_and_notify,
         route: "/:id/update-final-days-and-notify"
+
       patch :post, route: "/:id/post"
       delete :delete, route: "/:id"
 
@@ -126,9 +130,9 @@ defmodule GameNight.Schedules.Schedule do
       argument :game_id, :uuid, allow_nil?: false
 
       prepare build(
-               filter: expr(game_id == ^arg(:game_id)),
-               sort: [year: :desc, month: :desc]
-             )
+                filter: expr(game_id == ^arg(:game_id)),
+                sort: [year: :desc, month: :desc]
+              )
     end
 
     read :list_for_game_top_six do
@@ -136,10 +140,10 @@ defmodule GameNight.Schedules.Schedule do
       argument :game_id, :uuid, allow_nil?: false
 
       prepare build(
-               filter: expr(game_id == ^arg(:game_id)),
-               sort: [year: :desc, month: :desc],
-               limit: 6
-             )
+                filter: expr(game_id == ^arg(:game_id)),
+                sort: [year: :desc, month: :desc],
+                limit: 6
+              )
     end
 
     read :get_for_game do
@@ -150,9 +154,9 @@ defmodule GameNight.Schedules.Schedule do
       argument :game_id, :uuid, allow_nil?: false
 
       prepare build(
-               filter: expr(id == ^arg(:id) and game_id == ^arg(:game_id)),
-               load: [:schedule_days, :name]
-             )
+                filter: expr(id == ^arg(:id) and game_id == ^arg(:game_id)),
+                load: [:schedule_days, :name]
+              )
     end
 
     read :list_for_player_character do
@@ -162,16 +166,17 @@ defmodule GameNight.Schedules.Schedule do
       schedules the player can't see yet (still in :preparing on
       the GM's side).
       """
+
       argument :player_id, :uuid, allow_nil?: false
 
       prepare build(
-               filter:
-                 expr(
-                   exists(participants, player_id == ^arg(:player_id)) and
-                     status != :preparing
-                 ),
-               sort: [year: :desc, month: :desc]
-             )
+                filter:
+                  expr(
+                    exists(participants, player_id == ^arg(:player_id)) and
+                      status != :preparing
+                  ),
+                sort: [year: :desc, month: :desc]
+              )
     end
 
     read :get_for_player_character do
@@ -180,20 +185,21 @@ defmodule GameNight.Schedules.Schedule do
       character is a linked participant. Cross-tenant access
       collapses to not-found.
       """
+
       get? true
 
       argument :id, :uuid, allow_nil?: false
       argument :player_id, :uuid, allow_nil?: false
 
       prepare build(
-               filter:
-                 expr(
-                   id == ^arg(:id) and
-                     exists(participants, player_id == ^arg(:player_id)) and
-                     status != :preparing
-                 ),
-               load: [:schedule_days, :name]
-             )
+                filter:
+                  expr(
+                    id == ^arg(:id) and
+                      exists(participants, player_id == ^arg(:player_id)) and
+                      status != :preparing
+                  ),
+                load: [:schedule_days, :name]
+              )
     end
 
     update :update_final_days do
@@ -205,6 +211,7 @@ defmodule GameNight.Schedules.Schedule do
 
       Args: `final_days: [%{day: integer, status: :NA | :A}]`.
       """
+
       accept []
       require_atomic? false
 
@@ -243,6 +250,7 @@ defmodule GameNight.Schedules.Schedule do
 
       Args: `final_days: [%{day: integer, status: :NA | :A}]`.
       """
+
       accept []
       require_atomic? false
 
@@ -256,8 +264,7 @@ defmodule GameNight.Schedules.Schedule do
           other ->
             {:error,
              field: :status,
-             message:
-               "Schedule must be posted to update-and-notify (was #{inspect(other)})."}
+             message: "Schedule must be posted to update-and-notify (was #{inspect(other)})."}
         end
       end
 
@@ -301,6 +308,7 @@ defmodule GameNight.Schedules.Schedule do
       this schedule are wiped in the after_action callback (no FK
       cascade).
       """
+
       argument :confirmation, :string, allow_nil?: false
       require_atomic? false
 
@@ -310,8 +318,7 @@ defmodule GameNight.Schedules.Schedule do
             :ok
 
           _ ->
-            {:error,
-             field: :confirmation, message: "must be exactly \"delete\" (case-sensitive)"}
+            {:error, field: :confirmation, message: "must be exactly \"delete\" (case-sensitive)"}
         end
       end
 
@@ -330,6 +337,7 @@ defmodule GameNight.Schedules.Schedule do
       preserved. Sends the `:schedule_posted` notification + email
       to every linked, non-NP participant.
       """
+
       accept []
       require_atomic? false
 
@@ -341,14 +349,14 @@ defmodule GameNight.Schedules.Schedule do
           other ->
             {:error,
              field: :status,
-             message:
-               "Schedule must be ready for availability to post (was #{inspect(other)})."}
+             message: "Schedule must be ready for availability to post (was #{inspect(other)})."}
         end
       end
 
       change set_attribute(:status, :posted)
       change set_attribute(:posted_at, &DateTime.utc_now/0)
       change GameNight.Schedules.Changes.ComputeFinalDefault
+
       change after_action(fn _changeset, schedule, _ctx ->
                case GameNight.Schedules.System.fan_out_notification(
                       schedule,
@@ -380,13 +388,13 @@ defmodule GameNight.Schedules.Schedule do
           other ->
             {:error,
              field: :status,
-             message:
-               "Schedule must be in :preparing to transition (was #{inspect(other)})."}
+             message: "Schedule must be in :preparing to transition (was #{inspect(other)})."}
         end
       end
 
       change set_attribute(:status, :ready_for_availability)
       change GameNight.Schedules.Changes.LinkActivePlayers
+
       change after_action(fn _changeset, schedule, _context ->
                case GameNight.Schedules.System.fan_out_notification(
                       schedule,
@@ -407,6 +415,7 @@ defmodule GameNight.Schedules.Schedule do
       `:ready_for_availability` lands in T080 (US3); for `:preparing`
       this is a no-op fan-out.
       """
+
       accept []
       require_atomic? false
 
@@ -417,8 +426,7 @@ defmodule GameNight.Schedules.Schedule do
         case Ash.Changeset.get_data(changeset, :status) do
           :posted ->
             {:error,
-             field: :status,
-             message: "GM availability is locked once a schedule is posted."}
+             field: :status, message: "GM availability is locked once a schedule is posted."}
 
           _ ->
             :ok
@@ -434,36 +442,6 @@ defmodule GameNight.Schedules.Schedule do
                  {:error, reason} -> {:error, reason}
                end
              end)
-    end
-  end
-
-  calculations do
-    calculate :name, :string, GameNight.Schedules.Calculations.Name do
-      description "Display name composed from month/year/time slot. See Calculations.Name."
-      public? true
-    end
-
-    # FR-036 — denominator excludes NP-only participants
-    # (late-joiners on a posted schedule who didn't get to submit).
-    calculate :participant_count,
-              :integer,
-              expr(count(participants, query: [filter: np_only == false])) do
-      description "Number of non-NP participants linked to this schedule."
-      public? true
-    end
-
-    # Numerator counts non-NP participants who have called
-    # `:set_submission` (i.e. submitted_at is set). All-NA
-    # submissions still count per FR-022.
-    calculate :submission_count,
-              :integer,
-              expr(
-                count(participants,
-                  query: [filter: np_only == false and not is_nil(submitted_at)]
-                )
-              ) do
-      description "Number of participants who have submitted their availability."
-      public? true
     end
   end
 
@@ -497,6 +475,7 @@ defmodule GameNight.Schedules.Schedule do
     # player-side detail view can load.
     policy action_type(:read) do
       authorize_if expr(game.owner_id == ^actor(:id))
+
       authorize_if expr(
                      exists(participants, player.user_id == ^actor(:id)) and
                        status != :preparing
@@ -603,6 +582,36 @@ defmodule GameNight.Schedules.Schedule do
     end
   end
 
+  calculations do
+    calculate :name, :string, GameNight.Schedules.Calculations.Name do
+      description "Display name composed from month/year/time slot. See Calculations.Name."
+      public? true
+    end
+
+    # FR-036 — denominator excludes NP-only participants
+    # (late-joiners on a posted schedule who didn't get to submit).
+    calculate :participant_count,
+              :integer,
+              expr(count(participants, query: [filter: np_only == false])) do
+      description "Number of non-NP participants linked to this schedule."
+      public? true
+    end
+
+    # Numerator counts non-NP participants who have called
+    # `:set_submission` (i.e. submitted_at is set). All-NA
+    # submissions still count per FR-022.
+    calculate :submission_count,
+              :integer,
+              expr(
+                count(participants,
+                  query: [filter: np_only == false and not is_nil(submitted_at)]
+                )
+              ) do
+      description "Number of participants who have submitted their availability."
+      public? true
+    end
+  end
+
   identities do
     # FR-002: at most one schedule per game per month/year.
     identity :unique_per_game_month, [:game_id, :year, :month]
@@ -698,6 +707,10 @@ defmodule GameNight.Schedules.Schedule do
 
   defp status_from_entry(%{"status" => status}) when is_atom(status), do: status
   defp status_from_entry(%{status: status}) when is_atom(status), do: status
-  defp status_from_entry(%{"status" => status}) when is_binary(status), do: String.to_existing_atom(status)
-  defp status_from_entry(%{status: status}) when is_binary(status), do: String.to_existing_atom(status)
+
+  defp status_from_entry(%{"status" => status}) when is_binary(status),
+    do: String.to_existing_atom(status)
+
+  defp status_from_entry(%{status: status}) when is_binary(status),
+    do: String.to_existing_atom(status)
 end

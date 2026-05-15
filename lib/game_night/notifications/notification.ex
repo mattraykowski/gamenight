@@ -37,23 +37,6 @@ defmodule GameNight.Notifications.Notification do
 
   def kinds, do: @kinds
 
-  json_api do
-    type "notification"
-
-    routes do
-      base "/notifications"
-
-      # The actor's notifications, newest first.
-      index :list_mine, route: "/"
-
-      # Generic action — count of unread + unresolved notifications.
-      route :get, "/unread-count", :count_unread
-
-      # PATCH /:id — mark a single notification read.
-      patch :mark_read
-    end
-  end
-
   postgres do
     table "notifications"
     repo GameNight.Repo
@@ -74,6 +57,23 @@ defmodule GameNight.Notifications.Notification do
     end
   end
 
+  json_api do
+    type "notification"
+
+    routes do
+      base "/notifications"
+
+      # The actor's notifications, newest first.
+      index :list_mine, route: "/"
+
+      # Generic action — count of unread + unresolved notifications.
+      route :get, "/unread-count", :count_unread
+
+      # PATCH /:id — mark a single notification read.
+      patch :mark_read
+    end
+  end
+
   typescript do
     type_name "Notification"
   end
@@ -85,9 +85,9 @@ defmodule GameNight.Notifications.Notification do
       description "The current user's notifications, newest first."
 
       prepare build(
-               filter: expr(user_id == ^actor(:id)),
-               sort: [inserted_at: :desc]
-             )
+                filter: expr(user_id == ^actor(:id)),
+                sort: [inserted_at: :desc]
+              )
     end
 
     action :count_unread, :integer do
@@ -118,6 +118,7 @@ defmodule GameNight.Notifications.Notification do
       an existing user. Idempotent on the
       `:unique_user_subject_kind` identity.
       """
+
       accept [:user_id, :kind, :subject_type, :subject_id]
 
       upsert? true
@@ -133,6 +134,7 @@ defmodule GameNight.Notifications.Notification do
       `:schedule_reminder` per FR-038 — no rate limit, every
       reminder produces a new bell entry).
       """
+
       accept [:user_id, :kind, :subject_type, :subject_id]
     end
 
@@ -149,6 +151,7 @@ defmodule GameNight.Notifications.Notification do
       function-form `set_attribute` can't be compiled into the
       bulk SQL UPDATE).
       """
+
       accept [:resolved_at]
     end
 

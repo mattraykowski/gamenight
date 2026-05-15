@@ -90,11 +90,7 @@ defmodule GameNight.Games.InvitationTest do
       {:ok, stranger} = create_user()
       {:ok, game} = register_game(owner, %{title: "Curse of Strahd", status: :active})
 
-      {:ok,
-       owner: owner,
-       other_owner: other_owner,
-       stranger: stranger,
-       game: game}
+      {:ok, owner: owner, other_owner: other_owner, stranger: stranger, game: game}
     end
 
     test "owner can create an invitation; pending status, inviter, expires_at set", %{
@@ -416,12 +412,7 @@ defmodule GameNight.Games.InvitationTest do
       {invitation, _token} =
         create_invitation_with_token(gm, game, %{email: "recipient@example.test"})
 
-      {:ok,
-       gm: gm,
-       recipient: recipient,
-       stranger: stranger,
-       game: game,
-       invitation: invitation}
+      {:ok, gm: gm, recipient: recipient, stranger: stranger, game: game, invitation: invitation}
     end
 
     test "recipient can accept_for_me; Player created, status :accepted", %{
@@ -493,12 +484,14 @@ defmodule GameNight.Games.InvitationTest do
       {:ok, stranger} = create_user()
 
       {:ok, game} = register_game(gm, %{title: "List mine", status: :active})
+
       {invitation, _token} =
         create_invitation_with_token(gm, game, %{email: "listmine@example.test"})
 
       # Different invitation to a different email — should NOT appear
       # in `recipient`'s pending list.
       drain_emails()
+
       {:ok, _other} =
         Invitation
         |> Ash.Changeset.for_create(
@@ -735,7 +728,13 @@ defmodule GameNight.Games.InvitationTest do
     setup do
       {:ok, owner} = create_user()
       {:ok, game} = register_game(owner, %{title: "Lost Mine of Phandelver", status: :active})
-      {invitation, token} = create_invitation_with_token(owner, game, %{email: "rachel@example.test", character_name: "Mira"})
+
+      {invitation, token} =
+        create_invitation_with_token(owner, game, %{
+          email: "rachel@example.test",
+          character_name: "Mira"
+        })
+
       {:ok, owner: owner, game: game, invitation: invitation, token: token}
     end
 
@@ -784,14 +783,14 @@ defmodule GameNight.Games.InvitationTest do
       {:ok, owner} = create_user()
       {:ok, invitee} = create_user()
       {:ok, game} = register_game(owner, %{title: "Curse of Strahd", status: :active})
-      {invitation, token} = create_invitation_with_token(owner, game, %{email: "rachel@example.test", character_name: "Mira"})
 
-      {:ok,
-       owner: owner,
-       invitee: invitee,
-       game: game,
-       invitation: invitation,
-       token: token}
+      {invitation, token} =
+        create_invitation_with_token(owner, game, %{
+          email: "rachel@example.test",
+          character_name: "Mira"
+        })
+
+      {:ok, owner: owner, invitee: invitee, game: game, invitation: invitation, token: token}
     end
 
     test "actor with a valid token (even if email differs) becomes the seated player", %{
@@ -836,7 +835,9 @@ defmodule GameNight.Games.InvitationTest do
     } do
       assert {:error, _} =
                invitation
-               |> Ash.Changeset.for_update(:accept_with_token, %{token: "garbage"}, actor: invitee)
+               |> Ash.Changeset.for_update(:accept_with_token, %{token: "garbage"},
+                 actor: invitee
+               )
                |> Ash.update()
     end
 

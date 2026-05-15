@@ -28,6 +28,31 @@ defmodule GameNight.Games.Invitation do
 
   def statuses, do: @statuses
 
+  postgres do
+    table "invitations"
+    repo GameNight.Repo
+
+    references do
+      reference :game, on_delete: :delete
+      reference :inviter, on_delete: :delete
+      reference :accepted_player, on_delete: :nilify
+    end
+
+    custom_indexes do
+      index [:game_id, :status, :updated_at],
+        name: "invitations_game_status_updated_at_index"
+
+      index [:email, :status],
+        name: "invitations_email_status_index"
+    end
+
+    # Required by ash_postgres so the migration generator emits a
+    # partial unique index matching the `:unique_game_email_open`
+    # identity. The SQL fragment is the WHERE clause appended to the
+    # generated `CREATE UNIQUE INDEX` statement.
+    identity_wheres_to_sql unique_game_email_open: "status IN ('pending', 'accepted')"
+  end
+
   json_api do
     type "invitation"
 
@@ -67,31 +92,6 @@ defmodule GameNight.Games.Invitation do
     end
   end
 
-  postgres do
-    table "invitations"
-    repo GameNight.Repo
-
-    references do
-      reference :game, on_delete: :delete
-      reference :inviter, on_delete: :delete
-      reference :accepted_player, on_delete: :nilify
-    end
-
-    custom_indexes do
-      index [:game_id, :status, :updated_at],
-        name: "invitations_game_status_updated_at_index"
-
-      index [:email, :status],
-        name: "invitations_email_status_index"
-    end
-
-    # Required by ash_postgres so the migration generator emits a
-    # partial unique index matching the `:unique_game_email_open`
-    # identity. The SQL fragment is the WHERE clause appended to the
-    # generated `CREATE UNIQUE INDEX` statement.
-    identity_wheres_to_sql unique_game_email_open: "status IN ('pending', 'accepted')"
-  end
-
   typescript do
     type_name "Invitation"
   end
@@ -104,12 +104,13 @@ defmodule GameNight.Games.Invitation do
       GM-only — pending invitations on a specific game. Drives the
       "Pending invitations" section on the GM's `/games/:id` view.
       """
+
       argument :game_id, :uuid, allow_nil?: false
 
       prepare build(
-               filter: expr(game_id == ^arg(:game_id) and status == :pending),
-               sort: [updated_at: :desc]
-             )
+                filter: expr(game_id == ^arg(:game_id) and status == :pending),
+                sort: [updated_at: :desc]
+              )
     end
 
     update :revoke do
@@ -119,6 +120,7 @@ defmodule GameNight.Games.Invitation do
       table, and resolves any matching in-app notification so the
       recipient's bell stops surfacing the entry.
       """
+
       accept []
       require_atomic? false
       change GameNight.Games.Invitation.Changes.Revoke
@@ -132,9 +134,9 @@ defmodule GameNight.Games.Invitation do
       """
 
       prepare build(
-               filter: expr(email == ^actor(:email) and status == :pending),
-               sort: [updated_at: :desc]
-             )
+                filter: expr(email == ^actor(:email) and status == :pending),
+                sort: [updated_at: :desc]
+              )
     end
 
     read :read_for_accept do
@@ -147,6 +149,7 @@ defmodule GameNight.Games.Invitation do
       `:accept_with_token` action's body — that is the actual
       authorization gate.
       """
+
       argument :id, :uuid, allow_nil?: false
       get? true
       filter expr(id == ^arg(:id))
@@ -268,6 +271,7 @@ defmodule GameNight.Games.Invitation do
       creates the Player, marks `:accepted`, revokes the token JTI,
       resolves the matching notification.
       """
+
       accept []
 
       require_atomic? false
@@ -279,6 +283,7 @@ defmodule GameNight.Games.Invitation do
       In-app decline for the recipient. Email-match auth, no token
       required. Mirrors `:decline_with_token` minus the token check.
       """
+
       accept []
 
       require_atomic? false
@@ -293,6 +298,7 @@ defmodule GameNight.Games.Invitation do
       crucially does NOT create a Player record. The invitation is
       closed.
       """
+
       accept []
 
       argument :token, :string do
@@ -313,6 +319,7 @@ defmodule GameNight.Games.Invitation do
       `authorize?: false` and dispatches to `:decline_with_token`.
       The actor-presence requirement is the JSON:API gate.
       """
+
       argument :id, :uuid, allow_nil?: false
       argument :token, :string, allow_nil?: false, sensitive?: true
 
@@ -345,7 +352,6 @@ defmodule GameNight.Games.Invitation do
       authorize_if expr(game.owner_id == ^actor(:id))
     end
 
-
     # GM-only create. The custom check inspects the changeset's
     # `:game_id` argument and verifies ownership against the Game
     # table directly.
@@ -367,11 +373,11 @@ defmodule GameNight.Games.Invitation do
     # verifies it. We do NOT require the actor's email to match the
     # invitation's email — see research.md §2 ("token-bearer auth").
     policy action([
-            :accept_with_token,
-            :accept_invitation,
-            :decline_with_token,
-            :decline_invitation
-          ]) do
+             :accept_with_token,
+             :accept_invitation,
+             :decline_with_token,
+             :decline_invitation
+           ]) do
       authorize_if actor_present()
     end
 

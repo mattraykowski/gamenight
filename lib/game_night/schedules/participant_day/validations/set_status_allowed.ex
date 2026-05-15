@@ -27,21 +27,17 @@ defmodule GameNight.Schedules.ParticipantDay.Validations.SetStatusAllowed do
             pd.schedule.status != :ready_for_availability ->
               {:error,
                field: :status,
-               message:
-                 "You can't change availability on a schedule that isn't open for input."}
+               message: "You can't change availability on a schedule that isn't open for input."}
 
             gm_na?(pd.participant.schedule_id, pd.day) ->
-              {:error,
-               field: :status,
-               message: "The GM marked this day Not Available."}
+              {:error, field: :status, message: "The GM marked this day Not Available."}
 
             true ->
               :ok
           end
         else
           _ ->
-            {:error,
-             field: :status, message: "could not load participant context for validation"}
+            {:error, field: :status, message: "could not load participant context for validation"}
         end
 
       _ ->

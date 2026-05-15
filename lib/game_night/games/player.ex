@@ -41,10 +41,6 @@ defmodule GameNight.Games.Player do
     end
   end
 
-  typescript do
-    type_name "Player"
-  end
-
   json_api do
     type "player"
 
@@ -73,6 +69,29 @@ defmodule GameNight.Games.Player do
       # GM-only edit.
       patch :update
     end
+  end
+
+  field_policies do
+    # `visible_gm_notes` is the only path to `gm_notes`; admit only
+    # the GM. Non-GM callers see `null` even if they explicitly
+    # request the field via sparse fieldsets — that's the SC-005
+    # zero-leak guarantee.
+    field_policy :visible_gm_notes do
+      authorize_if expr(game.owner_id == ^actor(:id))
+    end
+
+    # Once any `field_policy` is declared, Ash requires every public
+    # field to be covered. The action-level policies above already
+    # gate access to the resource as a whole; this catch-all
+    # delegates field-level authorisation to those — anyone who can
+    # read the row can read every other field on it.
+    field_policy :* do
+      authorize_if always()
+    end
+  end
+
+  typescript do
+    type_name "Player"
   end
 
   actions do
@@ -138,6 +157,7 @@ defmodule GameNight.Games.Player do
       the default serialisation; the `visible_gm_notes` calculation
       is the only path to the field and is itself GM-gated.
       """
+
       argument :game_id, :uuid, allow_nil?: false
 
       prepare build(filter: expr(game_id == ^arg(:game_id)), sort: [updated_at: :desc])
@@ -150,13 +170,14 @@ defmodule GameNight.Games.Player do
       players see the same Player records); the difference is the
       additional GM-private field.
       """
+
       argument :game_id, :uuid, allow_nil?: false
 
       prepare build(
-               filter: expr(game_id == ^arg(:game_id)),
-               sort: [updated_at: :desc],
-               load: [:visible_gm_notes]
-             )
+                filter: expr(game_id == ^arg(:game_id)),
+                sort: [updated_at: :desc],
+                load: [:visible_gm_notes]
+              )
     end
 
     read :list_mine do
@@ -210,25 +231,6 @@ defmodule GameNight.Games.Player do
     end
   end
 
-  field_policies do
-    # `visible_gm_notes` is the only path to `gm_notes`; admit only
-    # the GM. Non-GM callers see `null` even if they explicitly
-    # request the field via sparse fieldsets — that's the SC-005
-    # zero-leak guarantee.
-    field_policy :visible_gm_notes do
-      authorize_if expr(game.owner_id == ^actor(:id))
-    end
-
-    # Once any `field_policy` is declared, Ash requires every public
-    # field to be covered. The action-level policies above already
-    # gate access to the resource as a whole; this catch-all
-    # delegates field-level authorisation to those — anyone who can
-    # read the row can read every other field on it.
-    field_policy :* do
-      authorize_if always()
-    end
-  end
-
   attributes do
     uuid_primary_key :id
 
@@ -279,12 +281,6 @@ defmodule GameNight.Games.Player do
     end
   end
 
-  identities do
-    # FR-014 — at most one Player per (game, user). The unique index
-    # is the authoritative gate; application-level checks would race.
-    identity :unique_game_user, [:game_id, :user_id]
-  end
-
   calculations do
     # GM-gated view of `gm_notes`. The expression returns the
     # underlying value; the matching `field_policy :visible_gm_notes`
@@ -294,5 +290,11 @@ defmodule GameNight.Games.Player do
     calculate :visible_gm_notes, :string, expr(gm_notes) do
       public? true
     end
+  end
+
+  identities do
+    # FR-014 — at most one Player per (game, user). The unique index
+    # is the authoritative gate; application-level checks would race.
+    identity :unique_game_user, [:game_id, :user_id]
   end
 end

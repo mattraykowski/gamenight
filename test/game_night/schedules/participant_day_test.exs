@@ -23,9 +23,7 @@ defmodule GameNight.Schedules.ParticipantDayTest do
 
       assert {:ok, updated} =
                day
-               |> Ash.Changeset.for_update(:set_status, %{status: :I},
-                 actor: ctx.player_user
-               )
+               |> Ash.Changeset.for_update(:set_status, %{status: :I}, actor: ctx.player_user)
                |> Ash.update()
 
       assert updated.status == :I
@@ -38,9 +36,7 @@ defmodule GameNight.Schedules.ParticipantDayTest do
       # invariant matters now).
       [other_participant] =
         ScheduleParticipant
-        |> Ash.Query.filter(
-          schedule_id == ^ctx.schedule.id and player_id == ^ctx.other_player.id
-        )
+        |> Ash.Query.filter(schedule_id == ^ctx.schedule.id and player_id == ^ctx.other_player.id)
         |> Ash.read!(authorize?: false)
 
       {:ok, _} =
@@ -73,9 +69,7 @@ defmodule GameNight.Schedules.ParticipantDayTest do
 
       assert {:error, _} =
                day
-               |> Ash.Changeset.for_update(:set_status, %{status: :I},
-                 actor: ctx.player_user
-               )
+               |> Ash.Changeset.for_update(:set_status, %{status: :I}, actor: ctx.player_user)
                |> Ash.update()
     end
 
@@ -83,18 +77,14 @@ defmodule GameNight.Schedules.ParticipantDayTest do
       # GM marks day 5 as NA on the schedule via the action.
       {:ok, _} =
         ctx.schedule
-        |> Ash.Changeset.for_update(:set_gm_day, %{day: 5, status: :NA},
-          actor: ctx.gm
-        )
+        |> Ash.Changeset.for_update(:set_gm_day, %{day: 5, status: :NA}, actor: ctx.gm)
         |> Ash.update()
 
       day = participant_day(ctx.participant, 5)
 
       assert {:error, _} =
                day
-               |> Ash.Changeset.for_update(:set_status, %{status: :I},
-                 actor: ctx.player_user
-               )
+               |> Ash.Changeset.for_update(:set_status, %{status: :I}, actor: ctx.player_user)
                |> Ash.update()
     end
   end
@@ -208,9 +198,7 @@ defmodule GameNight.Schedules.ParticipantDayTest do
 
   defp register_game(owner) do
     Game
-    |> Ash.Changeset.for_create(:register, %{title: "PD test", status: :active},
-      actor: owner
-    )
+    |> Ash.Changeset.for_create(:register, %{title: "PD test", status: :active}, actor: owner)
     |> Ash.create()
   end
 

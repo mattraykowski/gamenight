@@ -69,7 +69,8 @@ defmodule GameNight.Schedules.Senders.SendScheduleReminderEmailTest do
   end
 
   defp create_user(prefix) do
-    email = "schedule-reminder-email-#{prefix}-#{:erlang.unique_integer([:positive])}@example.test"
+    email =
+      "schedule-reminder-email-#{prefix}-#{:erlang.unique_integer([:positive])}@example.test"
 
     User
     |> Ash.Changeset.for_create(:register_with_password, %{

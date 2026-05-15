@@ -151,9 +151,7 @@ defmodule GameNight.Schedules.SystemTest do
       # Two Notification rows materialised, one per linked player.
       notifications =
         Notification
-        |> Ash.Query.filter(
-          subject_type == "schedule" and subject_id == ^schedule.id
-        )
+        |> Ash.Query.filter(subject_type == "schedule" and subject_id == ^schedule.id)
         |> Ash.read!(authorize?: false)
 
       assert length(notifications) == 2
@@ -204,10 +202,11 @@ defmodule GameNight.Schedules.SystemTest do
         )
         |> Ash.create()
 
-      ref = :telemetry_test.attach_event_handlers(self(), [
-        [:game_night, :schedules, :fan_out, :start],
-        [:game_night, :schedules, :fan_out, :stop]
-      ])
+      ref =
+        :telemetry_test.attach_event_handlers(self(), [
+          [:game_night, :schedules, :fan_out, :start],
+          [:game_night, :schedules, :fan_out, :stop]
+        ])
 
       try do
         {:ok, _} =
