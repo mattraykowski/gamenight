@@ -43,7 +43,7 @@ export function NavBar() {
         <Link
           to={isAuthenticated ? "/dashboard" : "/"}
           search={isAuthenticated ? {} : undefined}
-          className="font-serif text-2xl italic tracking-tight text-tertiary-container hover:opacity-80"
+          className="font-serif text-2xl italic tracking-tight text-tertiary hover:opacity-80"
           data-testid="nav-brand"
         >
           Game Night

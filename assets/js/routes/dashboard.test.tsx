@@ -148,7 +148,7 @@ describe("/dashboard route", () => {
     await waitFor(() => {
       // Friendly display name is derived from the local-part of the
       // email (the part before the @).
-      expect(screen.getByTestId("current-user-email")).toHaveTextContent(
+      expect(screen.getByTestId("current-user-name")).toHaveTextContent(
         "player",
       );
     });

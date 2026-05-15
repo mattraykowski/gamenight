@@ -15,7 +15,7 @@ test.describe("sign-out", () => {
     request,
   }) => {
     await page.goto("/dashboard");
-    await expect(page.getByRole("heading", { level: 1, name: /dashboard/i })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /welcome back/i })).toBeVisible();
 
     await clickSignOut(page);
 

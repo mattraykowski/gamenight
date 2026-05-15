@@ -21,29 +21,31 @@ test.describe("authenticated dashboard", () => {
     await signInAs(page, "playwright@example.test");
   });
 
-  test("renders 'Welcome, {email}' and focuses the heading after navigation", async ({ page }) => {
+  test("renders 'Welcome back, {name}' and focuses the heading after navigation", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1, name: "GameNight" })).toBeVisible();
 
-    await page.goto("/dashboard");
+    // SPA-navigate (not page.goto) so route-change focus fires.
+    await page.getByTestId("nav-brand").click();
+    await expect(page).toHaveURL(/\/dashboard$/);
 
-    const heading = page.getByRole("heading", { level: 1, name: "Dashboard" });
+    const heading = page.getByRole("heading", { level: 1, name: /welcome back/i });
     await expect(heading).toBeVisible();
 
-    await expect(page.getByTestId("current-user-email")).toHaveText(
-      "playwright@example.test",
-    );
+    await expect(page.getByTestId("current-user-name")).toHaveText("playwright");
 
     const focused = page.locator(":focus");
     await expect(focused).toHaveAttribute("data-route-heading", "true");
 
-    await expect(page.getByTestId("announcer-polite")).toHaveText("Dashboard");
+    await expect(page.getByTestId("announcer-polite")).toHaveText(
+      "Welcome back, playwright.",
+    );
   });
 
   test("/dashboard has no serious or critical axe violations", async ({ page }) => {
     await page.goto("/dashboard");
-    await page.getByRole("heading", { level: 1, name: "Dashboard" }).waitFor();
-    await page.getByTestId("current-user-email").waitFor();
+    await page.getByRole("heading", { level: 1, name: /welcome back/i }).waitFor();
+    await page.getByTestId("current-user-name").waitFor();
 
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])

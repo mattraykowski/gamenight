@@ -137,8 +137,14 @@
      "rare" premium features per the design brief). */
   --color-primary-container: var(--gn-primary-container);
   --color-on-primary-container: var(--gn-on-primary-container);
+  --color-primary-fixed: var(--gn-primary-fixed);
+  --color-primary-fixed-dim: var(--gn-primary-fixed-dim);
+  --color-on-primary-fixed: var(--gn-on-primary-fixed);
   --color-secondary-container: var(--gn-secondary-container);
   --color-on-secondary-container: var(--gn-on-secondary-container);
+  --color-secondary-fixed: var(--gn-secondary-fixed);
+  --color-secondary-fixed-dim: var(--gn-secondary-fixed-dim);
+  --color-on-secondary-fixed: var(--gn-on-secondary-fixed);
   --color-tertiary: var(--gn-tertiary);
   --color-tertiary-container: var(--gn-tertiary-container);
   --color-tertiary-fixed: var(--gn-tertiary-fixed);

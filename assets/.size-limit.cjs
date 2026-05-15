@@ -78,53 +78,74 @@ function maybeRouteChunkFile(routeKey) {
   return path.resolve(__dirname, "../priv/static", entry.file);
 }
 
+// TanStack Router's auto-code-splitting plugin keys the per-route
+// chunks under the `?tsr-split=component` query suffix in the Vite
+// manifest. Use a small helper so the entries below stay readable.
+const split = (file) => `${file}?tsr-split=component`;
+
 const featureRouteEntries = [
   {
     name: "Route chunk: /invitations/$token (gzipped)",
-    routeKey: "js/routes/invitations.$token.tsx",
+    routeKey: split("js/routes/invitations.$token.tsx"),
     limit: "12 KB",
   },
   {
     name: "Route chunk: /invitations (gzipped)",
-    routeKey: "js/routes/invitations.index.tsx",
+    routeKey: split("js/routes/invitations.index.tsx"),
     limit: "8 KB",
   },
   {
     name: "Route chunk: /characters (gzipped)",
-    routeKey: "js/routes/characters.tsx",
+    routeKey: split("js/routes/characters.tsx"),
     limit: "8 KB",
   },
   {
     name: "Route chunk: /notifications (gzipped)",
-    routeKey: "js/routes/notifications.tsx",
+    routeKey: split("js/routes/notifications.tsx"),
     limit: "8 KB",
   },
   // Feature 003 — Schedules. Budgets per plan §VI / T155.
   {
     name: "Route chunk: GM schedule detail (gzipped)",
-    routeKey: "js/routes/games.$gameId.schedules.$scheduleId.tsx",
+    routeKey: split("js/routes/games.$gameId.schedules.$scheduleId.tsx"),
     limit: "22 KB",
   },
   {
     name: "Route chunk: GM schedules list (gzipped)",
-    routeKey: "js/routes/games.$gameId.schedules.index.tsx",
+    routeKey: split("js/routes/games.$gameId.schedules.index.tsx"),
     limit: "8 KB",
   },
   {
     name: "Route chunk: character schedules list (gzipped)",
-    routeKey: "js/routes/characters.$characterId.schedules.index.tsx",
+    routeKey: split("js/routes/characters.$characterId.schedules.index.tsx"),
     limit: "12 KB",
   },
   {
     name: "Route chunk: character schedule detail (gzipped)",
-    routeKey: "js/routes/characters.$characterId.schedules.$scheduleId.tsx",
+    routeKey: split("js/routes/characters.$characterId.schedules.$scheduleId.tsx"),
     limit: "16 KB",
   },
   // Feature 004 — Full Calendar. Budget per plan §VI / T030.
   {
     name: "Route chunk: /calendar (gzipped)",
-    routeKey: "js/routes/calendar.tsx",
+    routeKey: split("js/routes/calendar.tsx"),
     limit: "8 KB",
+  },
+  // Feature 006 — Landing page. Budgets per tasks.md / T038.
+  {
+    name: "Route chunk: / (landing) (gzipped)",
+    routeKey: split("js/routes/index.tsx"),
+    limit: "6 KB",
+  },
+  {
+    name: "Route chunk: /privacy (gzipped)",
+    routeKey: split("js/routes/privacy.tsx"),
+    limit: "2 KB",
+  },
+  {
+    name: "Route chunk: /terms (gzipped)",
+    routeKey: split("js/routes/terms.tsx"),
+    limit: "2 KB",
   },
 ]
   .map(({ name, routeKey, limit }) => {

@@ -1,10 +1,10 @@
 <!-- SPECKIT START -->
-Current feature plan: [specs/004-full-calendar/plan.md](specs/004-full-calendar/plan.md)
-Supporting artifacts: [spec.md](specs/004-full-calendar/spec.md),
-[research.md](specs/004-full-calendar/research.md),
-[data-model.md](specs/004-full-calendar/data-model.md),
-[contracts/](specs/004-full-calendar/contracts/),
-[quickstart.md](specs/004-full-calendar/quickstart.md).
+Current feature plan: [specs/006-landing-page/plan.md](specs/006-landing-page/plan.md)
+Supporting artifacts: [spec.md](specs/006-landing-page/spec.md),
+[research.md](specs/006-landing-page/research.md),
+[data-model.md](specs/006-landing-page/data-model.md),
+[contracts/](specs/006-landing-page/contracts/),
+[quickstart.md](specs/006-landing-page/quickstart.md).
 <!-- SPECKIT END -->
 
 ## Design source of truth

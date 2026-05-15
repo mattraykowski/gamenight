@@ -9,9 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as ResetRouteImport } from './routes/reset'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MagicLinkRouteImport } from './routes/magic-link'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -34,6 +36,11 @@ import { Route as GamesGameIdSchedulesScheduleIdRouteImport } from './routes/gam
 import { Route as CharactersCharacterIdSchedulesScheduleIdRouteImport } from './routes/characters.$characterId.schedules.$scheduleId'
 import { Route as GamesGameIdSchedulesScheduleIdSchedulingRouteImport } from './routes/games.$gameId.schedules.$scheduleId_.scheduling'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
@@ -47,6 +54,11 @@ const ResetRoute = ResetRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -166,9 +178,11 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/magic-link': typeof MagicLinkRoute
   '/notifications': typeof NotificationsRoute
+  '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
   '/reset': typeof ResetRoute
   '/sign-in': typeof SignInRoute
+  '/terms': typeof TermsRoute
   '/confirm_new_user/$token': typeof Confirm_new_userTokenRoute
   '/games/new': typeof GamesNewRoute
   '/invitations/$token': typeof InvitationsTokenRoute
@@ -192,9 +206,11 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/magic-link': typeof MagicLinkRoute
   '/notifications': typeof NotificationsRoute
+  '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
   '/reset': typeof ResetRoute
   '/sign-in': typeof SignInRoute
+  '/terms': typeof TermsRoute
   '/confirm_new_user/$token': typeof Confirm_new_userTokenRoute
   '/games/new': typeof GamesNewRoute
   '/invitations/$token': typeof InvitationsTokenRoute
@@ -219,9 +235,11 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/magic-link': typeof MagicLinkRoute
   '/notifications': typeof NotificationsRoute
+  '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
   '/reset': typeof ResetRoute
   '/sign-in': typeof SignInRoute
+  '/terms': typeof TermsRoute
   '/confirm_new_user/$token': typeof Confirm_new_userTokenRoute
   '/games/new': typeof GamesNewRoute
   '/invitations/$token': typeof InvitationsTokenRoute
@@ -247,9 +265,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/magic-link'
     | '/notifications'
+    | '/privacy'
     | '/register'
     | '/reset'
     | '/sign-in'
+    | '/terms'
     | '/confirm_new_user/$token'
     | '/games/new'
     | '/invitations/$token'
@@ -273,9 +293,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/magic-link'
     | '/notifications'
+    | '/privacy'
     | '/register'
     | '/reset'
     | '/sign-in'
+    | '/terms'
     | '/confirm_new_user/$token'
     | '/games/new'
     | '/invitations/$token'
@@ -299,9 +321,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/magic-link'
     | '/notifications'
+    | '/privacy'
     | '/register'
     | '/reset'
     | '/sign-in'
+    | '/terms'
     | '/confirm_new_user/$token'
     | '/games/new'
     | '/invitations/$token'
@@ -326,9 +350,11 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   MagicLinkRoute: typeof MagicLinkRoute
   NotificationsRoute: typeof NotificationsRoute
+  PrivacyRoute: typeof PrivacyRoute
   RegisterRoute: typeof RegisterRoute
   ResetRoute: typeof ResetRoute
   SignInRoute: typeof SignInRoute
+  TermsRoute: typeof TermsRoute
   Confirm_new_userTokenRoute: typeof Confirm_new_userTokenRoute
   GamesNewRoute: typeof GamesNewRoute
   InvitationsTokenRoute: typeof InvitationsTokenRoute
@@ -349,6 +375,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sign-in': {
       id: '/sign-in'
       path: '/sign-in'
@@ -368,6 +401,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -526,9 +566,11 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   MagicLinkRoute: MagicLinkRoute,
   NotificationsRoute: NotificationsRoute,
+  PrivacyRoute: PrivacyRoute,
   RegisterRoute: RegisterRoute,
   ResetRoute: ResetRoute,
   SignInRoute: SignInRoute,
+  TermsRoute: TermsRoute,
   Confirm_new_userTokenRoute: Confirm_new_userTokenRoute,
   GamesNewRoute: GamesNewRoute,
   InvitationsTokenRoute: InvitationsTokenRoute,
